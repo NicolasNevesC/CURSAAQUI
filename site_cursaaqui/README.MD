@@ -1,0 +1,1 @@
+Baixe todos os arquivos e anexe em uma única pasta para ter acesso ao sistema localmente.

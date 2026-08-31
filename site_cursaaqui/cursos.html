@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem("theme") || "light";
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      }
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catálogo de Cursos - Cursa Aqui</title>
+  <link rel="stylesheet" href="style.css?v=3.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap"
+    rel="stylesheet">
+</head>
+
+<body>
+
+  <div id="loading-screen">
+    <div class="loader"></div>
+    <h2>Cursa Aqui</h2>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <header class="navbar glass" id="mainNavbar">
+    <div class="logo"><a href="index.html" style="text-decoration:none; color:inherit;">🎓 Cursa Aqui</a></div>
+
+    <!-- Botão hamburguer: visível apenas em mobile (≤768px via CSS) -->
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu" onclick="toggleMobileMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <nav>
+      <a href="index.html">Início</a>
+      <a href="cursos.html" class="active" style="font-weight: 700; color: var(--primary);">Cursos</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="index.html#dashboard">Dashboard</a>
+
+      <!-- Ações de autenticação e tema dentro do menu mobile -->
+      <div class="nav-mobile-actions" style="display: none;">
+        <button class="btn-secondary" onclick="toggleTheme()">🌓 Tema</button>
+        <button class="btn-primary" onclick="openAuthModal(); closeMobileMenu()">Entrar</button>
+        <button class="btn-secondary" onclick="logout(); closeMobileMenu()" style="color: #EF4444;">🚪 Sair</button>
+      </div>
+    </nav>
+
+    <div class="nav-buttons">
+      <button id="theme-toggle" class="btn-secondary">🌓 Tema</button>
+      <button id="login-btn" class="btn-primary" onclick="openAuthModal()">Entrar</button>
+
+      <div id="user-profile" class="user-profile-container" style="display: none;">
+        <button class="profile-icon-btn" onclick="toggleUserMenu()">👤</button>
+        <div id="user-menu" class="dropdown-menu glass">
+          <div class="menu-header">
+            <span id="menu-user-name">Aluno</span>
+            <span class="user-level">Nível <strong id="user-level-val">1</strong></span>
+          </div>
+          <div class="xp-container">
+            <div class="xp-text">
+              <span>XP atual:</span>
+              <span id="xp-ratio-val">0 / 1000</span>
+            </div>
+            <div class="xp-progress-bg">
+              <div id="xp-progress-bar" class="xp-progress-fill"></div>
+            </div>
+          </div>
+          <hr class="menu-divider">
+          <div class="menu-section">
+            <h4>📚 Cursos Iniciados</h4>
+            <ul id="started-courses-list"></ul>
+          </div>
+          <hr class="menu-divider">
+          <button class="menu-item-btn" onclick="window.location.href='index.html#dashboard'; toggleUserMenu();">🏆
+            Certificados</button>
+          <button class="menu-item-btn" onclick="window.location.href='index.html#suporte'; toggleUserMenu();">🛠️ Suporte
+            Técnico</button>
+          <button class="menu-item-btn btn-logout" onclick="logout()">🚪 Deslogar</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; width: 100%; padding: 50px 20px 20px 20px;">
+    <div class="hero-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; margin: 0 auto; max-width: 800px; width: 100%;">
+      <h1 style="text-align: center; font-size: 2.8rem; margin-bottom: 15px;">Catálogo Completo de Cursos</h1>
+      <p style="text-align: center; margin: 0 auto; font-size: 1.1rem; opacity: 0.85;">Explore dezenas de cursos gratuitos com certificação nas principais áreas de tecnologia, gestão e ciências humanas.</p>
+    </div>
+  </section>
+
+  <div class="search-section" style="margin-top: 10px; padding: 20px;">
+    <input type="text" id="searchInput" name="search_course" autocomplete="off" onfocus="if(this.value.includes('@')) this.value='';" placeholder="🔍 Pesquisar por nome do curso ou categoria (Ex: Cloud, .NET, Redes...)" style="width: 100%; max-width: 600px; padding: 14px 20px; font-size: 1rem; border-radius: 12px; border: 1px solid rgba(0,0,0,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+  </div>
+
+  <section id="courses" class="courses" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 1200px; margin: 0 auto; text-align: center; padding: 20px;">
+    <h2 class="section-title" style="text-align: center; width: 100%; margin-bottom: 30px;">Todos os Cursos Disponíveis</h2>
+    <div class="course-grid" id="courseGrid" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 24px; width: 100%; max-width: 1200px; margin: 0 auto;">
+      <!-- Preenchido dinamicamente pelo app.js -->
+    </div>
+  </section>
+
+  <div class="modal" id="authModal" style="display:none;">
+    <div class="modal-content">
+      <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer;"
+        onclick="closeAuthModal()">&times;</span>
+
+      <div id="loginForm">
+        <h2>Entrar no Cursa Aqui</h2>
+        <p style="font-size:0.85rem; opacity:0.8; margin-bottom:12px;">Acesse seu painel como Aluno ou Professor.</p>
+        
+        <input type="email" id="loginEmail" placeholder="E-mail" style="width:100%; margin:8px 0; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.15);">
+        <input type="password" id="loginPassword" placeholder="Senha" style="width:100%; margin:8px 0 15px 0; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.15);">
+        
+        <button class="btn-primary" onclick="login()" style="width:100%;">Entrar</button>
+
+        <div style="margin-top: 15px; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 12px; text-align: center;">
+          <p style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 8px;">Acesso Rápido de Demonstração:</p>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn-secondary" style="flex:1; font-size: 0.8rem; padding: 8px;" onclick="loginAsRole('ricardo@cursaaqui.com', '123456')">👨‍🏫 Prof. Ricardo</button>
+            <button class="btn-secondary" style="flex:1; font-size: 0.8rem; padding: 8px;" onclick="loginAsRole('aluno@cursaaqui.com', '123456')">👨‍🎓 Aluno Matheus</button>
+          </div>
+        </div>
+
+        <p style="margin-top:15px; text-align:center; font-size:0.9rem;">Não tem conta? <a href="#" onclick="showRegister()">Cadastre-se</a></p>
+      </div>
+
+      <div id="registerForm" style="display:none;">
+        <h2>Criar Conta</h2>
+        <input type="text" id="registerName" placeholder="Nome Completo" style="width:100%; margin:8px 0; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.15);">
+        <input type="email" id="registerEmail" placeholder="E-mail" style="width:100%; margin:8px 0; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.15);">
+        <input type="password" id="registerPassword" placeholder="Senha" style="width:100%; margin:8px 0; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.15);">
+        
+        <div style="margin: 8px 0 15px 0;">
+          <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 4px;">Tipo de Perfil:</label>
+          <select id="registerRole" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.15); background: var(--card); color: inherit;">
+            <option value="student">👨‍🎓 Aluno (Assistir aulas e emitir certificados)</option>
+            <option value="teacher">👨‍🏫 Professor (Corrigir atividades e enviar feedbacks)</option>
+          </select>
+        </div>
+
+        <button class="btn-primary" onclick="register()" style="width:100%;">Criar Conta</button>
+        <p style="margin-top:15px; text-align:center; font-size:0.9rem;">Já tem conta? <a href="#" onclick="showLogin()">Entre aqui</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="courses.js?v=4.0"></script>
+  <script src="auth.js?v=4.0"></script>
+  <script src="certificate.js?v=4.0"></script>
+  <script src="dashboard.js?v=4.0"></script>
+  <script src="app.js?v=4.0"></script>
+  <script>
+    window.addEventListener('load', function() {
+      if (typeof renderCourses === 'function') renderCourses();
+    });
+  </script>
+</body>
+
+</html>

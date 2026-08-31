@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+  (function () {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+  })();
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curso - Cursa Aqui</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <header class="navbar glass">
+    <div class="logo">🎓 Cursa Aqui</div>
+    <a href="index.html" class="btn-primary">Voltar</a>
+  </header>
+
+  <div id="toast-container"></div>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1 id="courseTitle">Carregando...</h1>
+      <p id="courseDescription">Curso premium com aulas modernas.</p>
+      
+      <div class="progress">
+        <div class="progress-bar" id="courseProgress" style="width: 0%;"></div>
+      </div>
+      <br>
+      <a href="material.pdf" target="_blank" class="btn-primary" onclick="accessMaterial()" style="text-decoration: none; display: inline-block;">
+        📖 Acessar Material de Estudo
+      </a>
+    </div>
+
+    <div class="hero-card glass">
+      <h3>Aulas</h3>
+      <ul id="lessonList"></ul>
+    </div>
+  </section>
+
+  <section class="courses">
+    <h2>Avaliação do Curso</h2>
+    <div id="quizContainer"></div>
+    <div id="quizActions" style="margin-top: 20px;"></div>
+  </section>
+
+  <section class="courses" style="margin-top: 40px;">
+    <h2>Dúvidas com o Tutor</h2>
+    <div class="glass" style="padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; max-width: 600px;">
+      
+      <div id="teacherStudentSelectorContainer" style="display: none; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+        <label for="chatStudentSelector" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 6px;">
+          👨‍🏫 Responder chat do aluno:
+        </label>
+        <select id="chatStudentSelector" onchange="changeActiveStudent(this.value)" style="width: 100%; padding: 10px; border-radius: 6px; background: var(--card); color: inherit; border: 1px solid rgba(0,0,0,0.15); font-family: inherit;">
+          <option value="">Selecione um aluno para conversar...</option>
+        </select>
+      </div>
+
+      <div id="chatMessages" style="height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+        <!-- CITAÇÃO REMOVIDA AQUI -->
+        <div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
+          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do curso, envie aqui!
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="chatInput" placeholder="Digite sua mensagem..." onkeypress="handleChatKey(event)" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.02); color: inherit;">
+        <button class="btn-primary" onclick="sendMessage()">Enviar</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" id="certificateModal" style="display:none;">
+    <div class="modal-content" style="max-width: 500px; text-align: center;">
+      <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer;" onclick="closeCertificate()">&times;</span>
+      <h1>CERTIFICADO</h1>
+      <p style="margin: 15px 0;">Certificamos que</p>
+      <h2 id="certUser">Aluno</h2>
+      <p style="margin: 15px 0;">concluiu com sucesso o curso</p>
+      <h3 id="certCourse">Curso</h3>
+      <p id="certDate" style="margin: 15px 0; font-style: italic;"></p>
+      <div class="seal" style="font-size: 3rem; margin: 15px 0;">🏅</div>
+      <div class="signature" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+        <p>Assinatura Oficial</p>
+      </div>
+      <div class="certificate-buttons" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+        <button class="btn-primary" onclick="window.print()">Imprimir</button>
+        <button class="btn-secondary" onclick="closeCertificate()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="courses.js"></script>
+  <script src="certificate.js"></script>
+
+  <script>
+    let course = null;
+    const user = JSON.parse(localStorage.getItem("loggedUser"));
+
+    document.addEventListener("DOMContentLoaded", () => {
+      course = JSON.parse(localStorage.getItem("selectedCourse"));
+      
+      if (!course) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      if (user) {
+        const progressKey = `user_courses_progress_${user.email}`;
+        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+        if (records[course.id]) {
+          course.progress = records[course.id].progress || 0;
+          course.answers = records[course.id].answers || {};
+          course.quizCompleted = records[course.id].quizCompleted || false;
+          course.materialAccessed = records[course.id].materialAccessed || false;
+        }
+        
+        if (user.role === "teacher") {
+          buildStudentSelector();
+        }
+      }
+
+      if (!course.answers) course.answers = {};
+
+      document.getElementById("courseTitle").innerText = course.title;
+      
+      renderLessons();
+      renderQuiz();
+      renderChatHistory();
+    });
+
+    function renderLessons() {
+      const list = document.getElementById("lessonList");
+      list.innerHTML = "";
+      if (course.lessons) {
+        course.lessons.forEach(lesson => {
+          list.innerHTML += `<li>🔹 ${lesson}</li>`;
+        });
+      }
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById("quizContainer");
+      const actions = document.getElementById("quizActions");
+      container.innerHTML = "";
+      actions.innerHTML = "";
+
+      if (!course.quiz || course.quiz.length === 0) {
+        container.innerHTML = "<p>Este curso não possui avaliação.</p>";
+        return;
+      }
+
+      course.quiz.forEach((q, qIdx) => {
+        let optionsHtml = "";
+        q.options.forEach((opt, optIdx) => {
+          const isSelected = course.answers[qIdx] === optIdx;
+          const activeClass = isSelected ? "style='background: #3B82F6; color: white; border-color: #3B82F6;'" : "";
+          const disabled = course.quizCompleted ? "disabled" : "";
+
+          optionsHtml += `
+            <button class="btn-secondary" ${disabled} ${activeClass} onclick="selectAnswer(${qIdx}, ${optIdx}, this)" style="display: block; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px; font-size: 0.9rem;">
+              ${opt}
+            </button>
+          `;
+        });
+
+        container.innerHTML += `
+          <div class="glass" style="padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <p><strong>Questão ${qIdx + 1}:</strong> ${q.question}</p>
+            <div style="margin-top: 12px;">${optionsHtml}</div>
+          </div>
+        `;
+      });
+
+      if (!course.quizCompleted) {
+        actions.innerHTML = `<button class="btn-primary" onclick="submitQuiz()">Finalizar Avaliação</button>`;
+      } else {
+        actions.innerHTML = `
+          <div class="glass" style="padding: 15px; border-radius: 8px; border-left: 5px solid #10B981; margin-bottom: 15px;">
+            <p style="color: #10B981; font-weight: 600;">🎉 Avaliação Concluída!</p>
+          </div>
+        `;
+
+        if (course.progress === 100) {
+          actions.innerHTML += `
+            <div class="glass" id="reviewBox" style="padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px; text-align: left;">
+              <h4 style="margin-bottom: 10px;">⭐ Deixe sua Avaliação do Curso (Opcional)</h4>
+              <div style="margin-bottom: 12px;">
+                <label for="reviewStars" style="font-size: 0.9rem; font-weight: 500;">Nota:</label>
+                <select id="reviewStars" style="padding: 6px; margin-left: 10px; border-radius: 6px; background: var(--card); color: inherit; border: 1px solid rgba(0,0,0,0.15);">
+                  <option value="">Selecionar estrelas...</option>
+                  <option value="5">⭐⭐⭐⭐⭐ (5 / 5)</option>
+                  <option value="4">⭐⭐⭐⭐ (4 / 5)</option>
+                  <option value="3">⭐⭐⭐ (3 / 5)</option>
+                  <option value="2">⭐⭐ (2 / 5)</option>
+                  <option value="1">⭐ (1 / 5)</option>
+                </select>
+              </div>
+              <textarea id="reviewText" placeholder="Escreva um comentário opcional..." rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.15); background: var(--card); color: inherit; font-family: inherit; margin-bottom: 12px;"></textarea>
+              <button class="btn-primary" onclick="submitReview()" style="width: 100%; font-size: 0.9rem;">Enviar Avaliação</button>
+            </div>
+          `;
+          
+          actions.innerHTML += `<button class="btn-primary" onclick="generateCertificate('${course.title}')">🏆 Imprimir Meu Certificado</button>`;
+        }
+      }
+    }
+
+    function selectAnswer(qIdx, optIdx, btn) {
+      if (course.quizCompleted) return;
+      
+      course.answers[qIdx] = optIdx;
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+
+      const parent = btn.parentElement;
+      const buttons = parent.querySelectorAll("button");
+      buttons.forEach(b => {
+        b.style.background = "";
+        b.style.color = "";
+        b.style.borderColor = "";
+      });
+      btn.style.background = "#3B82F6";
+      btn.style.color = "white";
+      btn.style.borderColor = "#3B82F6";
+
+      calculateProgress();
+    }
+
+    function accessMaterial() {
+      course.materialAccessed = true;
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+      calculateProgress();
+      showToast("Material acessado com sucesso!");
+    }
+
+    function submitQuiz() {
+      const totalQuestions = course.quiz ? course.quiz.length : 0;
+      const totalAnswers = Object.keys(course.answers).length;
+
+      if (totalAnswers < totalQuestions) {
+        showToast("Por favor, responda todas as questões antes de finalizar!");
+        return;
+      }
+
+      course.quizCompleted = true;
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+      calculateProgress();
+      renderQuiz();
+      showToast("Avaliação registrada com sucesso!");
+    }
+
+    function calculateProgress() {
+      let weightMaterial = course.materialAccessed ? 30 : 0;
+      let weightQuiz = course.quizCompleted ? 70 : 0;
+      course.progress = weightMaterial + weightQuiz;
+      
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+      updateProgressUI();
+    }
+
+    function updateProgressUI() {
+      const progressBar = document.getElementById("courseProgress");
+      if (progressBar) {
+        progressBar.style.width = `${course.progress || 0}%`;
+      }
+    }
+
+    function saveProgressToGlobal() {
+      if (user && course) {
+        const progressKey = `user_courses_progress_${user.email}`;
+        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+        const jaConcluiuAntes = records[course.id] && records[course.id].progress === 100;
+
+        records[course.id] = {
+          id: course.id,
+          title: course.title,
+          progress: course.progress || 0,
+          answers: course.answers || {},
+          quizCompleted: course.quizCompleted || false,
+          materialAccessed: course.materialAccessed || false
+        };
+        localStorage.setItem(progressKey, JSON.stringify(records));
+
+        if (course.progress === 100 && !jaConcluiuAntes) {
+          if (user.xp === undefined) user.xp = 0;
+          if (user.level === undefined) user.level = 1;
+
+          const xpGanho = 1000; 
+          user.xp += xpGanho;
+          
+          showToast(`🎉 Parabéns! Você ganhou +${xpGanho} XP por concluir o curso!`);
+
+          let xpNecessario = user.level * 1000;
+          while (user.xp >= xpNecessario) {
+            user.xp -= xpNecessario;
+            user.level += 1;
+            xpNecessario = user.level * 1000;
+            showToast(`✨ SUBIU DE NÍVEL! Você agora está no Nível ${user.level}!`);
+          }
+
+          localStorage.setItem("loggedUser", JSON.stringify(user));
+
+          const listaUsuarios = JSON.parse(localStorage.getItem("users")) || [];
+          const index = listaUsuarios.findIndex(u => u.email === user.email);
+          if (index !== -1) {
+            listaUsuarios[index].xp = user.xp;
+            listaUsuarios[index].level = user.level;
+            localStorage.setItem("users", JSON.stringify(listaUsuarios));
+          }
+        }
+      }
+    }
+
+    function submitReview() {
+      const stars = document.getElementById("reviewStars").value;
+      const feedbackText = document.getElementById("reviewText").value.trim();
+      
+      const reviewData = {
+        courseId: course.id,
+        user: user ? user.email : "anonimo",
+        rating: stars || "Não avaliado",
+        comment: feedbackText || "Sem comentários"
+      };
+
+      const globalReviews = JSON.parse(localStorage.getItem("course_reviews")) || [];
+      globalReviews.push(reviewData);
+      localStorage.setItem("course_reviews", JSON.stringify(globalReviews));
+
+      const reviewBox = document.getElementById("reviewBox");
+      if (reviewBox) {
+        reviewBox.innerHTML = `<p style="color: #10B981; font-weight: 600; text-align: center; margin: 5px 0;">❤️ Obrigado pelo seu feedback voluntário!</p>`;
+      }
+      showToast("Avaliação enviada com sucesso!");
+    }
+
+    function getChatStorageKey() {
+      if (!course) return "chat_global";
+      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      
+      if (activeUser && activeUser.role === "student") {
+        return `chat_course_${course.id}_user_${activeUser.email}`;
+      } else {
+        const selectedStudent = localStorage.getItem("chat_active_student") || "student_simulation";
+        return `chat_course_${course.id}_user_${selectedStudent}`;
+      }
+    }
+
+    function buildStudentSelector() {
+      const containerSelector = document.getElementById("teacherStudentSelectorContainer");
+      const selector = document.getElementById("chatStudentSelector");
+      if (!containerSelector || !selector) return;
+
+      containerSelector.style.display = "block";
+      selector.innerHTML = '<option value="student_simulation">Simulação Geral (padrão)</option>';
+
+      const prefix = `chat_course_${course.id}_user_`;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) {
+          const studentEmail = key.replace(prefix, "");
+          if (studentEmail !== "student_simulation") {
+            const users = JSON.parse(localStorage.getItem("users")) || [];
+            const foundUser = users.find(u => u.email === studentEmail);
+            const studentName = foundUser ? foundUser.name : studentEmail;
+
+            selector.innerHTML += `<option value="${studentEmail}">${studentName} (${studentEmail})</option>`;
+          }
+        }
+      }
+
+      const active = localStorage.getItem("chat_active_student") || "student_simulation";
+      selector.value = active;
+    }
+
+    function changeActiveStudent(studentEmail) {
+      localStorage.setItem("chat_active_student", studentEmail);
+      renderChatHistory();
+    }
+
+    function renderChatHistory() {
+      const container = document.getElementById("chatMessages");
+      if (!container) return;
+      
+      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      container.innerHTML = "";
+
+      // CITAÇÃO REMOVIDA AQUI
+      container.innerHTML = `
+        <div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
+          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do curso, envie aqui!
+        </div>
+      `;
+
+      if (!activeUser) return;
+
+      const storageKey = getChatStorageKey();
+      const chatLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      chatLogs.forEach(msg => {
+        const isMe = msg.senderEmail === activeUser.email;
+        const bubble = document.createElement("div");
+        
+        if (isMe) {
+          bubble.style.cssText = "background: #3B82F6; color: white; padding: 10px 14px; border-radius: 12px 12px 0px 12px; align-self: flex-end; max-width: 85%; line-height: 1.4; word-break: break-word; margin-top: 5px;";
+        } else {
+          bubble.style.cssText = "background: rgba(16, 185, 129, 0.2); color: inherit; padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; word-break: break-word; margin-top: 5px; border: 1px solid rgba(16, 185, 129, 0.3);";
+        }
+        
+        bubble.innerHTML = `<strong>${msg.senderName}:</strong> ${msg.text}`;
+        container.appendChild(bubble);
+      });
+      container.scrollTop = container.scrollHeight;
+      updateProgressUI();
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const messageText = input.value.trim();
+      if (!messageText) return;
+
+      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      if (!activeUser) {
+        showToast("Você precisa entrar na sua conta para usar o chat.");
+        return;
+      }
+
+      const storageKey = getChatStorageKey();
+      const chatLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      const newMessage = {
+        senderName: activeUser.role === "teacher" ? "👨‍🏫 Prof. " + activeUser.name : activeUser.name,
+        senderEmail: activeUser.email,
+        text: messageText,
+        timestamp: new Date().getTime()
+      };
+
+      chatLogs.push(newMessage);
+      localStorage.setItem(storageKey, JSON.stringify(chatLogs));
+      
+      input.value = "";
+      renderChatHistory();
+
+      if (activeUser.role === "student") {
+        setTimeout(() => {
+          const currentLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+          const lastMsg = currentLogs[currentLogs.length - 1];
+          if (lastMsg && lastMsg.senderEmail === activeUser.email) {
+            const botMessage = {
+              senderName: "🤖 Notificação do Sistema",
+              senderEmail: "system_bot",
+              text: "Sua dúvida foi enviada! O professor foi notificado e responderá diretamente neste painel em breve.",
+              timestamp: new Date().getTime()
+            };
+            currentLogs.push(botMessage);
+            localStorage.setItem(storageKey, JSON.stringify(currentLogs));
+            renderChatHistory();
+          }
+        }, 2000);
+      } else {
+        showToast("Resposta do professor registrada!");
+      }
+    }
+  </script>
+  
+  <script src="courses.js"></script>
+  <script src="auth.js"></script>
+  <script src="dashboard.js"></script>
+  <script src="certificate.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
