@@ -144,13 +144,12 @@
   </div>
 
   <!-- 
-    CURSOS EM DESTAQUE — grid de cards gerado dinamicamente por renderCourses() em app.js.
-    O elemento #courseGrid começa vazio e é preenchido com os cards dos cursos.
+    CURSOS POR NÍVEIS — menu accordion dinâmico gerado por renderCourses() em app.js.
+    O elemento #courseGrid é preenchido com as 3 trilhas de níveis e seus respectivos cursos.
   -->
   <section id="courses" class="courses" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 1200px; margin: 0 auto; text-align: center; padding: 40px 20px;">
-    <h2 class="section-title" style="text-align: center; width: 100%; margin-bottom: 30px;">Cursos em Destaque</h2>
-    <!-- Container vazio: preenchido com cards HTML por renderCourses() -->
-    <div class="course-grid" id="courseGrid" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 24px; width: 100%; max-width: 1000px; margin: 0 auto;"></div>
+    <h2 class="section-title" style="text-align: center; width: 100%; margin-bottom: 25px;">Cursos & Níveis de Formação</h2>
+    <div id="courseGrid" style="width: 100%; max-width: 1200px; margin: 0 auto;"></div>
   </section>
 
   <!-- FAQ — perguntas frequentes usando o elemento nativo <details>/<summary> -->

@@ -230,6 +230,28 @@ function renderLevelTracks(coursesList, records, user, container) {
   container.innerHTML = html;
 }
 
+function getAllCourses() {
+  let stored = [];
+  try {
+    const custom = JSON.parse(localStorage.getItem("custom_courses")) || [];
+    if (Array.isArray(custom)) stored = custom;
+  } catch (e) {
+    stored = [];
+  }
+  const base = window.courses || (typeof courses !== "undefined" ? courses : []);
+  if (stored.length > 0) {
+    const ids = new Set(base.map(c => c.id));
+    const merged = [...base];
+    stored.forEach(c => {
+      if (!ids.has(c.id)) {
+        merged.push(c);
+      }
+    });
+    return merged;
+  }
+  return base;
+}
+
 function renderCourses() {
   const grid = document.getElementById("courseGrid");
   if (!grid) return; 
@@ -238,29 +260,10 @@ function renderCourses() {
 
   const user = JSON.parse(localStorage.getItem("loggedUser"));
   const records = user ? (JSON.parse(localStorage.getItem(`user_courses_progress_${user.email}`)) || {}) : {};
-  const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+  const coursesList = getAllCourses();
 
   if (coursesList && coursesList.length > 0) {
-    const pathname = window.location.pathname.toLowerCase();
-    const isCursosPage = pathname.includes("cursos.html");
-    const isHomePage = !isCursosPage;
-
-    if (isCursosPage) {
-      renderLevelTracks(coursesList, records, user, grid);
-    } else {
-      // Página inicial: exibe os 3 primeiros cursos em destaque
-      const displayList = coursesList.slice(0, 3);
-      displayList.forEach(course => {
-        const actualProgress = records[course.id] ? records[course.id].progress : (course.progress || 0);
-        grid.innerHTML += generateCourseCardHTML(course, actualProgress, user);
-      });
-
-      grid.innerHTML += `
-        <div style="grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; text-align: center; margin-top: 35px; width: 100%;">
-          <a href="cursos.html" class="btn-primary btn-lg" style="margin: 0 auto;">Ver Todos os Cursos (${coursesList.length}) ➔</a>
-        </div>
-      `;
-    }
+    renderLevelTracks(coursesList, records, user, grid);
   }
 }
 
@@ -271,7 +274,7 @@ function watchCourse(courseName) {
     if (typeof openAuthModal === "function") openAuthModal();
     return;
   }
-  const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+  const coursesList = getAllCourses();
   if (coursesList) {
     const found = coursesList.find(c => c.title === courseName);
     if (found) {
@@ -325,7 +328,7 @@ function filterCourses() {
     if (searchInput) searchInput.value = "";
   }
 
-  const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+  const coursesList = getAllCourses();
   if (!coursesList) return;
 
   const user = JSON.parse(localStorage.getItem("loggedUser"));
@@ -350,16 +353,7 @@ function filterCourses() {
   }
 
   const records = user ? (JSON.parse(localStorage.getItem(`user_courses_progress_${user.email}`)) || {}) : {};
-
-  const pathname = window.location.pathname.toLowerCase();
-  if (pathname.includes("cursos.html")) {
-    renderLevelTracks(filtered, records, user, grid);
-  } else {
-    filtered.forEach(course => {
-      const actualProgress = records[course.id] ? records[course.id].progress : (course.progress || 0);
-      grid.innerHTML += generateCourseCardHTML(course, actualProgress, user);
-    });
-  }
+  renderLevelTracks(filtered, records, user, grid);
 }
 
 /**
