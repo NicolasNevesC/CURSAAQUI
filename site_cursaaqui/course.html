@@ -193,8 +193,21 @@
           course.rating = found.rating;
           course.image = found.image;
           course.pdf = found.pdf;
+          course.minLevel = found.minLevel || 1;
           if (found.lessons) course.lessons = found.lessons;
           if (found.quiz) course.quiz = found.quiz;
+        }
+      }
+
+      // Verificação de Nível Mínimo do Curso
+      const minLevel = course.minLevel || 1;
+      const userLevel = user ? (user.level || 1) : 0;
+      if (user && user.role !== "teacher" && userLevel < minLevel) {
+        if (typeof showLockedModal === "function") {
+          showLockedModal(course.title, minLevel, userLevel);
+        } else {
+          alert(`🔒 Este curso requer Nível ${minLevel}. Seu nível atual é ${userLevel}.`);
+          window.location.href = "cursos.html";
         }
       }
 
@@ -509,10 +522,12 @@
           
           showToast(`🎉 Parabéns! Você ganhou +${xpGanho} XP por concluir o curso!`);
 
+          let subiuNivel = false;
           let xpNecessario = user.level * 1000;
           while (user.xp >= xpNecessario) {
             user.xp -= xpNecessario;
             user.level += 1;
+            subiuNivel = true;
             xpNecessario = user.level * 1000;
             showToast(`✨ SUBIU DE NÍVEL! Você agora está no Nível ${user.level}!`);
           }
@@ -526,8 +541,91 @@
             listaUsuarios[index].level = user.level;
             localStorage.setItem("users", JSON.stringify(listaUsuarios));
           }
+
+          if (subiuNivel) {
+            setTimeout(() => {
+              showLevelUpCelebration(user.level);
+            }, 800);
+          }
         }
       }
+    }
+
+    function showLevelUpCelebration(newLevel) {
+      let modal = document.getElementById("levelUpCelebrationModal");
+      if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "levelUpCelebrationModal";
+        modal.className = "modal";
+        document.body.appendChild(modal);
+      }
+
+      const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+      const unlockedCourses = coursesList.filter(c => (c.minLevel || 1) === newLevel);
+
+      let coursesUnlockedHTML = "";
+      if (unlockedCourses.length > 0) {
+        coursesUnlockedHTML = `
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 14px; margin: 15px 0; text-align: left;">
+            <p style="font-weight: 700; color: #10B981; font-size: 0.9rem; margin-bottom: 8px;">🔓 Novos Cursos Destrancados para Você:</p>
+            <ul style="padding-left: 18px; margin: 0; font-size: 0.85rem; line-height: 1.6;">
+              ${unlockedCourses.map(c => `<li><strong>${c.title}</strong> (${c.category})</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      modal.innerHTML = `
+        <div class="modal-content lock-modal-card">
+          <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer; font-size:1.5rem;" onclick="document.getElementById('levelUpCelebrationModal').style.display='none'">&times;</span>
+          
+          <div class="padlock-anim-container">
+            <div class="padlock-wrapper unlocked" id="celebrationPadlock">
+              <div class="padlock-halo"></div>
+              <div class="padlock-sparkles">
+                <span class="sparkle s1">✨</span>
+                <span class="sparkle s2">⭐</span>
+                <span class="sparkle s3">✨</span>
+                <span class="sparkle s4">⭐</span>
+              </div>
+              <svg class="padlock-svg" viewBox="0 0 100 120">
+                <defs>
+                  <linearGradient id="shackleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#CBD5E1" />
+                    <stop offset="50%" stop-color="#94A3B8" />
+                    <stop offset="100%" stop-color="#64748B" />
+                  </linearGradient>
+                  <linearGradient id="bodyGradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FBBF24" />
+                    <stop offset="50%" stop-color="#EAB308" />
+                    <stop offset="100%" stop-color="#B45309" />
+                  </linearGradient>
+                </defs>
+                <path class="padlock-shackle" d="M 32 55 V 30 A 18 18 0 0 1 68 30 V 55" fill="none" stroke="url(#shackleGrad)" stroke-width="12" stroke-linecap="round" />
+                <rect class="padlock-body" x="16" y="48" width="68" height="58" rx="14" fill="url(#bodyGradGold)" stroke="#92400E" stroke-width="2" />
+                <circle cx="50" cy="72" r="6" fill="#1E293B" />
+                <polygon points="47,73 53,73 55,87 45,87" fill="#1E293B" />
+              </svg>
+            </div>
+          </div>
+
+          <h2 style="font-size: 1.5rem; margin-bottom: 6px; color: #10B981;">🎉 SUBIU PARA O NÍVEL ${newLevel}!</h2>
+          <p style="font-size: 0.95rem; opacity: 0.9; margin-bottom: 12px;">O cadeado se abriu! Você atingiu uma nova patente de conhecimento na plataforma.</p>
+          
+          ${coursesUnlockedHTML}
+
+          <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <a href="cursos.html" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              📚 Explorar Catálogo Destrancado
+            </a>
+            <button class="btn-secondary" onclick="document.getElementById('levelUpCelebrationModal').style.display='none'">
+              Continuar
+            </button>
+          </div>
+        </div>
+      `;
+
+      modal.style.display = "flex";
     }
 
     function submitReview() {

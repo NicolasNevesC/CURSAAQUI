@@ -82,29 +82,28 @@
           <hr class="menu-divider">
           <button class="menu-item-btn" onclick="window.location.href='index.html#dashboard'; toggleUserMenu();">🏆
             Certificados</button>
-          <button class="menu-item-btn" onclick="window.location.href='index.html#suporte'; toggleUserMenu();">🛠️ Suporte
-            Técnico</button>
           <button class="menu-item-btn btn-logout" onclick="logout()">🚪 Deslogar</button>
         </div>
       </div>
     </div>
   </header>
 
-  <section class="hero" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; width: 100%; padding: 50px 20px 20px 20px;">
-    <div class="hero-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; margin: 0 auto; max-width: 800px; width: 100%;">
-      <h1 style="text-align: center; font-size: 2.8rem; margin-bottom: 15px;">Catálogo Completo de Cursos</h1>
-      <p style="text-align: center; margin: 0 auto; font-size: 1.1rem; opacity: 0.85;">Explore dezenas de cursos gratuitos com certificação nas principais áreas de tecnologia, gestão e ciências humanas.</p>
+  <section class="hero" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; width: 100%; padding: 40px 20px 10px 20px;">
+    <div class="hero-content" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; margin: 0 auto; max-width: 750px; width: 100%;">
+      <h1 style="text-align: center; font-size: 2.5rem; margin-bottom: 10px;">Cursos & Apostilas Oficiais</h1>
+      <p style="text-align: center; margin: 0 auto; font-size: 1.05rem; opacity: 0.85;">Acesse os materiais didáticos em PDF estruturados por níveis de progressão acadêmica.</p>
     </div>
   </section>
 
-  <div class="search-section" style="margin-top: 10px; padding: 20px;">
-    <input type="text" id="searchInput" name="search_course" autocomplete="off" onfocus="if(this.value.includes('@')) this.value='';" placeholder="🔍 Pesquisar por nome do curso ou categoria (Ex: Cloud, .NET, Redes...)" style="width: 100%; max-width: 600px; padding: 14px 20px; font-size: 1rem; border-radius: 12px; border: 1px solid rgba(0,0,0,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+  <!-- BARRA DE BUSCA MINIMALISTA -->
+  <div class="search-section" style="margin-top: 5px; padding: 15px 20px 25px 20px; display: flex; justify-content: center;">
+    <input type="text" id="searchInput" name="search_course" autocomplete="off" onfocus="if(this.value.includes('@')) this.value='';" placeholder="🔍 Buscar matérias e apostilas..." style="width: 100%; max-width: 650px; padding: 15px 22px; font-size: 1.05rem; border-radius: 14px; border: 1px solid rgba(0,0,0,0.12); box-shadow: 0 4px 16px rgba(0,0,0,0.04); background: var(--card); color: inherit;">
   </div>
 
-  <section id="courses" class="courses" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 1200px; margin: 0 auto; text-align: center; padding: 20px;">
-    <h2 class="section-title" style="text-align: center; width: 100%; margin-bottom: 30px;">Todos os Cursos Disponíveis</h2>
-    <div class="course-grid" id="courseGrid" style="display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 24px; width: 100%; max-width: 1200px; margin: 0 auto;">
-      <!-- Preenchido dinamicamente pelo app.js -->
+  <!-- SEÇÕES DE NÍVEIS COM AS MATÉRIAS EM PDF -->
+  <section id="courses" class="courses" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 1200px; margin: 0 auto; text-align: center; padding: 10px 20px 40px 20px;">
+    <div id="courseGrid" style="width: 100%; max-width: 1200px; margin: 0 auto;">
+      <!-- Preenchido dinamicamente com as seções de níveis pelo app.js -->
     </div>
   </section>
 

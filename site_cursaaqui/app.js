@@ -55,8 +55,181 @@ function initTheme() {
 }
 
 /**
- * MÓDULO DE CURSOS
+ * MÓDULO DE CURSOS & SISTEMA DE NÍVEIS
  */
+let currentLevelFilter = 'all';
+
+function generateCourseCardHTML(course, actualProgress, user) {
+  const minLevel = course.minLevel || 1;
+  const userLevel = user ? (user.level || 1) : 0;
+  const isTeacher = user && user.role === "teacher";
+  const isLocked = !isTeacher && (userLevel < minLevel);
+  const safeTitle = course.title.replace(/'/g, "\\'");
+
+  if (isLocked) {
+    return `
+      <div class="course-card is-locked" onclick="showLockedModal('${safeTitle}', ${minLevel}, ${userLevel})">
+        <div class="course-img-wrapper">
+          <img src="${course.image}" alt="${course.title}">
+          <span class="category-tag">${course.category}</span>
+          <span class="lock-tag">🔒 Nível ${minLevel}</span>
+          <div class="lock-overlay">
+            <div class="lock-center-icon">🔒</div>
+          </div>
+        </div>
+        <div class="course-content">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-size: 0.75rem; font-weight: 700; color: #EF4444; display: inline-flex; align-items: center; gap: 4px;">🔒 Requer Nível ${minLevel}</span>
+            <span style="font-size: 0.75rem; opacity: 0.75; display: inline-flex; align-items: center; gap: 4px;">📄 Apostila em PDF</span>
+          </div>
+          <h3 class="course-title" title="${course.title}">${course.title}</h3>
+          <div class="course-meta">
+            <span>👨‍🏫 ${course.teacher}</span>
+            <div class="course-stats">
+              <span>⭐ ${course.rating}</span>
+              <span>⏱️ ${course.duration}</span>
+            </div>
+          </div>
+          <div class="progress">
+            <div class="progress-bar" style="width: 0%"></div>
+          </div>
+          <button class="btn-locked card-btn" onclick="event.stopPropagation(); showLockedModal('${safeTitle}', ${minLevel}, ${userLevel})">
+            🔒 Desbloqueia no Nível ${minLevel}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  const unlockBadge = (minLevel > 1) 
+    ? `<span class="unlocked-tag">🔓 Nível ${minLevel}</span>`
+    : ``;
+
+  return `
+    <div class="course-card" onclick="watchCourse('${safeTitle}')">
+      <div class="course-img-wrapper">
+        <img src="${course.image}" alt="${course.title}">
+        <span class="category-tag">${course.category}</span>
+        ${unlockBadge}
+      </div>
+      <div class="course-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: #10B981; display: inline-flex; align-items: center; gap: 4px;">🔓 Nível ${minLevel} Liberado</span>
+          <span style="font-size: 0.75rem; opacity: 0.75; display: inline-flex; align-items: center; gap: 4px;">📄 Apostila em PDF</span>
+        </div>
+        <h3 class="course-title" title="${course.title}">${course.title}</h3>
+        <div class="course-meta">
+          <span>👨‍🏫 ${course.teacher}</span>
+          <div class="course-stats">
+            <span>⭐ ${course.rating}</span>
+            <span>⏱️ ${course.duration}</span>
+          </div>
+        </div>
+        <div class="progress">
+          <div class="progress-bar" style="width:${actualProgress}%"></div>
+        </div>
+        <button class="btn-primary card-btn" onclick="event.stopPropagation(); watchCourse('${safeTitle}')">
+          Acessar Matéria ➔
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+const LEVEL_TRACKS = [
+  {
+    level: 1,
+    title: "Nível 1 — Cursos Básicos & Iniciantes",
+    desc: "Matérias essenciais, diretrizes acadêmicas, lógica de programação e fundamentos de TI.",
+    badgeClass: "lvl-1",
+    badgeText: "🌱 Nível 1 • Iniciante"
+  },
+  {
+    level: 2,
+    title: "Nível 2 — Cursos Intermediários",
+    desc: "Desenvolvimento mobile, redes de computadores, banco de dados SQL/NoSQL, React e metodologias ágeis.",
+    badgeClass: "lvl-2",
+    badgeText: "📘 Nível 2 • Intermediário"
+  },
+  {
+    level: 3,
+    title: "Nível 3 — Cursos Avançados & Especialistas",
+    desc: "Cloud Computing, DevOps, APIs .NET, Inteligência Artificial, Cybersecurity e Arquitetura de Microserviços.",
+    badgeClass: "lvl-3",
+    badgeText: "👑 Nível 3 • Avançado"
+  }
+];
+
+// Estado dos accordions dos níveis (Nível 1 aberto por padrão)
+let levelAccordionState = {
+  1: true,
+  2: true,
+  3: true
+};
+
+function toggleLevelAccordion(level) {
+  levelAccordionState[level] = !levelAccordionState[level];
+  const wrapper = document.getElementById(`level-accordion-${level}`);
+  if (wrapper) {
+    if (levelAccordionState[level]) {
+      wrapper.classList.remove('is-collapsed');
+    } else {
+      wrapper.classList.add('is-collapsed');
+    }
+  }
+}
+
+function renderLevelTracks(coursesList, records, user, container) {
+  const userLevel = user ? (user.level || 1) : 0;
+  const isTeacher = user && user.role === "teacher";
+
+  let html = "";
+  LEVEL_TRACKS.forEach(track => {
+    const trackCourses = coursesList.filter(c => (c.minLevel || 1) === track.level);
+    if (trackCourses.length === 0) return;
+
+    const isTrackLocked = !isTeacher && (userLevel < track.level);
+    const isOpen = levelAccordionState[track.level] !== false;
+    
+    const trackStatusPill = isTrackLocked 
+      ? `<span class="level-status-pill locked">🔒 Bloqueado (Requer Nível ${track.level})</span>`
+      : `<span class="level-status-pill unlocked">🔓 Liberado (${trackCourses.length} ${trackCourses.length > 1 ? 'Matérias em PDF' : 'Matéria em PDF'})</span>`;
+
+    html += `
+      <div id="level-accordion-${track.level}" class="level-track-wrapper ${isTrackLocked ? 'is-locked-track' : ''} ${!isOpen ? 'is-collapsed' : ''}">
+        <div class="level-track-header" onclick="toggleLevelAccordion(${track.level})" title="Clique para expandir ou recolher o Nível ${track.level}">
+          <div class="level-track-info">
+            <div class="level-track-tag-row">
+              <span class="level-badge-pill ${track.badgeClass}">${track.badgeText}</span>
+              ${isTrackLocked ? '<span class="level-locked-indicator">🔒 Nível Bloqueado</span>' : ''}
+            </div>
+            <h3 class="level-track-title">${track.title}</h3>
+            <p class="level-track-desc">${track.desc}</p>
+          </div>
+          <div class="level-track-status-box">
+            ${trackStatusPill}
+            <button class="accordion-toggle-btn" aria-label="Expandir ou recolher">
+              <span class="accordion-arrow">▼</span>
+            </button>
+          </div>
+        </div>
+        <div class="level-track-body-wrapper">
+          <div class="level-track-body">
+            <div class="level-track-grid">
+              ${trackCourses.map(course => {
+                const actualProgress = records[course.id] ? records[course.id].progress : (course.progress || 0);
+                return generateCourseCardHTML(course, actualProgress, user);
+              }).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
 function renderCourses() {
   const grid = document.getElementById("courseGrid");
   if (!grid) return; 
@@ -72,39 +245,16 @@ function renderCourses() {
     const isCursosPage = pathname.includes("cursos.html");
     const isHomePage = !isCursosPage;
 
-    const displayList = isHomePage ? coursesList.slice(0, 3) : coursesList;
+    if (isCursosPage) {
+      renderLevelTracks(coursesList, records, user, grid);
+    } else {
+      // Página inicial: exibe os 3 primeiros cursos em destaque
+      const displayList = coursesList.slice(0, 3);
+      displayList.forEach(course => {
+        const actualProgress = records[course.id] ? records[course.id].progress : (course.progress || 0);
+        grid.innerHTML += generateCourseCardHTML(course, actualProgress, user);
+      });
 
-    displayList.forEach(course => {
-      const actualProgress = records[course.id] ? records[course.id].progress : (course.progress || 0);
-      const safeTitle = course.title.replace(/'/g, "\\'");
-
-      grid.innerHTML += `
-        <div class="course-card" onclick="watchCourse('${safeTitle}')">
-          <div class="course-img-wrapper">
-            <img src="${course.image}" alt="${course.title}">
-            <span class="category-tag">${course.category}</span>
-          </div>
-          <div class="course-content">
-            <h3 class="course-title" title="${course.title}">${course.title}</h3>
-            <div class="course-meta">
-              <span>👨‍🏫 ${course.teacher}</span>
-              <div class="course-stats">
-                <span>⭐ ${course.rating}</span>
-                <span>⏱️ ${course.duration}</span>
-              </div>
-            </div>
-            <div class="progress">
-              <div class="progress-bar" style="width:${actualProgress}%"></div>
-            </div>
-            <button class="btn-primary card-btn" onclick="event.stopPropagation(); watchCourse('${safeTitle}')">
-              Acessar Curso ➔
-            </button>
-          </div>
-        </div>
-      `;
-    });
-
-    if (isHomePage) {
       grid.innerHTML += `
         <div style="grid-column: 1 / -1; display: flex; justify-content: center; align-items: center; text-align: center; margin-top: 35px; width: 100%;">
           <a href="cursos.html" class="btn-primary btn-lg" style="margin: 0 auto;">Ver Todos os Cursos (${coursesList.length}) ➔</a>
@@ -115,7 +265,7 @@ function renderCourses() {
 }
 
 function watchCourse(courseName) {
-  const user = localStorage.getItem("loggedUser");
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
   if (!user) {
     showToast("Faça login para assistir as aulas.");
     if (typeof openAuthModal === "function") openAuthModal();
@@ -125,6 +275,12 @@ function watchCourse(courseName) {
   if (coursesList) {
     const found = coursesList.find(c => c.title === courseName);
     if (found) {
+      const minLevel = found.minLevel || 1;
+      const userLevel = user.level || 1;
+      if (user.role !== "teacher" && userLevel < minLevel) {
+        showLockedModal(found.title, minLevel, userLevel);
+        return;
+      }
       localStorage.setItem("selectedCourse", JSON.stringify(found));
     }
   }
@@ -137,9 +293,6 @@ function clearSearchInput() {
   renderCourses();
 }
 
-/**
- * MÓDULO DE FILTROS
- */
 function setupFilterEvents() {
   const searchInput = document.getElementById("searchInput");
   if (searchInput) {
@@ -167,69 +320,169 @@ function filterCourses() {
   if (!grid) return;
 
   let search = searchInput ? searchInput.value.toLowerCase().trim() : "";
-  
-  // Se o navegador preencheu um e-mail automaticamente, ignorar e limpar
   if (search.includes("@")) {
     search = "";
     if (searchInput) searchInput.value = "";
   }
 
   const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
-
   if (!coursesList) return;
 
-  const filtered = coursesList.filter(course => {
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+
+  let filtered = coursesList.filter(course => {
     return course.title.toLowerCase().includes(search) || 
-           course.category.toLowerCase().includes(search);
+           course.category.toLowerCase().includes(search) ||
+           (course.area && course.area.toLowerCase().includes(search));
   });
 
   grid.innerHTML = "";
 
   if (filtered.length === 0) {
     grid.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: var(--card); border-radius: 16px; border: 1px solid rgba(0,0,0,0.1); margin: 20px auto; max-width: 600px;">
-        <h3>Nenhum curso encontrado</h3>
-        <p style="margin: 10px 0 20px 0; opacity: 0.8;">Limpe o campo de busca para ver todas as opções disponíveis.</p>
-        <button class="btn-primary" onclick="clearSearchInput()">Mostrar Todos os Cursos</button>
+      <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: var(--card); border-radius: 16px; border: 1px solid rgba(0,0,0,0.1); margin: 20px auto; max-width: 600px; width: 100%;">
+        <h3>Nenhuma matéria encontrada</h3>
+        <p style="margin: 10px 0 20px 0; opacity: 0.8;">Tente outro termo de busca para encontrar as apostilas.</p>
+        <button class="btn-primary" onclick="clearSearchInput()">Mostrar Todas as Matérias</button>
       </div>
     `;
     return;
   }
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
   const records = user ? (JSON.parse(localStorage.getItem(`user_courses_progress_${user.email}`)) || {}) : {};
 
-  filtered.forEach(course => {
-    const actualProgress = records[course.id] ? records[course.id].progress : (course.progress || 0);
-    const safeTitle = course.title.replace(/'/g, "\\'");
+  const pathname = window.location.pathname.toLowerCase();
+  if (pathname.includes("cursos.html")) {
+    renderLevelTracks(filtered, records, user, grid);
+  } else {
+    filtered.forEach(course => {
+      const actualProgress = records[course.id] ? records[course.id].progress : (course.progress || 0);
+      grid.innerHTML += generateCourseCardHTML(course, actualProgress, user);
+    });
+  }
+}
 
-    grid.innerHTML += `
-      <div class="course-card" onclick="watchCourse('${safeTitle}')">
-        <div class="course-img-wrapper">
-          <img src="${course.image}" alt="${course.title}">
-          <span class="category-tag">${course.category}</span>
-        </div>
-        <div class="course-content">
-          <h3 class="course-title" title="${course.title}">${course.title}</h3>
-          <div class="course-content-info">
-            <div class="course-meta">
-              <span>👨‍🏫 ${course.teacher}</span>
-              <div class="course-stats">
-                <span>⭐ ${course.rating}</span>
-                <span>⏱️ ${course.duration}</span>
-              </div>
-            </div>
-            <div class="progress">
-              <div class="progress-bar" style="width:${actualProgress}%"></div>
-            </div>
+/**
+ * MODAL DE CADEADO E ANIMAÇÃO DE DESTRANCAMENTO
+ */
+function showLockedModal(courseTitle, minLevel, currentLevel) {
+  let modal = document.getElementById("lockModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "lockModal";
+    modal.className = "modal";
+    modal.style.display = "none";
+    document.body.appendChild(modal);
+  }
+
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const userXp = user ? (user.xp || 0) : 0;
+  const userLvl = user ? (user.level || 1) : (currentLevel || 1);
+  const xpNeeded = userLvl * 1000;
+  const progressPercent = Math.min(100, Math.round((userXp / xpNeeded) * 100));
+
+  modal.innerHTML = `
+    <div class="modal-content lock-modal-card">
+      <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer; font-size:1.5rem;" onclick="closeLockedModal()">&times;</span>
+      
+      <div class="padlock-anim-container">
+        <div class="padlock-wrapper" id="modalPadlock">
+          <div class="padlock-halo"></div>
+          <div class="padlock-sparkles">
+            <span class="sparkle s1">✨</span>
+            <span class="sparkle s2">⭐</span>
+            <span class="sparkle s3">✨</span>
+            <span class="sparkle s4">⭐</span>
           </div>
-          <button class="btn-primary card-btn" onclick="event.stopPropagation(); watchCourse('${safeTitle}')">
-            Acessar Curso ➔
-          </button>
+          <svg class="padlock-svg" viewBox="0 0 100 120">
+            <defs>
+              <linearGradient id="shackleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#CBD5E1" />
+                <stop offset="50%" stop-color="#94A3B8" />
+                <stop offset="100%" stop-color="#64748B" />
+              </linearGradient>
+              <linearGradient id="bodyGradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FBBF24" />
+                <stop offset="50%" stop-color="#EAB308" />
+                <stop offset="100%" stop-color="#B45309" />
+              </linearGradient>
+            </defs>
+            <path class="padlock-shackle" d="M 32 55 V 30 A 18 18 0 0 1 68 30 V 55" fill="none" stroke="url(#shackleGrad)" stroke-width="12" stroke-linecap="round" />
+            <rect class="padlock-body" id="modalPadlockBody" x="16" y="48" width="68" height="58" rx="14" fill="url(#bodyGradGold)" stroke="#92400E" stroke-width="2" />
+            <circle cx="50" cy="72" r="6" fill="#1E293B" />
+            <polygon points="47,73 53,73 55,87 45,87" fill="#1E293B" />
+          </svg>
         </div>
       </div>
-    `;
-  });
+
+      <h2 style="font-size: 1.4rem; margin-bottom: 6px; color: var(--text);">Curso Bloqueado por Nível</h2>
+      <p style="font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 12px;">${courseTitle}</p>
+      
+      <p style="font-size: 0.92rem; opacity: 0.85; line-height: 1.5; margin-bottom: 15px;">
+        Este curso é avançado e requer <strong>Nível ${minLevel}</strong> de experiência para ser cursado.
+      </p>
+
+      <div class="level-req-box">
+        <div class="level-req-row">
+          <span>Seu Nível Atual: <strong>Nível ${userLvl}</strong></span>
+          <span style="color: #EF4444; font-weight: 700;">Requer Nível ${minLevel}</span>
+        </div>
+        <div class="level-req-bar">
+          <div class="level-req-fill" style="width: ${progressPercent}%;"></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:0.8rem; opacity:0.8;">
+          <span>XP Atual: ${userXp} XP</span>
+          <span>Próximo Nível: ${xpNeeded} XP</span>
+        </div>
+      </div>
+
+      <div style="background: rgba(59, 130, 246, 0.08); border-radius: 10px; padding: 12px; margin-bottom: 20px; font-size: 0.85rem; text-align: left;">
+        💡 <strong>Como Desbloquear:</strong> Conclua as aulas e gabarite os quizzes dos cursos anteriores (Nível 1 a ${Math.max(1, minLevel - 1)}) para ganhar XP e subir de nível!
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn-secondary" onclick="playPadlockUnlockDemo()" style="display: inline-flex; align-items: center; gap: 6px;">
+          ✨ Testar Efeito de Desbloqueio
+        </button>
+        <button class="btn-primary" onclick="closeLockedModal()">
+          Entendido
+        </button>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = "flex";
+
+  const padlock = document.getElementById("modalPadlock");
+  if (padlock) {
+    padlock.classList.add("shake");
+    setTimeout(() => padlock.classList.remove("shake"), 600);
+  }
+}
+
+function closeLockedModal() {
+  const modal = document.getElementById("lockModal");
+  if (modal) modal.style.display = "none";
+}
+
+function playPadlockUnlockDemo() {
+  const padlock = document.getElementById("modalPadlock");
+  if (!padlock) return;
+
+  padlock.classList.remove("shake");
+  padlock.classList.remove("unlocked");
+  void padlock.offsetWidth; // reflow
+
+  padlock.classList.add("unlocked");
+  showToast("🔓 O cadeado foi destrancado com sucesso!");
+
+  setTimeout(() => {
+    setTimeout(() => {
+      if (padlock && padlock.classList.contains("unlocked")) {
+        padlock.classList.remove("unlocked");
+      }
+    }, 3500);
+  }, 100);
 }
 
 /**
@@ -291,35 +544,4 @@ function updateUserStats(email) {
       </li>
     `;
   });
-}
-
-/**
- * SISTEMA DE SUPORTE TÉCNICO
- */
-function enviarSuporte(event) {
-  event.preventDefault();
-  
-  const assunto = document.getElementById("suporteAssunto").value.trim();
-  const mensagem = document.getElementById("suporteMsg").value.trim();
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-
-  if (!user) {
-    showToast("Você precisa estar logado para enviar um chamado.");
-    openAuthModal();
-    return;
-  }
-
-  const chamados = JSON.parse(localStorage.getItem("suporte_chamados")) || [];
-  chamados.push({
-    usuario: user.email,
-    assunto: assunto,
-    mensagem: mensagem,
-    data: new Date().toISOString()
-  });
-  localStorage.setItem("suporte_chamados", JSON.stringify(chamados));
-  
-  document.getElementById("suporteForm").reset();
-
-  alert("Sua mensagem foi encaminhada à equipe de suporte técnico.");
-  showToast("Chamado técnico registrado!");
 }

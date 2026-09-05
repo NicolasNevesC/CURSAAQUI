@@ -115,8 +115,6 @@
           <hr class="menu-divider">
           <button class="menu-item-btn" onclick="window.location.href='#dashboard'; toggleUserMenu();">🏆
             Certificados</button>
-          <button class="menu-item-btn" onclick="window.location.href='#suporte'; toggleUserMenu();">🛠️ Suporte
-            Técnico</button>
           <button class="menu-item-btn btn-logout" onclick="logout()">🚪 Deslogar</button>
         </div>
       </div>
@@ -170,27 +168,6 @@
         <p style="padding: 10px 5px;">Sim! Todos os cursos listados na plataforma estão disponíveis de forma livre para
           os estudantes registados.</p>
       </details>
-    </div>
-  </section>
-
-  <!-- SUPORTE TÉCNICO — formulário para abertura de chamados de suporte -->
-  <section id="suporte" class="courses">
-    <h2 class="section-title">Suporte Técnico</h2>
-    <div class="glass" style="padding: 30px; border-radius: 15px; max-width: 600px; margin: 0 auto;">
-      <h3>Precisa de Ajuda?</h3>
-      <p style="margin: 10px 0 20px 0; opacity: 0.8;">Abra um chamado informando o problema técnico que você encontrou
-        na plataforma.</p>
-
-      <!-- enviarSuporte(event) é definido em app.js e salva o chamado no localStorage -->
-      <form id="suporteForm" onsubmit="enviarSuporte(event)">
-        <input type="text" id="suporteAssunto" placeholder="Assunto (Ex: Erro ao carregar o painel)"
-          style="width:100%; margin-bottom:10px; padding:12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.15); background: var(--card); color: inherit;"
-          required>
-        <textarea id="suporteMsg" placeholder="Descreva detalhadamente o problema..." rows="4"
-          style="width:100%; margin-bottom:15px; padding:12px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.15); background: var(--card); color: inherit; font-family: inherit;"
-          required></textarea>
-        <button type="submit" class="btn-primary" style="width: 100%;">Enviar Chamado</button>
-      </form>
     </div>
   </section>
 
