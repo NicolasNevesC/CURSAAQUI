@@ -13,7 +13,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Catálogo de Cursos - Cursa Aqui</title>
-  <link rel="stylesheet" href="style.css?v=3.0" />
+  <link rel="stylesheet" href="style.css?v=7.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -80,8 +80,8 @@
             <ul id="started-courses-list"></ul>
           </div>
           <hr class="menu-divider">
-          <button class="menu-item-btn" onclick="window.location.href='index.html#dashboard'; toggleUserMenu();">🏆
-            Certificados</button>
+          <button class="menu-item-btn" style="color: var(--primary); font-weight: 700;" onclick="window.location.href='aluno.html'; toggleUserMenu();">🎓 Meu Painel do Aluno</button>
+          <button class="menu-item-btn" onclick="window.location.href='index.html#dashboard'; toggleUserMenu();">🏆 Certificados &amp; Progresso</button>
           <button class="menu-item-btn btn-logout" onclick="logout()">🚪 Deslogar</button>
         </div>
       </div>
@@ -96,9 +96,20 @@
   </section>
 
   <!-- BARRA DE BUSCA MINIMALISTA -->
-  <div class="search-section" style="margin-top: 5px; padding: 15px 20px 25px 20px; display: flex; justify-content: center;">
+  <div class="search-section" style="margin-top: 5px; padding: 15px 20px 15px 20px; display: flex; justify-content: center;">
     <input type="text" id="searchInput" name="search_course" autocomplete="off" onfocus="if(this.value.includes('@')) this.value='';" placeholder="🔍 Buscar matérias e apostilas..." style="width: 100%; max-width: 650px; padding: 15px 22px; font-size: 1.05rem; border-radius: 14px; border: 1px solid rgba(0,0,0,0.12); box-shadow: 0 4px 16px rgba(0,0,0,0.04); background: var(--card); color: inherit;">
   </div>
+
+  <!-- BOTÕES DE SELEÇÃO RÁPIDA POR NÍVEL -->
+  <div class="level-tabs-container">
+    <button class="level-tab-btn active" data-level="all" onclick="filterByLevel('all')">🌐 Todos os Níveis (15)</button>
+    <button class="level-tab-btn lvl-1-tab" data-level="1" onclick="filterByLevel(1)">🌱 Nível 1 • Básico (5)</button>
+    <button class="level-tab-btn lvl-2-tab" data-level="2" onclick="filterByLevel(2)">📘 Nível 2 • Intermediário (5)</button>
+    <button class="level-tab-btn lvl-3-tab" data-level="3" onclick="filterByLevel(3)">👑 Nível 3 • Avançado (5)</button>
+  </div>
+
+  <!-- BANNER DE STATUS DO NÍVEL DO USUÁRIO -->
+  <div id="userLevelBanner" style="max-width: 1200px; width: 100%; margin: 0 auto; padding: 0 20px;"></div>
 
   <!-- SEÇÕES DE NÍVEIS COM AS MATÉRIAS EM PDF -->
   <section id="courses" class="courses" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 1200px; margin: 0 auto; text-align: center; padding: 10px 20px 40px 20px;">
@@ -152,16 +163,11 @@
     </div>
   </div>
 
-  <script src="courses.js?v=4.0"></script>
-  <script src="auth.js?v=4.0"></script>
-  <script src="certificate.js?v=4.0"></script>
-  <script src="dashboard.js?v=4.0"></script>
-  <script src="app.js?v=4.0"></script>
-  <script>
-    window.addEventListener('load', function() {
-      if (typeof renderCourses === 'function') renderCourses();
-    });
-  </script>
+  <script src="courses.js?v=7.0"></script>
+  <script src="auth.js?v=7.0"></script>
+  <script src="certificate.js?v=7.0"></script>
+  <script src="dashboard.js?v=7.0"></script>
+  <script src="app.js?v=7.0"></script>
 </body>
 
 </html>

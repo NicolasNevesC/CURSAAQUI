@@ -61,10 +61,14 @@ let currentLevelFilter = 'all';
 
 function generateCourseCardHTML(course, actualProgress, user) {
   const minLevel = course.minLevel || 1;
-  const userLevel = user ? (user.level || 1) : 0;
+  const userLevel = user ? (user.level || 1) : 1;
   const isTeacher = user && user.role === "teacher";
   const isLocked = !isTeacher && (userLevel < minLevel);
   const safeTitle = course.title.replace(/'/g, "\\'");
+
+  const levelBadgeClass = minLevel === 1 ? 'lvl-1' : (minLevel === 2 ? 'lvl-2' : 'lvl-3');
+  const levelBadgeLabel = minLevel === 1 ? '🌱 Nível 1 • Básico' : (minLevel === 2 ? '📘 Nível 2 • Intermediário' : '👑 Nível 3 • Avançado');
+  const levelTagHTML = `<span class="card-level-pill ${levelBadgeClass}">${minLevel === 1 ? '🌱 Nível 1' : (minLevel === 2 ? '📘 Nível 2' : '👑 Nível 3')}</span>`;
 
   if (isLocked) {
     return `
@@ -72,6 +76,7 @@ function generateCourseCardHTML(course, actualProgress, user) {
         <div class="course-img-wrapper">
           <img src="${course.image}" alt="${course.title}">
           <span class="category-tag">${course.category}</span>
+          ${levelTagHTML}
           <span class="lock-tag">🔒 Nível ${minLevel}</span>
           <div class="lock-overlay">
             <div class="lock-center-icon">🔒</div>
@@ -110,6 +115,7 @@ function generateCourseCardHTML(course, actualProgress, user) {
       <div class="course-img-wrapper">
         <img src="${course.image}" alt="${course.title}">
         <span class="category-tag">${course.category}</span>
+        ${levelTagHTML}
         ${unlockBadge}
       </div>
       <div class="course-content">
@@ -160,7 +166,7 @@ const LEVEL_TRACKS = [
   }
 ];
 
-// Estado dos accordions dos níveis (Nível 1 aberto por padrão)
+// Estado dos accordions dos níveis (abertos por padrão)
 let levelAccordionState = {
   1: true,
   2: true,
@@ -179,12 +185,82 @@ function toggleLevelAccordion(level) {
   }
 }
 
+function filterByLevel(level) {
+  currentLevelFilter = level === 'all' ? 'all' : Number(level);
+  
+  document.querySelectorAll('.level-tab-btn').forEach(btn => {
+    const btnLevel = btn.getAttribute('data-level');
+    if (String(btnLevel) === String(level)) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  filterCourses();
+}
+
+function renderUserLevelBanner() {
+  const banner = document.getElementById("userLevelBanner");
+  if (!banner) return;
+
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  if (user) {
+    const userLevel = user.level || 1;
+    const isTeacher = user.role === "teacher";
+    if (isTeacher) {
+      banner.innerHTML = `
+        <div class="level-banner-card teacher">
+          <div class="level-banner-content">
+            <span class="level-banner-badge">👨‍🏫 Perfil Professor</span>
+            <div class="level-banner-text">
+              <h4>Acesso Geral aos Níveis & Avaliações</h4>
+              <p>Como docente, todos os níveis de formação estão destrancados para sua gestão e validação pedagógica.</p>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      const nextLevelText = userLevel < 3 
+        ? `Conclua os cursos do Nível ${userLevel} para avançar ao Nível ${userLevel + 1}!` 
+        : `Parabéns! Você alcançou o Nível 3 (Avançado/Especialista) com todos os cursos liberados!`;
+      banner.innerHTML = `
+        <div class="level-banner-card student">
+          <div class="level-banner-content">
+            <span class="level-banner-badge lvl-${userLevel}">⭐ Seu Progresso: Nível ${userLevel}</span>
+            <div class="level-banner-text">
+              <h4>Aluno: ${user.name} (${user.xp || 0} XP)</h4>
+              <p>Níveis liberados para você: <strong>Nível 1 ${userLevel >= 2 ? '• Nível 2' : ''} ${userLevel >= 3 ? '• Nível 3' : ''}</strong>. ${nextLevelText}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  } else {
+    banner.innerHTML = `
+      <div class="level-banner-card visitor">
+        <div class="level-banner-content">
+          <span class="level-banner-badge lvl-1">🌱 Nível 1 Inicial • Liberado</span>
+          <div class="level-banner-text">
+            <h4>Acesso Inicial de Estudante (Nível 1)</h4>
+            <p>Todos os cursos do <strong>Nível 1</strong> estão livres para você estudar. Faça <a href="#" onclick="openAuthModal(); return false;" style="color:var(--primary); font-weight:700; text-decoration:underline;">login ou crie sua conta</a> para registrar notas, ganhar XP e desbloquear os <strong>Níveis 2 e 3</strong>!</p>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
 function renderLevelTracks(coursesList, records, user, container) {
-  const userLevel = user ? (user.level || 1) : 0;
+  const userLevel = user ? (user.level || 1) : 1;
   const isTeacher = user && user.role === "teacher";
 
   let html = "";
-  LEVEL_TRACKS.forEach(track => {
+  const tracksToRender = currentLevelFilter === 'all'
+    ? LEVEL_TRACKS
+    : LEVEL_TRACKS.filter(t => t.level === Number(currentLevelFilter));
+
+  tracksToRender.forEach(track => {
     const trackCourses = coursesList.filter(c => (c.minLevel || 1) === track.level);
     if (trackCourses.length === 0) return;
 
@@ -201,7 +277,7 @@ function renderLevelTracks(coursesList, records, user, container) {
           <div class="level-track-info">
             <div class="level-track-tag-row">
               <span class="level-badge-pill ${track.badgeClass}">${track.badgeText}</span>
-              ${isTrackLocked ? '<span class="level-locked-indicator">🔒 Nível Bloqueado</span>' : ''}
+              ${isTrackLocked ? `<span class="level-locked-indicator">🔒 Requer Nível ${track.level} para Acesso</span>` : '<span class="level-unlocked-indicator" style="display:inline-flex;align-items:center;gap:4px;font-size:0.75rem;font-weight:700;color:#10B981;background:rgba(16,185,129,0.12);padding:3px 10px;border-radius:12px;border:1px solid rgba(16,185,129,0.25);">🔓 Liberado para Você</span>'}
             </div>
             <h3 class="level-track-title">${track.title}</h3>
             <p class="level-track-desc">${track.desc}</p>
@@ -228,9 +304,11 @@ function renderLevelTracks(coursesList, records, user, container) {
   });
 
   container.innerHTML = html;
+  renderUserLevelBanner();
 }
 
 function getAllCourses() {
+  const base = window.courses || (typeof courses !== "undefined" ? courses : []);
   let stored = [];
   try {
     const custom = JSON.parse(localStorage.getItem("custom_courses")) || [];
@@ -238,12 +316,12 @@ function getAllCourses() {
   } catch (e) {
     stored = [];
   }
-  const base = window.courses || (typeof courses !== "undefined" ? courses : []);
+  
   if (stored.length > 0) {
-    const ids = new Set(base.map(c => c.id));
-    const merged = [...base];
+    const baseMap = new Map(base.map(c => [c.id, c]));
+    const merged = base.map(c => ({ ...c }));
     stored.forEach(c => {
-      if (!ids.has(c.id)) {
+      if (!baseMap.has(c.id)) {
         merged.push(c);
       }
     });
@@ -293,7 +371,7 @@ function watchCourse(courseName) {
 function clearSearchInput() {
   const searchInput = document.getElementById("searchInput");
   if (searchInput) searchInput.value = "";
-  renderCourses();
+  filterByLevel('all');
 }
 
 function setupFilterEvents() {
@@ -334,9 +412,14 @@ function filterCourses() {
   const user = JSON.parse(localStorage.getItem("loggedUser"));
 
   let filtered = coursesList.filter(course => {
-    return course.title.toLowerCase().includes(search) || 
-           course.category.toLowerCase().includes(search) ||
-           (course.area && course.area.toLowerCase().includes(search));
+    const matchesSearch = !search || (
+      course.title.toLowerCase().includes(search) || 
+      course.category.toLowerCase().includes(search) ||
+      (course.area && course.area.toLowerCase().includes(search))
+    );
+    const courseLevel = course.minLevel || 1;
+    const matchesLevel = currentLevelFilter === 'all' || courseLevel === Number(currentLevelFilter);
+    return matchesSearch && matchesLevel;
   });
 
   grid.innerHTML = "";
@@ -345,8 +428,8 @@ function filterCourses() {
     grid.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: var(--card); border-radius: 16px; border: 1px solid rgba(0,0,0,0.1); margin: 20px auto; max-width: 600px; width: 100%;">
         <h3>Nenhuma matéria encontrada</h3>
-        <p style="margin: 10px 0 20px 0; opacity: 0.8;">Tente outro termo de busca para encontrar as apostilas.</p>
-        <button class="btn-primary" onclick="clearSearchInput()">Mostrar Todas as Matérias</button>
+        <p style="margin: 10px 0 20px 0; opacity: 0.8;">Tente outro filtro de nível ou termo de busca.</p>
+        <button class="btn-primary" onclick="clearSearchInput()">Mostrar Todos os Cursos</button>
       </div>
     `;
     return;

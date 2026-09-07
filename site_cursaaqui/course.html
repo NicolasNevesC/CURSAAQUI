@@ -12,14 +12,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Curso - Cursa Aqui</title>
-  <link rel="stylesheet" href="style.css?v=3.0">
+  <link rel="stylesheet" href="style.css?v=7.0">
 </head>
 
 <body>
 
   <header class="navbar glass">
     <div class="logo"><a href="index.html" style="text-decoration:none; color:inherit;">🎓 Cursa Aqui</a></div>
-    <a href="cursos.html" class="btn-primary">👈 Voltar aos Cursos</a>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <a href="aluno.html" class="btn-secondary" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem;">🎓 Painel do Aluno</a>
+      <a href="cursos.html" class="btn-primary" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem;">👈 Voltar aos Cursos</a>
+    </div>
   </header>
 
   <div id="toast-container"></div>
@@ -144,11 +147,11 @@
     </div>
   </div>
 
-  <script src="courses.js?v=4.0"></script>
-  <script src="auth.js?v=4.0"></script>
-  <script src="certificate.js?v=4.0"></script>
-  <script src="dashboard.js?v=4.0"></script>
-  <script src="app.js?v=4.0"></script>
+  <script src="courses.js?v=7.0"></script>
+  <script src="auth.js?v=7.0"></script>
+  <script src="certificate.js?v=7.0"></script>
+  <script src="dashboard.js?v=7.0"></script>
+  <script src="app.js?v=7.0"></script>
 
   <script>
     let course = null;
@@ -201,14 +204,13 @@
 
       // Verificação de Nível Mínimo do Curso
       const minLevel = course.minLevel || 1;
-      const userLevel = user ? (user.level || 1) : 0;
-      if (user && user.role !== "teacher" && userLevel < minLevel) {
-        if (typeof showLockedModal === "function") {
-          showLockedModal(course.title, minLevel, userLevel);
-        } else {
-          alert(`🔒 Este curso requer Nível ${minLevel}. Seu nível atual é ${userLevel}.`);
-          window.location.href = "cursos.html";
-        }
+      const userLevel = user ? (user.level || 1) : 1;
+      const isTeacher = user && user.role === "teacher";
+      
+      if (!isTeacher && userLevel < minLevel) {
+        alert(`🔒 Este curso requer Nível ${minLevel}. Seu nível atual é ${userLevel}. Conclua as matérias dos níveis anteriores para desbloquear.`);
+        window.location.href = "cursos.html";
+        return;
       }
 
       // 3. Atualiza textos do curso e da área de material
@@ -346,34 +348,65 @@
         return;
       }
 
+      let correctAnswersCount = 0;
       course.quiz.forEach((q, qIdx) => {
+        if (course.answers[qIdx] === q.correct) correctAnswersCount++;
         let optionsHtml = "";
         q.options.forEach((opt, optIdx) => {
           const isSelected = course.answers[qIdx] === optIdx;
-          const activeClass = isSelected ? "style='background: #3B82F6; color: white; border-color: #3B82F6;'" : "";
+          const isCorrect = q.correct === optIdx;
+          let customStyle = "";
+
+          if (course.quizCompleted) {
+            if (isCorrect) {
+              customStyle = "background: rgba(16, 185, 129, 0.2); color: #10B981; border: 2px solid #10B981; font-weight: 700;";
+            } else if (isSelected && !isCorrect) {
+              customStyle = "background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 2px solid #EF4444;";
+            }
+          } else if (isSelected) {
+            customStyle = "background: #3B82F6; color: white; border-color: #3B82F6;";
+          }
+
           const disabled = course.quizCompleted ? "disabled" : "";
+          const badgeText = course.quizCompleted ? (isCorrect ? " ✅ (Gabarito Correto)" : (isSelected ? " ❌ (Sua Resposta)" : "")) : "";
 
           optionsHtml += `
-            <button class="btn-secondary" ${disabled} ${activeClass} onclick="selectAnswer(${qIdx}, ${optIdx}, this)" style="display: block; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px; font-size: 0.9rem;">
-              ${opt}
+            <button class="btn-secondary" ${disabled} style="display: block; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px; font-size: 0.9rem; ${customStyle}" onclick="selectAnswer(${qIdx}, ${optIdx}, this)">
+              ${opt}${badgeText}
             </button>
           `;
         });
 
         container.innerHTML += `
           <div class="glass" style="padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-            <p><strong>Questão ${qIdx + 1}:</strong> ${q.question}</p>
-            <div style="margin-top: 12px;">${optionsHtml}</div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.82rem; color: var(--primary); font-weight: 700;">
+              <span>QUESTÃO ${qIdx + 1} DE ${course.quiz.length}</span>
+              ${course.quizCompleted ? (course.answers[qIdx] === q.correct ? '<span style="color:#10B981;">✅ Acertou</span>' : '<span style="color:#EF4444;">❌ Errou</span>') : ''}
+            </div>
+            <p style="font-size: 1rem; line-height: 1.5;">${q.question}</p>
+            <div style="margin-top: 14px;">${optionsHtml}</div>
           </div>
         `;
       });
 
       if (!course.quizCompleted) {
-        actions.innerHTML = `<button class="btn-primary" onclick="submitQuiz()">Finalizar Avaliação (70% do curso)</button>`;
-      } else {
         actions.innerHTML = `
-          <div class="glass" style="padding: 15px; border-radius: 8px; border-left: 5px solid #10B981; margin-bottom: 15px;">
-            <p style="color: #10B981; font-weight: 600;">🎉 Avaliação Concluída!</p>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <span style="font-size: 0.88rem; opacity: 0.85;">Responda todas as ${course.quiz.length} questões para submeter ao professor.</span>
+            <button class="btn-primary" onclick="submitQuiz()">Finalizar Avaliação (${course.quiz.length} Questões)</button>
+          </div>
+        `;
+      } else {
+        const scorePercent = Math.round((correctAnswersCount / course.quiz.length) * 100);
+        actions.innerHTML = `
+          <div class="glass" style="padding: 18px; border-radius: 12px; border-left: 5px solid #10B981; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <p style="color: #10B981; font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">🎉 Avaliação Concluída!</p>
+              <p style="font-size: 0.9rem; opacity: 0.9;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões</strong> (${scorePercent}% de aproveitamento).</p>
+            </div>
+            <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 8px 16px;">
+              🔄 Refazer Exercícios
+            </button>
           </div>
         `;
 
@@ -473,6 +506,16 @@
       calculateProgress();
       renderQuiz();
       showToast("Avaliação registrada e enviada para correção do professor!");
+    }
+
+    function resetQuiz() {
+      course.quizCompleted = false;
+      course.answers = {};
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+      calculateProgress();
+      renderQuiz();
+      showToast("Exercícios liberados para nova tentativa!");
     }
 
     function calculateProgress() {

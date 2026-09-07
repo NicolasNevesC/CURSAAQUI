@@ -1617,3 +1617,168 @@ button, .btn-primary, .btn-secondary {
   color: #60A5FA;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
+
+/* ==========================================================================
+   BOTÕES DE FILTRO POR NÍVEL (TABS) & BANNERS DE STATUS
+   ========================================================================== */
+
+.level-tabs-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 10px auto 25px auto;
+  flex-wrap: wrap;
+  padding: 0 15px;
+  width: 100%;
+  max-width: 900px;
+}
+
+.level-tab-btn {
+  background: var(--card);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.dark .level-tab-btn {
+  background: var(--card);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.level-tab-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  border-color: var(--primary);
+}
+
+.level-tab-btn.active {
+  background: var(--primary);
+  color: #ffffff !important;
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.35);
+}
+
+.level-tab-btn.lvl-1-tab.active {
+  background: linear-gradient(135deg, #10B981, #059669);
+  border-color: #10B981;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4);
+}
+
+.level-tab-btn.lvl-2-tab.active {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  border-color: #3B82F6;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+}
+
+.level-tab-btn.lvl-3-tab.active {
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  border-color: #8B5CF6;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.4);
+}
+
+/* Badge de Nível nos Cards dos Cursos */
+.card-level-pill {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: #ffffff;
+  z-index: 3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-level-pill.lvl-1 {
+  background: linear-gradient(135deg, #10B981, #059669);
+}
+
+.card-level-pill.lvl-2 {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+}
+
+.card-level-pill.lvl-3 {
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+}
+
+/* Banner de Nível do Usuário */
+.level-banner-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 18px 24px;
+  margin: 0 auto 25px auto;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.dark .level-banner-card {
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.level-banner-card.visitor {
+  border-left: 5px solid #10B981;
+}
+
+.level-banner-card.student {
+  border-left: 5px solid var(--primary);
+}
+
+.level-banner-card.teacher {
+  border-left: 5px solid #F59E0B;
+}
+
+.level-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.level-banner-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.level-banner-badge.lvl-1 { background: linear-gradient(135deg, #10B981, #059669); }
+.level-banner-badge.lvl-2 { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+.level-banner-badge.lvl-3 { background: linear-gradient(135deg, #8B5CF6, #7C3AED); }
+.level-banner-card.teacher .level-banner-badge { background: linear-gradient(135deg, #F59E0B, #D97706); }
+
+.level-banner-text h4 {
+  margin: 0 0 4px 0;
+  font-size: 1.05rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.level-banner-text p {
+  margin: 0;
+  font-size: 0.88rem;
+  opacity: 0.85;
+  line-height: 1.4;
+}

@@ -66,6 +66,27 @@ var courses = [
           "E. A limitação dos servidores de banco de dados é classificada como um caso de uso secundário assíncrono."
         ],
         correct: 1
+      },
+      {
+        question: "No paradigma de Orientação a Objetos (POO), o mecanismo pelo qual uma classe derivada redefine o comportamento de um método existente na classe base, permitindo que objetos de tipos diferentes respondam à mesma mensagem de formas específicas, denomina-se:",
+        options: [
+          "A. Encapsulamento estático",
+          "B. Polimorfismo de sobreposição (Override)",
+          "C. Acoplamento temporal",
+          "D. Herança múltipla de atributos privados",
+          "E. Coesão fraca"
+        ],
+        correct: 1
+      },
+      {
+        question: "No contexto de Testes de Software e Garantia da Qualidade (QA), qual a principal diferença conceitual entre 'Verificação' e 'Validação' (V&V)?",
+        options: [
+          "A. Verificação avalia se estamos construindo o produto corretamente (conforme a especificação), enquanto Validação avalia se estamos construindo o produto certo (atendendo às reais necessidades do usuário).",
+          "B. Verificação é realizada exclusivamente por usuários finais, enquanto Validação é executada apenas por compiladores automatizados.",
+          "C. Validação diz respeito apenas à sintaxe do código, enquanto Verificação afere custos financeiros do projeto.",
+          "D. Não há diferença, ambos são sinônimos para testes de carga e estresse de infraestrutura."
+        ],
+        correct: 0
       }
     ]
   },
@@ -98,6 +119,36 @@ var courses = [
           "D. Containers eliminam a necessidade de utilizar repositórios Git."
         ],
         correct: 1
+      },
+      {
+        question: "No Kubernetes, qual é a menor unidade computacional implantável que encapsula um ou mais containers compartilhando rede e armazenamento?",
+        options: [
+          "A. Service",
+          "B. Pod",
+          "C. Deployment",
+          "D. Ingress Controller"
+        ],
+        correct: 1
+      },
+      {
+        question: "Ao implementar Infraestrutura como Código (IaC) com ferramentas declarativas como Terraform, qual é a principal característica dessa abordagem?",
+        options: [
+          "A. Descreve-se o estado final desejado da infraestrutura, e a ferramenta calcula as mudanças necessárias para atingi-lo.",
+          "B. Escreve-se uma sequência passo a passo de comandos manuais no terminal bash.",
+          "C. O código precisa ser executado manualmente dentro de cada máquina virtual criada.",
+          "D. O Terraform só permite provisionar servidores físicos locais, sem suporte a provedores de nuvem pública."
+        ],
+        correct: 0
+      },
+      {
+        question: "Em uma esteira de CI/CD (Continuous Integration / Continuous Delivery), qual etapa garante que novos commits não quebrem funcionalidades existentes antes do merge?",
+        options: [
+          "A. Provisionamento de faturamento da nuvem",
+          "B. Execução automatizada de testes unitários e de integração (Test Automation)",
+          "C. Envio de newsletter aos usuários cadastrados",
+          "D. Desligamento do banco de dados de homologação"
+        ],
+        correct: 1
       }
     ]
   },
@@ -122,7 +173,7 @@ var courses = [
     ],
     quiz: [
       {
-        question: "No React Native, qual componente é utilizado para exibir elementos em lista de forma otimizada para alto desempenho?",
+        question: "No React Native, qual componente é utilizado para exibir elementos em lista de forma otimizada para alto desempenho com reciclagem de memória?",
         options: [
           "A. ScrollView",
           "B. FlatList",
@@ -130,6 +181,36 @@ var courses = [
           "D. ListViewBox"
         ],
         correct: 1
+      },
+      {
+        question: "Qual Hook nativo do React é utilizado para executar efeitos colaterais em componentes funcionais, como buscar dados de uma API ao montar a tela?",
+        options: [
+          "A. useState",
+          "B. useEffect",
+          "C. useReducer",
+          "D. useMemo"
+        ],
+        correct: 1
+      },
+      {
+        question: "Como o sistema de layout do React Native organiza os elementos por padrão no componente View através do Flexbox?",
+        options: [
+          "A. flexDirection: 'row' (em linha horizontal)",
+          "B. flexDirection: 'column' (em coluna vertical)",
+          "C. display: 'table' (em grade de tabela)",
+          "D. float: 'left' (flutuante à esquerda)"
+        ],
+        correct: 1
+      },
+      {
+        question: "Para persistir dados simples localmente no dispositivo do usuário de forma assíncrona no ecossistema React Native / Expo, recomenda-se:",
+        options: [
+          "A. AsyncStorage (ou bibliotecas como react-native-mmkv)",
+          "B. sessionStorage do navegador desktop",
+          "C. Criar arquivos .txt no diretório raiz do sistema operacional sem permissões",
+          "D. Variáveis globais do escopo window"
+        ],
+        correct: 0
       }
     ]
   },
@@ -157,9 +238,39 @@ var courses = [
         question: "No Entity Framework Core, qual ferramenta é utilizada para aplicar alterações de modelo ao banco de dados?",
         options: [
           "A. Database Query Builder",
-          "B. Migrations (dotnet ef migrations add)",
+          "B. Migrations (dotnet ef migrations add / update)",
           "C. JSON Schema Serializer",
           "D. SQL Server Direct Injection"
+        ],
+        correct: 1
+      },
+      {
+        question: "No ASP.NET Core, qual padrão arquitetural nativo é configurado no arquivo Program.cs para gerenciar o ciclo de vida de serviços (Transient, Scoped e Singleton)?",
+        options: [
+          "A. Injeção de Dependência (Dependency Injection)",
+          "B. Factory Method Manual",
+          "C. Active Record Pattern",
+          "D. Observer Remoto"
+        ],
+        correct: 0
+      },
+      {
+        question: "Em APIs RESTful desenvolvidas com ASP.NET Core, qual atributo de anotação indica que um parâmetro do método de ação deve ser desserializado a partir do corpo da requisição HTTP?",
+        options: [
+          "A. [FromQuery]",
+          "B. [FromHeader]",
+          "C. [FromBody]",
+          "D. [FromRoute]"
+        ],
+        correct: 2
+      },
+      {
+        question: "Qual o papel do Middleware no pipeline de requisições do ASP.NET Core?",
+        options: [
+          "A. Compilar o código C# em tempo de execução no cliente.",
+          "B. Interceptar requisições e respostas HTTP para executar autenticação, tratamento de erros e logging sequencialmente.",
+          "C. Substituir o uso de bancos de dados relacionais.",
+          "D. Converter páginas HTML em PDFs para impressão direta."
         ],
         correct: 1
       }
@@ -189,9 +300,39 @@ var courses = [
         question: "O termo MVP (Minimum Viable Product) no ecossistema de startups de TI refere-se a:",
         options: [
           "A. O produto final com todas as funcionalidades complexas concluídas.",
-          "B. A versão mais simples de um produto que permite validar a hipótese de negócio com usuários reais.",
+          "B. A versão mais simples de um produto que permite validar a hipótese de negócio com usuários reais gerando aprendizado validado.",
           "C. Um protótipo em papel sem qualquer interação digital.",
           "D. A estimativa financeira mínima exigida por investidores anjo."
+        ],
+        correct: 1
+      },
+      {
+        question: "No Business Model Canvas (Osterwalder), qual quadrante é considerado o núcleo da proposta de valor?",
+        options: [
+          "A. Estrutura de Custos",
+          "B. Proposta de Valor (o benefício e solução entregue para resolver a dor do cliente)",
+          "C. Fontes de Receita",
+          "D. Parcerias Principais"
+        ],
+        correct: 1
+      },
+      {
+        question: "O ciclo iterativo fundamental preconizado pela metodologia Lean Startup (Eric Ries) é composto por quais etapas?",
+        options: [
+          "A. Planejar - Executar - Cobrar - Finalizar",
+          "B. Construir - Medir - Aprender (Build - Measure - Learn)",
+          "C. Codificar - Testar - Cancelar - Reiniciar",
+          "D. Contratar - Investir - Vender - Demitir"
+        ],
+        correct: 1
+      },
+      {
+        question: "O que caracteriza a fase de investimento 'Seed' (Semente) em uma startup de tecnologia?",
+        options: [
+          "A. Ocorre quando a empresa abre capital na bolsa de valores (IPO).",
+          "B. Financiamento inicial destinado a validar o produto no mercado, aprimorar o MVP e conquistar os primeiros clientes.",
+          "C. É o processo de liquidação judicial da empresa em falência.",
+          "D. Trata-se de um empréstimo bancário tradicional garantido por bens imóveis."
         ],
         correct: 1
       }
@@ -218,12 +359,42 @@ var courses = [
     ],
     quiz: [
       {
-        question: "Qual o marco legislativo fundamental no Brasil que tornou obrigatório o ensino da história e cultura afro-brasileira nas escolas?",
+        question: "Qual o marco legislativo fundamental no Brasil que alterou a LDB e tornou obrigatório o ensino da história e cultura afro-brasileira nas escolas?",
         options: [
           "A. Lei nº 10.639/2003",
           "B. Lei Áurea de 1888",
           "C. Código Civil de 2002",
           "D. Marco Civil da Internet"
+        ],
+        correct: 0
+      },
+      {
+        question: "Segundo as teorias sociológicas contemporâneas (como as de Silvio Almeida), o que define o 'Racismo Estrutural'?",
+        options: [
+          "A. Um desvio de conduta ou preconceito puramente individual e isolado.",
+          "B. Uma dimensão constitutiva das relações sociais, políticas e econômicas históricas, reproduzida institucionalmente de modo sistêmico.",
+          "C. Um fenômeno superado no início do século XX com a industrialização.",
+          "D. Apenas ofensas verbais diretas tipificadas no código penal."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual o objetivo primordial das políticas de Ações Afirmativas (como o sistema de cotas no ensino superior e concursos públicos)?",
+        options: [
+          "A. Substituir os critérios acadêmicos por sorteio aleatório.",
+          "B. Promover a reparação histórica e a equidade material de oportunidades para grupos historicamente marginalizados.",
+          "C. Criar segregação social obrigatória em instituições de ensino.",
+          "D. Eliminar vestibulares e processos seletivos públicos."
+        ],
+        correct: 1
+      },
+      {
+        question: "Como o conceito de 'Interseccionalidade' (cunhado por Kimberlé Crenshaw) contribui para o debate étnico-racial?",
+        options: [
+          "A. Analisa como diferentes marcadores sociais (como raça, gênero e classe) se interconectam e potencializam situações de opressão ou vulnerabilidade.",
+          "B. Afirma que todas as pessoas no mundo têm exatamente as mesmas experiências sociais.",
+          "C. Trata exclusivamente de questões geográficas e fronteiras territoriais.",
+          "D. Defende que raça e gênero não possuem qualquer impacto no mercado de trabalho de tecnologia."
         ],
         correct: 0
       }
@@ -250,12 +421,42 @@ var courses = [
     ],
     quiz: [
       {
-        question: "No modelo de referência OSI de 7 camadas, em qual camada operam os roteadores para realizar o encaminhamento de pacotes por IP?",
+        question: "No modelo de referência OSI de 7 camadas, em qual camada operam os roteadores para realizar o encaminhamento de pacotes baseado em endereços lógicos (IP)?",
         options: [
           "A. Camada 2 (Enlace de Dados)",
           "B. Camada 3 (Rede)",
           "C. Camada 4 (Transporte)",
           "D. Camada 7 (Aplicação)"
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual a principal diferença entre os protocolos de transporte TCP e UDP?",
+        options: [
+          "A. TCP é orientado a conexão, confiável e com controle de fluxo; UDP é não orientado a conexão, mais rápido e sem garantia de entrega sequencial.",
+          "B. UDP é mais seguro e utiliza criptografia quântica nativa em todos os pacotes.",
+          "C. TCP não permite tráfego de dados web (HTTP), operando somente para e-mails.",
+          "D. UDP só funciona em conexões de fibra óptica submarina."
+        ],
+        correct: 0
+      },
+      {
+        question: "Qual protocolo é responsável por atribuir dinamicamente configurações de IP, máscara de sub-rede e gateway padrão aos dispositivos que entram em uma rede?",
+        options: [
+          "A. DNS (Domain Name System)",
+          "B. DHCP (Dynamic Host Configuration Protocol)",
+          "C. SNMP (Simple Network Management Protocol)",
+          "D. ARP (Address Resolution Protocol)"
+        ],
+        correct: 1
+      },
+      {
+        question: "Em uma rede com máscara de sub-rede 255.255.255.0 (/24), quantos endereços de hosts válidos e utilizáveis podem ser atribuídos a computadores?",
+        options: [
+          "A. 256",
+          "B. 254 (pois o primeiro é endereço de rede e o último é de broadcast)",
+          "C. 512",
+          "D. 128"
         ],
         correct: 1
       }
@@ -275,7 +476,7 @@ var courses = [
     pdf: "materiais/ia_machine_learning_python.pdf",
     lessons: [
       "1. Introdução à IA, Ciência de Dados e ecossistema Python",
-      "2. Aprendizado Supervisicionado: Regressão e Classificação",
+      "2. Aprendizado Supervisionado: Regressão e Classificação",
       "3. Aprendizado Não-Supervisionado: Clustering e K-Means",
       "4. Redes Neurais Artificiais e Deep Learning com TensorFlow",
       "5. Modelos de Linguagem (LLMs) e IA Generativa"
@@ -290,6 +491,36 @@ var courses = [
           "D. Scikit-Learn"
         ],
         correct: 1
+      },
+      {
+        question: "O que é o fenômeno de 'Overfitting' (sobreajuste) no treinamento de modelos de Machine Learning?",
+        options: [
+          "A. O modelo tem desempenho perfeito em dados novos e erra nos dados de treino.",
+          "B. O modelo decora os dados de treino com seus ruídos, tendo excelente acurácia no treino, mas péssima capacidade de generalização para dados inéditos.",
+          "C. O modelo não consegue aprender nem os padrões básicos dos dados de treino.",
+          "D. É a falta de memória RAM suficiente no servidor de processamento."
+        ],
+        correct: 1
+      },
+      {
+        question: "Em tarefas de Aprendizado Supervisionado, qual a diferença entre problemas de 'Classificação' e 'Regressão'?",
+        options: [
+          "A. Classificação prevê classes ou categorias discretas (ex: spam ou não spam); Regressão prevê valores numéricos contínuos (ex: preço de imóvel).",
+          "B. Regressão só funciona com texto e Classificação só com imagens.",
+          "C. Classificação não utiliza dados rotulados no treinamento.",
+          "D. São termos sinônimos para a mesma função matemática de clusterização."
+        ],
+        correct: 0
+      },
+      {
+        question: "Qual função de ativação é amplamente utilizada nas camadas ocultas de Redes Neurais Profundas para introduzir não-linearidade evitando o desvanecimento do gradiente?",
+        options: [
+          "A. ReLU (Rectified Linear Unit)",
+          "B. Função Degrau de Heaviside",
+          "C. Média Aritmética Simples",
+          "D. Matriz de Confusão"
+        ],
+        correct: 0
       }
     ]
   },
@@ -322,6 +553,36 @@ var courses = [
           "D. Insecure Direct Object References (IDOR)"
         ],
         correct: 0
+      },
+      {
+        question: "Em testes de invasão (Pentest), qual a diferença entre as abordagens 'Black Box' e 'White Box'?",
+        options: [
+          "A. Black Box o pentester não possui informações prévias sobre o alvo; White Box ele possui acesso completo ao código-fonte, arquitetura e credenciais.",
+          "B. White Box é sempre ilegal e Black Box é contratado por empresas.",
+          "C. Black Box testa apenas impressoras e hardware físico.",
+          "D. Não há diferença metodológica entre os dois tipos."
+        ],
+        correct: 0
+      },
+      {
+        question: "O que caracteriza uma vulnerabilidade de Cross-Site Scripting (XSS)?",
+        options: [
+          "A. Injeção de scripts maliciosos (normalmente JavaScript) em páginas web legítimas, executados no navegador de outros usuários.",
+          "B. Queda de energia física nos servidores de hospedagem.",
+          "C. Ataque de força bruta contra senhas de roteadores Wi-Fi.",
+          "D. Interceptação de cabos de rede com grampo telefônico."
+        ],
+        correct: 0
+      },
+      {
+        question: "O conceito de 'Zero Trust' em arquitetura de cibersegurança fundamenta-se em qual premissa?",
+        options: [
+          "A. Confie em todos os dispositivos que estejam fisicamente dentro da rede local da empresa.",
+          "B. 'Nunca confie, sempre verifique': todo acesso deve ser explicitamente autenticado, autorizado e criptografado, independente de estar dentro ou fora do perímetro.",
+          "C. Senhas não precisam ser trocadas caso o usuário utilize biometria.",
+          "D. Deixar todas as portas de firewall abertas para facilitar a manutenção remota."
+        ],
+        correct: 1
       }
     ]
   },
@@ -349,9 +610,39 @@ var courses = [
         question: "No processo de UX Design, o que é um Wireframe?",
         options: [
           "A. O código HTML e CSS final do site pronto para produção.",
-          "B. Um esboço visual de baixa fidelidade que estrutura o layout e a hierarquia da interface.",
+          "B. Um esboço visual de baixa ou média fidelidade que estrutura o layout e a hierarquia da interface.",
           "C. Um teste automatizado de carga no servidor web.",
           "D. A paleta de cores definitiva do aplicativo."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual das alternativas corresponde a uma das 10 Heurísticas de Usabilidade de Jakob Nielsen?",
+        options: [
+          "A. Visibilidade do status do sistema (o sistema deve sempre manter os usuários informados sobre o que está acontecendo).",
+          "B. Obrigatoriedade de utilizar tons de azul em formulários.",
+          "C. Bloquear o botão de voltar no navegador em todas as telas.",
+          "D. Utilizar apenas imagens em alta resolução acima de 10MB."
+        ],
+        correct: 0
+      },
+      {
+        question: "No Figma, qual recurso permite criar layouts responsivos onde botões e cartões redimensionam e adaptam seus espaçamentos automaticamente conforme o conteúdo cresce?",
+        options: [
+          "A. Mask Group",
+          "B. Auto Layout",
+          "C. Pen Tool",
+          "D. Flatten Selection"
+        ],
+        correct: 1
+      },
+      {
+        question: "O que é um 'Design System' em equipes de produto digital?",
+        options: [
+          "A. Um conjunto único de ilustrações 3D sem padrões definidos.",
+          "B. Uma biblioteca padronizada de componentes visuais, padrões de código, tokens de design e diretrizes de estilo compartilhada entre designers e desenvolvedores.",
+          "C. Um software de edição de fotos alternativo ao Photoshop.",
+          "D. Um contrato financeiro firmado com agências de publicidade."
         ],
         correct: 1
       }
@@ -381,9 +672,39 @@ var courses = [
         question: "Qual comando SQL é utilizado para combinar registros de duas tabelas com base em uma coluna relacionada?",
         options: [
           "A. GROUP BY",
-          "B. JOIN",
+          "B. JOIN (ex: INNER JOIN, LEFT JOIN)",
           "C. UNION",
           "D. MERGE"
+        ],
+        correct: 1
+      },
+      {
+        question: "O que representam as propriedades ACID em Sistemas Gerenciadores de Bancos de Dados Relacionais?",
+        options: [
+          "A. Atomicidade, Consistência, Isolamento e Durabilidade.",
+          "B. Acesso, Conexão, Indexação e Distribuição.",
+          "C. Autenticação, Criptografia, Integridade e Desempenho.",
+          "D. Aplicação, Camada, Interface e Deploy."
+        ],
+        correct: 0
+      },
+      {
+        question: "No MongoDB, banco de dados NoSQL orientado a documentos, em qual formato os dados são estruturados e armazenados?",
+        options: [
+          "A. Linhas e Colunas rígidas com esquema relacional fixo",
+          "B. Documentos BSON (Binary JSON) organizados em Collections flexíveis",
+          "C. Planilhas CSV descompactadas em memória",
+          "D. Arquivos XML somente para leitura"
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual a função de um Índice (INDEX) em uma tabela de banco de dados relacional?",
+        options: [
+          "A. Aumentar o tamanho do arquivo para ocupar espaço reservado no disco.",
+          "B. Acelerar significativamente o tempo de busca e recuperação de registros em consultas SELECT.",
+          "C. Impedir que novos registros sejam inseridos na tabela.",
+          "D. Criptografar as senhas dos usuários automaticamente."
         ],
         correct: 1
       }
@@ -412,10 +733,40 @@ var courses = [
       {
         question: "Qual a função principal de um API Gateway em uma arquitetura de microserviços?",
         options: [
-          "A. Atuar como ponto único de entrada para os clientes, roteando requisições e gerenciando autenticação.",
+          "A. Atuar como ponto único de entrada para os clientes, roteando requisições e gerenciando autenticação e limitação de taxa.",
           "B. Substituir todos os bancos de dados dos microserviços por uma única tabela.",
           "C. Executar compilação de código nativo no navegador do usuário.",
           "D. Eliminar a necessidade de protocolo HTTP nas comunicações."
+        ],
+        correct: 0
+      },
+      {
+        question: "Como é tratada a persistência de dados no padrão de design para microserviços 'Database per Service'?",
+        options: [
+          "A. Todos os serviços compartilham compulsoriamente a mesma instância e tabelas do banco de dados.",
+          "B. Cada microserviço possui seu próprio banco de dados isolado, garantindo baixo acoplamento e independência de deploy.",
+          "C. Microserviços nunca persistem dados, gravando apenas em memória temporária.",
+          "D. O banco de dados só pode ser acessado via SSH manual pelo administrador."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual padrão de resiliência em microserviços interrompe temporariamente o envio de requisições a um serviço em falha, evitando sobrecarga em cascata no sistema?",
+        options: [
+          "A. Circuit Breaker",
+          "B. Lazy Loading",
+          "C. Singleton Pattern",
+          "D. Injeção de SQL"
+        ],
+        correct: 0
+      },
+      {
+        question: "Em uma comunicação assíncrona orientada a eventos entre microserviços, qual tecnologia atua como message broker garantindo a entrega de mensagens?",
+        options: [
+          "A. RabbitMQ ou Apache Kafka",
+          "B. Nginx atuando como servidor de arquivos estáticos",
+          "C. Protocolo FTP tradicional",
+          "D. LocalStorage do navegador"
         ],
         correct: 0
       }
@@ -442,12 +793,42 @@ var courses = [
     ],
     quiz: [
       {
-        question: "No Next.js (App Router), qual o benefício da Renderização no Servidor (SSR)?",
+        question: "No Next.js (App Router), qual o principal benefício da Renderização no Servidor (SSR)?",
         options: [
-          "A. Melhora o tempo de carregamento inicial e o SEO da aplicação enviando o HTML pronto do servidor.",
+          "A. Melhora o tempo de carregamento inicial e a indexação em mecanismos de busca (SEO), enviando o HTML pré-renderizado pelo servidor.",
           "B. Impede o navegador de interpretar arquivos JavaScript.",
           "C. Substitui o uso de HTML5 por imagens PNG estáticas.",
-          "D. Exige que o usuário instale extensões no navegador."
+          "D. Exige que o usuário instale extensões adicionais no navegador."
+        ],
+        correct: 0
+      },
+      {
+        question: "No React, o que é o 'Virtual DOM' e qual a sua utilidade para o desempenho da aplicação?",
+        options: [
+          "A. É uma representação leve do DOM real em memória; o React compara as alterações (diffing) e atualiza apenas os nós modificados no DOM real.",
+          "B. É uma máquina virtual Java embutida no navegador.",
+          "C. Trata-se de um banco de dados NoSQL local.",
+          "D. É uma tecnologia obsoleta substituída pelo jQuery."
+        ],
+        correct: 0
+      },
+      {
+        question: "No Next.js com App Router, qual diretiva é necessária no topo de um arquivo para transformar um componente em um 'Client Component' com suporte a interatividade e Hooks?",
+        options: [
+          "A. 'use client'",
+          "B. 'use server'",
+          "C. 'enable hooks'",
+          "D. 'client:only'"
+        ],
+        correct: 0
+      },
+      {
+        question: "Qual o Hook do React utilizado para compartilhar valores (como tema ou dados do usuário logado) em toda a árvore de componentes sem precisar passar props manualmente em cada nível?",
+        options: [
+          "A. useContext",
+          "B. useRef",
+          "C. useLayoutEffect",
+          "D. useTransition"
         ],
         correct: 0
       }
@@ -474,7 +855,7 @@ var courses = [
     ],
     quiz: [
       {
-        question: "No Scrum, qual evento tem o objetivo de inspecionar o trabalho realizado durante a Sprint e adaptar o Product Backlog?",
+        question: "No Scrum, qual evento tem o objetivo de inspecionar o trabalho realizado durante a Sprint e adaptar o Product Backlog com feedback dos stakeholders?",
         options: [
           "A. Daily Scrum",
           "B. Sprint Review",
@@ -482,6 +863,36 @@ var courses = [
           "D. Backlog Refinement"
         ],
         correct: 1
+      },
+      {
+        question: "Qual é a responsabilidade primordial do Scrum Master em uma equipe de desenvolvimento?",
+        options: [
+          "A. Atuar como líder servidor, facilitando os eventos, removendo impedimentos para o time e disseminando os valores e práticas do Scrum.",
+          "B. Definir os prazos e cobrar horas trabalhadas individualmente de cada programador.",
+          "C. Definir e priorizar sozinho os itens do Product Backlog com o cliente final.",
+          "D. Escrever toda a documentação de arquitetura de software."
+        ],
+        correct: 0
+      },
+      {
+        question: "No método Kanban, qual a finalidade da prática de estabelecer limites de Trabalho em Progresso (WIP Limits)?",
+        options: [
+          "A. Evitar sobrecarga de tarefas simultâneas, reduzir gargalos e otimizar o fluxo contínuo de entrega de valor.",
+          "B. Impedir que a equipe inicie novas tarefas antes do final do ano fiscal.",
+          "C. Forçar todos os desenvolvedores a trabalharem no mesmo computador ao mesmo tempo.",
+          "D. Aumentar artificialmente o número de cartões parados na coluna 'Fazendo'."
+        ],
+        correct: 0
+      },
+      {
+        question: "Qual métrica ágil expressa a quantidade de trabalho (geralmente em Story Points) que uma equipe Scrum consegue entregar como 'Done' em uma Sprint média?",
+        options: [
+          "A. Velocidade da Equipe (Velocity)",
+          "B. Retorno sobre Investimento (ROI)",
+          "C. Taxa de Rotatividade (Churn Rate)",
+          "D. Índice de Liquidez Corrente"
+        ],
+        correct: 0
       }
     ]
   },
@@ -512,6 +923,36 @@ var courses = [
           "B. Estrutura de Repetição (ENQUANTO / WHILE)",
           "C. Estrutura de Atribuição",
           "D. Declaração de Constante"
+        ],
+        correct: 1
+      },
+      {
+        question: "Considerando as operações lógicas booleanas, qual será o resultado da expressão: (5 > 2) AND (3 == 4)?",
+        options: [
+          "A. Verdadeiro (True)",
+          "B. Falso (False), pois na operação lógica AND (E) ambas as condições precisam ser verdadeiras.",
+          "C. Erro de compilação por tipos incompatíveis",
+          "D. Nulo (Null)"
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual estrutura de dados linear e homogênea armazena uma sequência de elementos do mesmo tipo acessíveis por um índice numérico posicional?",
+        options: [
+          "A. Vetor (Array unidimensional)",
+          "B. Grafo acíclico complexo",
+          "C. Árvore binária de busca balanceada",
+          "D. Variável booleana simples"
+        ],
+        correct: 0
+      },
+      {
+        question: "Em ciência da computação, o que caracteriza uma função 'Recursiva'?",
+        options: [
+          "A. Uma função que nunca termina e trava o computador obrigatoriamente.",
+          "B. Uma função que chama a si mesma durante sua execução, possuindo uma condição de parada (caso base) para encerrar as chamadas.",
+          "C. Uma função escrita exclusivamente em linguagem Assembly.",
+          "D. Uma função que só aceita números negativos como argumentos."
         ],
         correct: 1
       }

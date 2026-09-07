@@ -57,78 +57,113 @@ function renderStudentDashboard(container, user) {
   const keys = Object.keys(records); // IDs dos cursos que o aluno já iniciou
   const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
 
+  const userLevel = user.level || 1;
+  const userXp = user.xp || 0;
+  const xpNeeded = userLevel * 1000;
+  const xpPercent = Math.min(100, Math.round((userXp / xpNeeded) * 100));
+
   let coursesHtml      = ""; // HTML dos cursos em andamento
   let certificatesHtml = ""; // HTML dos certificados disponíveis
 
   if (keys.length === 0) {
-    // Aluno ainda não iniciou nenhum curso
-    coursesHtml      = `<p style="font-style: italic; opacity: 0.7;">Você ainda não iniciou nenhum curso. <a href="cursos.html" style="color: var(--primary); text-decoration: underline;">Clique aqui para explorar os cursos</a>.</p>`;
-    certificatesHtml = `<p style="font-style: italic; opacity: 0.7;">Nenhum certificado disponível.</p>`;
+    coursesHtml = `
+      <div style="text-align: center; padding: 30px; background: rgba(255,255,255,0.03); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.15);">
+        <p style="font-size: 1rem; opacity: 0.85; margin-bottom: 12px;">Você ainda não iniciou nenhum curso.</p>
+        <a href="cursos.html" class="btn-primary" style="text-decoration: none; display: inline-block; padding: 8px 18px;">
+          🚀 Explorar Catálogo de Cursos
+        </a>
+      </div>
+    `;
+    certificatesHtml = `<p style="font-style: italic; opacity: 0.7;">Nenhum certificado disponível no momento.</p>`;
   } else {
-    // Itera sobre cada curso iniciado e monta os cards de progresso
     keys.forEach(id => {
       const record = records[id];
       const foundCourse = coursesList.find(c => c.id === parseInt(id) || c.title === record.title);
       const pdfPath = (foundCourse && foundCourse.pdf) ? foundCourse.pdf : (record.pdf || "material.pdf");
       const safeTitle = record.title.replace(/'/g, "\\'");
+      const isDone = record.progress === 100;
 
-      // Card do curso com barra de progresso percentual e botões de acesso ao PDF e à aula
+      // Card moderno do curso com barra de progresso visual
       coursesHtml += `
-        <div style="background: rgba(255,255,255,0.05); padding: 14px; border-radius: 10px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; border: 1px solid rgba(255,255,255,0.08);">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <span style="font-weight: 600; font-size: 0.95rem;">${record.title}</span>
-            <span class="category-tag">${record.progress}% Concluído</span>
+        <div class="dash-student-course-item" data-status="${isDone ? 'completed' : 'in_progress'}" style="background: rgba(255,255,255,0.04); padding: 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.08); transition: transform .2s, border-color .2s;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+            <div>
+              <strong style="font-size: 1rem; color: var(--text);">${record.title}</strong>
+              <div style="font-size: 0.78rem; opacity: 0.7; margin-top: 2px;">Carga Horária Estimada: 40h • Apostila Digital</div>
+            </div>
+            <span class="category-tag" style="background: ${isDone ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)'}; color: ${isDone ? '#10B981' : '#60A5FA'}; font-weight: 700;">
+              ${record.progress}% Concluído
+            </span>
           </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="watchCourse('${safeTitle}')">
+
+          <!-- Barra de progresso visual -->
+          <div style="width: 100%; height: 7px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; margin-bottom: 12px;">
+            <div style="width: ${record.progress}%; height: 100%; background: linear-gradient(90deg, #3B82F6, #10B981); border-radius: 10px;"></div>
+          </div>
+
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem;" onclick="watchCourse('${safeTitle}')">
               🎓 Ir para Aula
             </button>
-            <a href="${pdfPath}" target="_blank" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+            <a href="${pdfPath}" target="_blank" class="btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
               📖 Material (PDF)
             </a>
+            ${isDone ? `
+              <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem; background: #10B981;" onclick="gerarCertificadoDoPainel('${safeTitle}')">
+                🏆 Emitir Certificado
+              </button>
+            ` : ''}
           </div>
         </div>
       `;
 
-      // Se progresso for 100%, o aluno pode emitir certificado
-      if (record.progress === 100) {
+      if (isDone) {
         certificatesHtml += `
-          <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-weight: 600;">🏆 ${record.title}</span>
-            <button class="btn-primary" style="padding: 5px 12px; font-size: 0.85rem;" onclick="gerarCertificadoDoPainel('${record.title}')">Visualizar</button>
+          <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <span style="font-weight: 700; font-size: 0.95rem; color: #10B981;">🏆 ${record.title}</span>
+              <div style="font-size: 0.78rem; opacity: 0.8; margin-top: 2px;">Concluído com aproveitamento máximo</div>
+            </div>
+            <button class="btn-primary" style="padding: 6px 14px; font-size: 0.85rem;" onclick="gerarCertificadoDoPainel('${safeTitle}')">
+              Visualizar Certificado
+            </button>
           </div>
         `;
       }
     });
 
-    // Se nenhum curso atingiu 100%, mostra mensagem incentivadora
     if (certificatesHtml === "") {
-      certificatesHtml = `<p style="font-style: italic; opacity: 0.7;">Complete 100% de um curso para emitir seu certificado.</p>`;
+      certificatesHtml = `<p style="font-style: italic; opacity: 0.7;">Complete 100% de um curso para liberar seu certificado.</p>`;
     }
   }
 
   // ─── Pareceres dos professores ──────────────────────────────
-  // Busca todos os envios e filtra apenas os do aluno atual
   const submissions  = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
   const mySubmissions = submissions.filter(s => s.userEmail === user.email);
 
   let feedbackHtml = "";
   if (mySubmissions.length > 0) {
     mySubmissions.forEach(sub => {
-      // Só mostra os que já foram corrigidos pelo professor
-      if (sub.status === "Corrigido") {
-        feedbackHtml += `
-          <div style="background: rgba(16, 185, 129, 0.08); border-left: 4px solid #10B981; padding: 12px 16px; border-radius: 8px; margin-bottom: 10px;">
-            <div style="font-weight: 600; color: #10B981;">📘 ${sub.courseTitle}</div>
-            <div style="font-size: 0.85rem; margin-top: 4px; opacity: 0.9;"><strong>Nota final:</strong> ${sub.score} / ${sub.totalQuestions} pts</div>
-            <div style="font-size: 0.85rem; margin-top: 6px; font-style: italic; opacity: 0.95;">" ${sub.feedback || 'Atividade avaliada e aprovada pelo professor.'} "</div>
+      const isDone = sub.status === "Corrigido";
+      feedbackHtml += `
+        <div style="background: ${isDone ? 'rgba(16, 185, 129, 0.08)' : 'rgba(245, 158, 11, 0.08)'}; border-left: 4px solid ${isDone ? '#10B981' : '#F59E0B'}; padding: 14px 18px; border-radius: 8px; margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+            <div style="font-weight: 700; color: ${isDone ? '#10B981' : '#F59E0B'};">📘 ${sub.courseTitle}</div>
+            <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,0.1);">
+              ${isDone ? '✅ Corrigido' : '⏳ Pendente'}
+            </span>
           </div>
-        `;
-      }
+          <div style="font-size: 0.85rem; margin-top: 6px; opacity: 0.9;">
+            <strong>Nota:</strong> ${sub.score} / ${sub.totalQuestions} acertos (${Math.round((sub.score / sub.totalQuestions) * 100)}%)
+          </div>
+          <div style="font-size: 0.85rem; margin-top: 6px; font-style: italic; opacity: 0.95;">
+            " ${sub.feedback || (isDone ? 'Atividade avaliada e aprovada pelo professor.' : 'Em processo de correção pela coordenação pedagógica.')} "
+          </div>
+        </div>
+      `;
     });
   }
 
-  // Aluno não tem nenhum parecer corrigido ainda
   if (feedbackHtml === "") {
     feedbackHtml = `<p style="font-style: italic; opacity: 0.7;">Você ainda não possui pareceres emitidos por professores.</p>`;
   }
@@ -136,19 +171,70 @@ function renderStudentDashboard(container, user) {
   // ─── Injeta o HTML final do painel do aluno no container ────
   container.innerHTML = `
     <div style="text-align: left;">
-      <h3 style="border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 10px; margin-bottom: 15px;">Olá, ${user.name}!</h3>
-      <p style="margin-bottom: 20px;">Nível Atual: <strong>${user.level || 1}</strong> | XP Total: <strong>${user.xp || 0} XP</strong></p>
-      
-      <h4 style="margin-bottom: 10px;">📈 Teu Progresso nos Cursos & Materiais</h4>
-      <div style="margin-bottom: 25px;">${coursesHtml}</div>
+      <!-- Banner de Destaque para o Novo Dashboard Dedicado -->
+      <div style="background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 60%, #8B5CF6 100%); border-radius: 16px; padding: 22px 26px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; box-shadow: 0 8px 24px rgba(59,130,246,0.25);">
+        <div>
+          <span style="background: rgba(255,255,255,0.2); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 14px; text-transform: uppercase; letter-spacing: .05em;">NOVA ÁREA DO ALUNO</span>
+          <h3 style="color: #fff; font-size: 1.35rem; font-weight: 900; margin: 6px 0 4px 0;">Painel 100% Interativo do Aluno</h3>
+          <p style="color: rgba(255,255,255,0.85); font-size: 0.88rem; max-width: 540px;">
+            Acesse seu cronograma, metas de estudo, bloco de anotações pessoal, simulador de questões com ganho de XP e galeria de diplomas.
+          </p>
+        </div>
+        <a href="aluno.html" class="btn-primary" style="background: #fff; color: #1E3A8A; font-weight: 800; padding: 12px 22px; font-size: 0.92rem; border-radius: 10px; text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
+          🚀 Abrir Painel Completo do Aluno
+        </a>
+      </div>
 
-      <h4 style="margin-bottom: 10px;">📝 Pareceres dos Professores</h4>
+      <!-- Resumo do Perfil -->
+      <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+        <div>
+          <h3 style="margin-bottom: 4px;">Olá, ${user.name}! 👋</h3>
+          <p style="opacity: 0.8; font-size: 0.88rem;">Nível Atual: <strong>Nível ${userLevel}</strong> • XP Total: <strong>${userXp} / ${xpNeeded} XP</strong></p>
+          <div style="width: 240px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 8px;">
+            <div style="width: ${xpPercent}%; height: 100%; background: linear-gradient(90deg, #3B82F6, #10B981);"></div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <a href="aluno.html" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; text-decoration: none;">
+            🎯 Gerenciar Metas &amp; Notas
+          </a>
+          <a href="cursos.html" class="btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; text-decoration: none;">
+            + Explorar Matérias
+          </a>
+        </div>
+      </div>
+
+      <!-- Filtros Rápidos de Cursos -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+        <h4 style="font-size: 1.05rem; margin: 0;">📈 Teu Progresso nos Cursos &amp; Materiais</h4>
+        <div style="display: flex; gap: 6px;">
+          <button class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="filterInlineDashboardCourses('all')">Todos</button>
+          <button class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="filterInlineDashboardCourses('in_progress')">Em Andamento</button>
+          <button class="btn-secondary" style="padding: 4px 10px; font-size: 0.78rem;" onclick="filterInlineDashboardCourses('completed')">Concluídos</button>
+        </div>
+      </div>
+
+      <div id="inlineDashboardCoursesList" style="margin-bottom: 25px;">${coursesHtml}</div>
+
+      <h4 style="margin-bottom: 12px; font-size: 1.05rem;">📝 Pareceres dos Professores</h4>
       <div style="margin-bottom: 25px;">${feedbackHtml}</div>
 
-      <h4 style="margin-bottom: 10px;">📜 Teus Certificados Conquistados</h4>
+      <h4 style="margin-bottom: 12px; font-size: 1.05rem;">📜 Teus Certificados Conquistados</h4>
       <div>${certificatesHtml}</div>
     </div>
   `;
+}
+
+// Filtro rápido dos cards no dashboard inline
+function filterInlineDashboardCourses(status) {
+  const items = document.querySelectorAll(".dash-student-course-item");
+  items.forEach(item => {
+    if (status === 'all' || item.getAttribute('data-status') === status) {
+      item.style.display = "block";
+    } else {
+      item.style.display = "none";
+    }
+  });
 }
 
 

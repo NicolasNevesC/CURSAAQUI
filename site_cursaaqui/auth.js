@@ -47,6 +47,29 @@
     localStorage.setItem("users", JSON.stringify(users));
   }
 
+  // Inicializa progresso de demonstração para o aluno demo caso não exista
+  const demoStudentProgressKey = "user_courses_progress_aluno@cursaaqui.com";
+  if (!localStorage.getItem(demoStudentProgressKey)) {
+    const demoProgress = {
+      1: {
+        title: "Análise e Desenvolvimento de Sistemas - Manual Acadêmico",
+        progress: 85,
+        pdf: "materiais/ads_manual_academico.pdf"
+      },
+      2: {
+        title: "CLOUD COMPUTING E DEVOPS",
+        progress: 100,
+        pdf: "materiais/cloud_computing_devops.pdf"
+      },
+      3: {
+        title: "SEGURANÇA DA INFORMAÇÃO E LGPD",
+        progress: 40,
+        pdf: "materiais/seguranca_lgpd.pdf"
+      }
+    };
+    localStorage.setItem(demoStudentProgressKey, JSON.stringify(demoProgress));
+  }
+
   // ─── Envios de atividades de demonstração ───────────────────
   // Popula apenas se não houver nenhum envio salvo ainda
   const submissions = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
