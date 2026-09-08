@@ -12,10 +12,16 @@ Transformando o aprendizado com tecnologia prática, cursos focados no mercado e
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)](#)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)](#)
 
-[Demonstração](#-como-executar-o-projeto) •
-[Funcionalidades](#-funcionalidades) •
-[Estrutura](#-estrutura-do-projeto) •
-[Tecnologias](#-tecnologias-utilizadas)
+<br>
+
+[![Acessar Demonstração](https://img.shields.io/badge/🌐%20Acessar%20Demonstração-Online-00C853?style=for-the-badge&logo=googlechrome&logoColor=white)](https://nicolasnevesc.github.io/CURSAAQUI/)
+
+<br>
+
+[🌐 Demonstração Online](https://nicolasnevesc.github.io/CURSAAQUI/) •
+[Funcionalidades](#-funcionalidades-principais) •
+[Estrutura](#-estrutura-do-repositório) •
+[Como Executar](#-como-executar-o-projeto)
 
 ---
 
@@ -26,6 +32,14 @@ Transformando o aprendizado com tecnologia prática, cursos focados no mercado e
 O **Cursa Aqui** é uma plataforma educacional gratuita criada para oferecer cursos de alta qualidade, desenvolvidos com foco em impulsionar a carreira profissional dos estudantes. A proposta central é simples: aprender sem limites, com acesso livre a conteúdos, aulas interativas e certificados, tudo em um ambiente intuitivo e moderno.
 
 Ao entrar no site, o usuário encontra uma interface fluida com navegação direta para o catálogo de cursos, perguntas frequentes, suporte e os painéis dedicados para estudantes e professores.
+
+---
+
+## 🌐 Demonstração Online
+
+O site está hospedado e disponível para visualização e testes em tempo real no GitHub Pages:
+
+👉 **[https://nicolasnevesc.github.io/CURSAAQUI/](https://nicolasnevesc.github.io/CURSAAQUI/)**
 
 ---
 
@@ -61,26 +75,28 @@ A plataforma foi construída priorizando leveza, rapidez e independência de dep
 
 ```bash
 CursaAqui/
-├── diagramas/        # Diagramas de arquitetura e DER do banco de dados
-├── protótipo/        # Wireframes e protótipos de interface
-├── site_cursaaqui/   # Código-fonte completo da aplicação web
-│   ├── index.html        # Página inicial e apresentação da plataforma
-│   ├── cursos.html       # Catálogo completo e filtros de busca
-│   ├── course.html       # Visualizador de curso, aulas e questionários
-│   ├── aluno.html        # Painel do estudante e emissão de certificados
-│   ├── professor.html    # Painel administrativo para instrutores
-│   ├── style.css         # Estilização completa e responsividade
-│   ├── app.js            # Lógica geral e interações da interface
-│   ├── auth.js           # Gerenciamento de login, cadastro e sessões
-│   ├── courses.js        # Base de dados de cursos, módulos e quizzes
-│   ├── dashboard.js      # Lógica do painel de controle do aluno
-│   └── certificate.js    # Gerador e validador de certificados
+├── .github/workflows/deploy.yml # Pipeline de deploy automatizado no GitHub Pages
+├── diagramas/                   # Diagramas de arquitetura e DER do banco de dados
+├── protótipo/                   # Wireframes e protótipos de interface
+├── site_cursaaqui/              # Código-fonte completo da aplicação web
+│   ├── index.html               # Página inicial e apresentação da plataforma
+│   ├── cursos.html              # Catálogo completo e filtros de busca
+│   ├── course.html              # Visualizador de curso, aulas e questionários
+│   ├── aluno.html               # Painel do estudante e emissão de certificados
+│   ├── professor.html           # Painel administrativo para instrutores
+│   ├── style.css                # Estilização completa e responsividade
+│   ├── app.js                   # Lógica geral e interações da interface
+│   ├── auth.js                  # Gerenciamento de login, cadastro e sessões
+│   ├── courses.js               # Base de dados de cursos, módulos e quizzes
+│   ├── dashboard.js             # Lógica do painel de controle do aluno
+│   └── certificate.js           # Gerador e validador de certificados
+├── index.html                   # Redirecionamento automático para a aplicação
 └── README.md
 ```
 
 ---
 
-## 🚀 Como Executar o Projeto
+## 🚀 Como Executar o Projeto Localmente
 
 Como o projeto é construído com tecnologias web puras, você pode rodá-lo instantaneamente sem precisar instalar pacotes via `npm`:
 

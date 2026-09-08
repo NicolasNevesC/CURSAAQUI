@@ -12,10 +12,16 @@ Transformando o aprendizado com tecnologia prática, cursos focados no mercado e
 [![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)](#)
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)](#)
 
-[Demonstração](#-como-executar-o-projeto) •
+<br>
+
+[![Acessar Demonstração](https://img.shields.io/badge/🌐%20Acessar%20Demonstração-Online-00C853?style=for-the-badge&logo=googlechrome&logoColor=white)](https://nicolasnevesc.github.io/CURSAAQUI/)
+
+<br>
+
+[🌐 Demonstração Online](https://nicolasnevesc.github.io/CURSAAQUI/) •
 [Funcionalidades](#-funcionalidades) •
-[Estrutura](#-estrutura-do-projeto) •
-[Tecnologias](#-tecnologias-utilizadas)
+[Estrutura](#-estrutura-de-arquivos) •
+[Como Executar](#-como-executar-o-projeto)
 
 ---
 
@@ -24,6 +30,14 @@ Transformando o aprendizado com tecnologia prática, cursos focados no mercado e
 ## 📌 Sobre o Projeto
 
 O **Cursa Aqui** é uma plataforma web educacional desenvolvida para democratizar o acesso ao conhecimento prático de tecnologia, design e negócios. Criada com foco em uma experiência fluida e intuitiva, a plataforma permite que estudantes aprendam no seu próprio ritmo, acompanhem seu desenvolvimento através de métricas em tempo real e conquistem certificados de conclusão válidos.
+
+---
+
+## 🌐 Demonstração Online
+
+O site está hospedado e disponível para visualização e testes em tempo real no GitHub Pages:
+
+👉 **[https://nicolasnevesc.github.io/CURSAAQUI/](https://nicolasnevesc.github.io/CURSAAQUI/)**
 
 ---
 
@@ -77,12 +91,11 @@ site_cursaaqui/
 
 ## 🚀 Como Executar o Projeto
 
-Como o projeto é construído com tecnologias web puras, não há necessidade de instalação de dependências complexas ou compilação.
+### 1. Acesso Online Direto
+Você pode testar a plataforma diretamente no seu navegador sem instalar nada:
+👉 **[https://nicolasnevesc.github.io/CURSAAQUI/](https://nicolasnevesc.github.io/CURSAAQUI/)**
 
-### Pré-requisitos
-Qualquer navegador web moderno (Google Chrome, Firefox, Microsoft Edge, Opera, Safari).
-
-### Passo a Passo
+### 2. Execução Local
 
 1. **Clone o repositório:**
    ```bash
@@ -103,7 +116,7 @@ Qualquer navegador web moderno (Google Chrome, Firefox, Microsoft Edge, Opera, S
      ```bash
      npx serve .
      ```
-   - Ou simplesmente utilize a extensão **Live Server** do VS Code abrindo o `index.html`.
+   - Ou abra o arquivo `index.html` com o Live Server no VS Code.
 
 4. **Acesse no seu navegador:**
    Abra [http://localhost:3000](http://localhost:3000)
@@ -112,7 +125,7 @@ Qualquer navegador web moderno (Google Chrome, Firefox, Microsoft Edge, Opera, S
 
 ## 📄 Licença
 
-Distribuído sob a licença **MIT**. Consulte o arquivo de licença para mais informações.
+Distribuído sob a licença **MIT**.
 
 <div align="center">
 Desenvolvido com dedicação para impulsionar a educação e o futuro dos estudantes.
