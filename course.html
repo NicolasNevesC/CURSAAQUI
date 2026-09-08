@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+  (function () {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+  })();
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curso - Cursa Aqui</title>
+  <link rel="stylesheet" href="style.css?v=7.0">
+</head>
+
+<body>
+
+  <header class="navbar glass">
+    <div class="logo"><a href="index.html" style="text-decoration:none; color:inherit;">🎓 Cursa Aqui</a></div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <a href="aluno.html" class="btn-secondary" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem;">🎓 Painel do Aluno</a>
+      <a href="cursos.html" class="btn-primary" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem;">👈 Voltar aos Cursos</a>
+    </div>
+  </header>
+
+  <div id="toast-container"></div>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1 id="courseTitle">Carregando...</h1>
+      <p id="courseDescription">Curso premium com aulas modernas e material didático oficial.</p>
+      
+      <div style="margin: 15px 0 8px 0; display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600;">
+        <span>Progresso Geral do Curso:</span>
+        <span id="courseProgressText">0%</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" id="courseProgress" style="width: 0%;"></div>
+      </div>
+      <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <a id="materialStudyBtn" href="material.pdf" target="_blank" class="btn-primary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          📖 Acessar Apostila Oficial (PDF)
+        </a>
+        <a id="materialDownloadBtn" href="material.pdf" download class="btn-secondary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          ⬇️ Baixar PDF
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-card glass">
+      <h3>Aulas & Módulos</h3>
+      <ul id="lessonList"></ul>
+    </div>
+  </section>
+
+  <!-- ÁREA DE MATERIAL DE ESTUDO OFICIAL DO CURSO -->
+  <section class="courses" style="margin-top: 10px;">
+    <h2>📚 Área de Material de Estudo</h2>
+    <div class="glass" style="padding: 24px; border-radius: 14px; max-width: 950px; margin: 0 auto; text-align: left;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
+        <div style="flex: 1; min-width: 280px;">
+          <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(59,130,246,0.15); color: #3B82F6; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;">
+            📄 Apostila Didática Oficial em PDF
+          </div>
+          <h3 id="materialCardTitle" style="font-size: 1.3rem; margin-bottom: 6px; color: var(--text);">Apostila Completa da Disciplina</h3>
+          <p id="materialCardInfo" style="opacity: 0.85; font-size: 0.92rem; line-height: 1.5; margin-bottom: 12px;">
+            Acesse o conteúdo acadêmico oficial estruturado para consulta e aprofundamento. A leitura do material é obrigatória e concede <strong>30% do progresso</strong> para a emissão do seu certificado.
+          </p>
+          <div id="materialStatusBadge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
+            ⏳ Material pendente de leitura (+30% no progresso)
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; min-width: 230px;">
+          <a id="materialSectionBtn" href="material.pdf" target="_blank" class="btn-primary" onclick="accessMaterial()" style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px;">
+            📖 Abrir PDF em Nova Aba
+          </a>
+          <button id="toggleViewerBtn" class="btn-secondary" onclick="togglePdfViewer()" style="text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px;">
+            👁️ Visualizar PDF na Página
+          </button>
+        </div>
+      </div>
+
+      <!-- Leitor de PDF Embutido na página -->
+      <div id="pdfViewerContainer" style="display: none; margin-top: 24px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); background: var(--card);">
+        <div style="background: rgba(0,0,0,0.15); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08);">
+          <span id="pdfViewerHeaderTitle" style="font-size: 0.9rem; font-weight: 600;">📖 Leitor de PDF Integrado</span>
+          <button onclick="togglePdfViewer()" class="btn-secondary" style="padding: 5px 12px; font-size: 0.8rem;">✕ Fechar Leitor</button>
+        </div>
+        <iframe id="pdfIframe" src="" style="width: 100%; height: 650px; border: none; background: #ffffff;"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <section class="courses">
+    <h2>Avaliação do Curso</h2>
+    <div id="quizContainer"></div>
+    <div id="quizActions" style="margin-top: 20px;"></div>
+  </section>
+
+  <section class="courses" style="margin-top: 40px;">
+    <h2>Dúvidas com o Tutor</h2>
+    <div class="glass" style="padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; max-width: 600px;">
+      
+      <div id="teacherStudentSelectorContainer" style="display: none; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+        <label for="chatStudentSelector" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 6px;">
+          👨‍🏫 Responder chat do aluno:
+        </label>
+        <select id="chatStudentSelector" onchange="changeActiveStudent(this.value)" style="width: 100%; padding: 10px; border-radius: 6px; background: var(--card); color: inherit; border: 1px solid rgba(0,0,0,0.15); font-family: inherit;">
+          <option value="">Selecione um aluno para conversar...</option>
+        </select>
+      </div>
+
+      <div id="chatMessages" style="height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+        <!-- CITAÇÃO REMOVIDA AQUI -->
+        <div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
+          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do curso, envie aqui!
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="chatInput" placeholder="Digite sua mensagem..." onkeypress="handleChatKey(event)" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.02); color: inherit;">
+        <button class="btn-primary" onclick="sendMessage()">Enviar</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" id="certificateModal" style="display:none;">
+    <div class="modal-content" style="max-width: 500px; text-align: center;">
+      <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer;" onclick="closeCertificate()">&times;</span>
+      <h1>CERTIFICADO</h1>
+      <p style="margin: 15px 0;">Certificamos que</p>
+      <h2 id="certUser">Aluno</h2>
+      <p style="margin: 15px 0;">concluiu com sucesso o curso</p>
+      <h3 id="certCourse">Curso</h3>
+      <p id="certDate" style="margin: 15px 0; font-style: italic;"></p>
+      <div class="seal" style="font-size: 3rem; margin: 15px 0;">🏅</div>
+      <div class="signature" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+        <p>Assinatura Oficial</p>
+      </div>
+      <div class="certificate-buttons" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+        <button class="btn-primary" onclick="window.print()">Imprimir</button>
+        <button class="btn-secondary" onclick="closeCertificate()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="courses.js?v=7.0"></script>
+  <script src="auth.js?v=7.0"></script>
+  <script src="certificate.js?v=7.0"></script>
+  <script src="dashboard.js?v=7.0"></script>
+  <script src="app.js?v=7.0"></script>
+
+  <script>
+    let course = null;
+    const user = JSON.parse(localStorage.getItem("loggedUser"));
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. Carrega curso do localStorage ou parâmetros de URL
+      const params = new URLSearchParams(window.location.search);
+      const urlCourseName = params.get("name");
+      const urlCourseId = params.get("id");
+      const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+
+      course = JSON.parse(localStorage.getItem("selectedCourse"));
+
+      if (!course && (urlCourseName || urlCourseId) && coursesList) {
+        if (urlCourseName) {
+          course = coursesList.find(c => c.title.toLowerCase() === decodeURIComponent(urlCourseName).toLowerCase());
+        }
+        if (!course && urlCourseId) {
+          course = coursesList.find(c => c.id === parseInt(urlCourseId));
+        }
+      }
+
+      if (!course && coursesList && coursesList.length > 0) {
+        course = coursesList[0];
+      }
+
+      if (!course) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      // 2. Sincroniza dados com o catálogo oficial courses.js (garantindo o arquivo PDF correto)
+      if (coursesList) {
+        const found = coursesList.find(c => c.id === course.id || c.title === course.title);
+        if (found) {
+          course.id = found.id;
+          course.title = found.title;
+          course.category = found.category;
+          course.teacher = found.teacher;
+          course.duration = found.duration;
+          course.rating = found.rating;
+          course.image = found.image;
+          course.pdf = found.pdf;
+          course.minLevel = found.minLevel || 1;
+          if (found.lessons) course.lessons = found.lessons;
+          if (found.quiz) course.quiz = found.quiz;
+        }
+      }
+
+      // Verificação de Nível Mínimo do Curso
+      const minLevel = course.minLevel || 1;
+      const userLevel = user ? (user.level || 1) : 1;
+      const isTeacher = user && user.role === "teacher";
+      
+      if (!isTeacher && userLevel < minLevel) {
+        alert(`🔒 Este curso requer Nível ${minLevel}. Seu nível atual é ${userLevel}. Conclua as matérias dos níveis anteriores para desbloquear.`);
+        window.location.href = "cursos.html";
+        return;
+      }
+
+      // 3. Atualiza textos do curso e da área de material
+      document.getElementById("courseTitle").innerText = course.title;
+      if (document.getElementById("courseDescription")) {
+        document.getElementById("courseDescription").innerText = `Disciplina: ${course.category} | Docente: ${course.teacher} | Carga Horária: ${course.duration}`;
+      }
+      if (document.getElementById("materialCardTitle")) {
+        document.getElementById("materialCardTitle").innerText = `Apostila Oficial: ${course.title}`;
+      }
+      if (document.getElementById("materialCardInfo")) {
+        document.getElementById("materialCardInfo").innerHTML = `Material didático oficial em PDF para o curso de <strong>${course.title}</strong>, ministrado por <strong>${course.teacher}</strong>. A leitura é indispensável para a fixação do conteúdo e conclusão do curso (+30% no progresso).`;
+      }
+
+      // 4. Vincula os arquivos PDF específicos a todos os botões de material
+      const pdfPath = course.pdf || "material.pdf";
+
+      const heroStudyBtn = document.getElementById("materialStudyBtn");
+      if (heroStudyBtn) {
+        heroStudyBtn.setAttribute("href", pdfPath);
+      }
+
+      const heroDownloadBtn = document.getElementById("materialDownloadBtn");
+      if (heroDownloadBtn) {
+        heroDownloadBtn.setAttribute("href", pdfPath);
+        const fileName = pdfPath.split('/').pop() || `${course.title}.pdf`;
+        heroDownloadBtn.setAttribute("download", fileName);
+      }
+
+      const sectionMaterialBtn = document.getElementById("materialSectionBtn");
+      if (sectionMaterialBtn) {
+        sectionMaterialBtn.setAttribute("href", pdfPath);
+      }
+
+      // 5. Carrega o histórico de progresso do usuário logado
+      if (user) {
+        const progressKey = `user_courses_progress_${user.email}`;
+        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+        if (records[course.id]) {
+          course.progress = records[course.id].progress || 0;
+          course.answers = records[course.id].answers || {};
+          course.quizCompleted = records[course.id].quizCompleted || false;
+          course.materialAccessed = records[course.id].materialAccessed || false;
+        }
+        
+        if (user.role === "teacher") {
+          buildStudentSelector();
+        }
+      }
+
+      if (!course.answers) course.answers = {};
+
+      // Salva estado sincronizado
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+
+      // 6. Renderiza a interface
+      renderLessons();
+      renderQuiz();
+      renderChatHistory();
+      updateMaterialStatusUI();
+      updateProgressUI();
+    });
+
+    function renderLessons() {
+      const list = document.getElementById("lessonList");
+      if (!list) return;
+      list.innerHTML = "";
+      if (course.lessons) {
+        course.lessons.forEach(lesson => {
+          list.innerHTML += `<li>🔹 ${lesson}</li>`;
+        });
+      }
+    }
+
+    function updateMaterialStatusUI() {
+      const badge = document.getElementById("materialStatusBadge");
+      if (!badge) return;
+
+      if (course.materialAccessed) {
+        badge.style.background = "rgba(16, 185, 129, 0.15)";
+        badge.style.color = "#10B981";
+        badge.innerHTML = "✅ Material oficial acessado (+30% no progresso computado)";
+      } else {
+        badge.style.background = "rgba(245, 158, 11, 0.15)";
+        badge.style.color = "#F59E0B";
+        badge.innerHTML = "⏳ Material pendente de leitura (+30% no progresso)";
+      }
+    }
+
+    function togglePdfViewer() {
+      const container = document.getElementById("pdfViewerContainer");
+      const iframe = document.getElementById("pdfIframe");
+      const headerTitle = document.getElementById("pdfViewerHeaderTitle");
+      if (!container || !iframe) return;
+
+      if (container.style.display === "none" || container.style.display === "") {
+        const pdfPath = course.pdf || "material.pdf";
+        if (iframe.getAttribute("src") !== pdfPath) {
+          iframe.setAttribute("src", pdfPath);
+        }
+        if (headerTitle) {
+          headerTitle.innerText = `📖 Visualizando Apostila: ${course.title}`;
+        }
+        container.style.display = "block";
+        container.scrollIntoView({ behavior: "smooth", block: "start" });
+        // Ao abrir o leitor, já valida o acesso ao material
+        accessMaterial(false);
+      } else {
+        container.style.display = "none";
+      }
+    }
+
+    function accessMaterial(showNotification = true) {
+      const wasAlreadyAccessed = course.materialAccessed;
+      course.materialAccessed = true;
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+      calculateProgress();
+      updateMaterialStatusUI();
+      if (showNotification && !wasAlreadyAccessed) {
+        showToast("📖 Material de estudo acessado! +30% adicionado ao progresso.");
+      }
+    }
+
+    function renderQuiz() {
+      const container = document.getElementById("quizContainer");
+      const actions = document.getElementById("quizActions");
+      if (!container || !actions) return;
+
+      container.innerHTML = "";
+      actions.innerHTML = "";
+
+      if (!course.quiz || course.quiz.length === 0) {
+        container.innerHTML = "<p>Este curso não possui avaliação.</p>";
+        return;
+      }
+
+      let correctAnswersCount = 0;
+      course.quiz.forEach((q, qIdx) => {
+        if (course.answers[qIdx] === q.correct) correctAnswersCount++;
+        let optionsHtml = "";
+        q.options.forEach((opt, optIdx) => {
+          const isSelected = course.answers[qIdx] === optIdx;
+          const isCorrect = q.correct === optIdx;
+          let customStyle = "";
+
+          if (course.quizCompleted) {
+            if (isCorrect) {
+              customStyle = "background: rgba(16, 185, 129, 0.2); color: #10B981; border: 2px solid #10B981; font-weight: 700;";
+            } else if (isSelected && !isCorrect) {
+              customStyle = "background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 2px solid #EF4444;";
+            }
+          } else if (isSelected) {
+            customStyle = "background: #3B82F6; color: white; border-color: #3B82F6;";
+          }
+
+          const disabled = course.quizCompleted ? "disabled" : "";
+          const badgeText = course.quizCompleted ? (isCorrect ? " ✅ (Gabarito Correto)" : (isSelected ? " ❌ (Sua Resposta)" : "")) : "";
+
+          optionsHtml += `
+            <button class="btn-secondary" ${disabled} style="display: block; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px; font-size: 0.9rem; ${customStyle}" onclick="selectAnswer(${qIdx}, ${optIdx}, this)">
+              ${opt}${badgeText}
+            </button>
+          `;
+        });
+
+        container.innerHTML += `
+          <div class="glass" style="padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.82rem; color: var(--primary); font-weight: 700;">
+              <span>QUESTÃO ${qIdx + 1} DE ${course.quiz.length}</span>
+              ${course.quizCompleted ? (course.answers[qIdx] === q.correct ? '<span style="color:#10B981;">✅ Acertou</span>' : '<span style="color:#EF4444;">❌ Errou</span>') : ''}
+            </div>
+            <p style="font-size: 1rem; line-height: 1.5;">${q.question}</p>
+            <div style="margin-top: 14px;">${optionsHtml}</div>
+          </div>
+        `;
+      });
+
+      if (!course.quizCompleted) {
+        actions.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <span style="font-size: 0.88rem; opacity: 0.85;">Responda todas as ${course.quiz.length} questões para submeter ao professor.</span>
+            <button class="btn-primary" onclick="submitQuiz()">Finalizar Avaliação (${course.quiz.length} Questões)</button>
+          </div>
+        `;
+      } else {
+        const scorePercent = Math.round((correctAnswersCount / course.quiz.length) * 100);
+        actions.innerHTML = `
+          <div class="glass" style="padding: 18px; border-radius: 12px; border-left: 5px solid #10B981; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <p style="color: #10B981; font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">🎉 Avaliação Concluída!</p>
+              <p style="font-size: 0.9rem; opacity: 0.9;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões</strong> (${scorePercent}% de aproveitamento).</p>
+            </div>
+            <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 8px 16px;">
+              🔄 Refazer Exercícios
+            </button>
+          </div>
+        `;
+
+        if (course.progress === 100) {
+          actions.innerHTML += `
+            <div class="glass" id="reviewBox" style="padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px; text-align: left;">
+              <h4 style="margin-bottom: 10px;">⭐ Deixe sua Avaliação do Curso (Opcional)</h4>
+              <div style="margin-bottom: 12px;">
+                <label for="reviewStars" style="font-size: 0.9rem; font-weight: 500;">Nota:</label>
+                <select id="reviewStars" style="padding: 6px; margin-left: 10px; border-radius: 6px; background: var(--card); color: inherit; border: 1px solid rgba(0,0,0,0.15);">
+                  <option value="">Selecionar estrelas...</option>
+                  <option value="5">⭐⭐⭐⭐⭐ (5 / 5)</option>
+                  <option value="4">⭐⭐⭐⭐ (4 / 5)</option>
+                  <option value="3">⭐⭐⭐ (3 / 5)</option>
+                  <option value="2">⭐⭐ (2 / 5)</option>
+                  <option value="1">⭐ (1 / 5)</option>
+                </select>
+              </div>
+              <textarea id="reviewText" placeholder="Escreva um comentário opcional..." rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.15); background: var(--card); color: inherit; font-family: inherit; margin-bottom: 12px;"></textarea>
+              <button class="btn-primary" onclick="submitReview()" style="width: 100%; font-size: 0.9rem;">Enviar Avaliação</button>
+            </div>
+          `;
+          
+          actions.innerHTML += `<button class="btn-primary" onclick="generateCertificate('${course.title}')">🏆 Imprimir Meu Certificado</button>`;
+        }
+      }
+    }
+
+    function selectAnswer(qIdx, optIdx, btn) {
+      if (course.quizCompleted) return;
+      
+      course.answers[qIdx] = optIdx;
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+
+      const parent = btn.parentElement;
+      const buttons = parent.querySelectorAll("button");
+      buttons.forEach(b => {
+        b.style.background = "";
+        b.style.color = "";
+        b.style.borderColor = "";
+      });
+      btn.style.background = "#3B82F6";
+      btn.style.color = "white";
+      btn.style.borderColor = "#3B82F6";
+
+      calculateProgress();
+    }
+
+    function submitQuiz() {
+      const totalQuestions = course.quiz ? course.quiz.length : 0;
+      const totalAnswers = Object.keys(course.answers).length;
+
+      if (totalAnswers < totalQuestions) {
+        showToast("Por favor, responda todas as questões antes de finalizar!");
+        return;
+      }
+
+      course.quizCompleted = true;
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+
+      if (user) {
+        let score = 0;
+        if (course.quiz) {
+          course.quiz.forEach((q, idx) => {
+            if (course.answers[idx] === q.correct) score++;
+          });
+        }
+
+        const submissions = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
+        const existingIdx = submissions.findIndex(s => s.userEmail === user.email && s.courseId === course.id);
+
+        const newSub = {
+          id: existingIdx >= 0 ? submissions[existingIdx].id : Date.now(),
+          userName: user.name,
+          userEmail: user.email,
+          courseId: course.id,
+          courseTitle: course.title,
+          answers: course.answers,
+          quiz: course.quiz,
+          score: score,
+          totalQuestions: totalQuestions,
+          status: "Pendente",
+          feedback: "",
+          submittedAt: new Date().toLocaleDateString('pt-BR')
+        };
+
+        if (existingIdx >= 0) {
+          submissions[existingIdx] = newSub;
+        } else {
+          submissions.push(newSub);
+        }
+        localStorage.setItem("teacher_activity_submissions", JSON.stringify(submissions));
+      }
+
+      calculateProgress();
+      renderQuiz();
+      showToast("Avaliação registrada e enviada para correção do professor!");
+    }
+
+    function resetQuiz() {
+      course.quizCompleted = false;
+      course.answers = {};
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+      calculateProgress();
+      renderQuiz();
+      showToast("Exercícios liberados para nova tentativa!");
+    }
+
+    function calculateProgress() {
+      let weightMaterial = course.materialAccessed ? 30 : 0;
+      let weightQuiz = course.quizCompleted ? 70 : 0;
+      course.progress = weightMaterial + weightQuiz;
+      
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+      updateProgressUI();
+    }
+
+    function updateProgressUI() {
+      const progressBar = document.getElementById("courseProgress");
+      const progressText = document.getElementById("courseProgressText");
+      const val = course.progress || 0;
+      if (progressBar) {
+        progressBar.style.width = `${val}%`;
+      }
+      if (progressText) {
+        progressText.innerText = `${val}% Concluído`;
+      }
+    }
+
+    function saveProgressToGlobal() {
+      if (user && course) {
+        const progressKey = `user_courses_progress_${user.email}`;
+        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+        const jaConcluiuAntes = records[course.id] && records[course.id].progress === 100;
+
+        records[course.id] = {
+          id: course.id,
+          title: course.title,
+          progress: course.progress || 0,
+          answers: course.answers || {},
+          quizCompleted: course.quizCompleted || false,
+          materialAccessed: course.materialAccessed || false
+        };
+        localStorage.setItem(progressKey, JSON.stringify(records));
+
+        if (course.progress === 100 && !jaConcluiuAntes) {
+          if (user.xp === undefined) user.xp = 0;
+          if (user.level === undefined) user.level = 1;
+
+          const xpGanho = 1000; 
+          user.xp += xpGanho;
+          
+          showToast(`🎉 Parabéns! Você ganhou +${xpGanho} XP por concluir o curso!`);
+
+          let subiuNivel = false;
+          let xpNecessario = user.level * 1000;
+          while (user.xp >= xpNecessario) {
+            user.xp -= xpNecessario;
+            user.level += 1;
+            subiuNivel = true;
+            xpNecessario = user.level * 1000;
+            showToast(`✨ SUBIU DE NÍVEL! Você agora está no Nível ${user.level}!`);
+          }
+
+          localStorage.setItem("loggedUser", JSON.stringify(user));
+
+          const listaUsuarios = JSON.parse(localStorage.getItem("users")) || [];
+          const index = listaUsuarios.findIndex(u => u.email === user.email);
+          if (index !== -1) {
+            listaUsuarios[index].xp = user.xp;
+            listaUsuarios[index].level = user.level;
+            localStorage.setItem("users", JSON.stringify(listaUsuarios));
+          }
+
+          if (subiuNivel) {
+            setTimeout(() => {
+              showLevelUpCelebration(user.level);
+            }, 800);
+          }
+        }
+      }
+    }
+
+    function showLevelUpCelebration(newLevel) {
+      let modal = document.getElementById("levelUpCelebrationModal");
+      if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "levelUpCelebrationModal";
+        modal.className = "modal";
+        document.body.appendChild(modal);
+      }
+
+      const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+      const unlockedCourses = coursesList.filter(c => (c.minLevel || 1) === newLevel);
+
+      let coursesUnlockedHTML = "";
+      if (unlockedCourses.length > 0) {
+        coursesUnlockedHTML = `
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 14px; margin: 15px 0; text-align: left;">
+            <p style="font-weight: 700; color: #10B981; font-size: 0.9rem; margin-bottom: 8px;">🔓 Novos Cursos Destrancados para Você:</p>
+            <ul style="padding-left: 18px; margin: 0; font-size: 0.85rem; line-height: 1.6;">
+              ${unlockedCourses.map(c => `<li><strong>${c.title}</strong> (${c.category})</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      modal.innerHTML = `
+        <div class="modal-content lock-modal-card">
+          <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer; font-size:1.5rem;" onclick="document.getElementById('levelUpCelebrationModal').style.display='none'">&times;</span>
+          
+          <div class="padlock-anim-container">
+            <div class="padlock-wrapper unlocked" id="celebrationPadlock">
+              <div class="padlock-halo"></div>
+              <div class="padlock-sparkles">
+                <span class="sparkle s1">✨</span>
+                <span class="sparkle s2">⭐</span>
+                <span class="sparkle s3">✨</span>
+                <span class="sparkle s4">⭐</span>
+              </div>
+              <svg class="padlock-svg" viewBox="0 0 100 120">
+                <defs>
+                  <linearGradient id="shackleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#CBD5E1" />
+                    <stop offset="50%" stop-color="#94A3B8" />
+                    <stop offset="100%" stop-color="#64748B" />
+                  </linearGradient>
+                  <linearGradient id="bodyGradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FBBF24" />
+                    <stop offset="50%" stop-color="#EAB308" />
+                    <stop offset="100%" stop-color="#B45309" />
+                  </linearGradient>
+                </defs>
+                <path class="padlock-shackle" d="M 32 55 V 30 A 18 18 0 0 1 68 30 V 55" fill="none" stroke="url(#shackleGrad)" stroke-width="12" stroke-linecap="round" />
+                <rect class="padlock-body" x="16" y="48" width="68" height="58" rx="14" fill="url(#bodyGradGold)" stroke="#92400E" stroke-width="2" />
+                <circle cx="50" cy="72" r="6" fill="#1E293B" />
+                <polygon points="47,73 53,73 55,87 45,87" fill="#1E293B" />
+              </svg>
+            </div>
+          </div>
+
+          <h2 style="font-size: 1.5rem; margin-bottom: 6px; color: #10B981;">🎉 SUBIU PARA O NÍVEL ${newLevel}!</h2>
+          <p style="font-size: 0.95rem; opacity: 0.9; margin-bottom: 12px;">O cadeado se abriu! Você atingiu uma nova patente de conhecimento na plataforma.</p>
+          
+          ${coursesUnlockedHTML}
+
+          <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <a href="cursos.html" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              📚 Explorar Catálogo Destrancado
+            </a>
+            <button class="btn-secondary" onclick="document.getElementById('levelUpCelebrationModal').style.display='none'">
+              Continuar
+            </button>
+          </div>
+        </div>
+      `;
+
+      modal.style.display = "flex";
+    }
+
+    function submitReview() {
+      const stars = document.getElementById("reviewStars").value;
+      const feedbackText = document.getElementById("reviewText").value.trim();
+      
+      const reviewData = {
+        courseId: course.id,
+        user: user ? user.email : "anonimo",
+        rating: stars || "Não avaliado",
+        comment: feedbackText || "Sem comentários"
+      };
+
+      const globalReviews = JSON.parse(localStorage.getItem("course_reviews")) || [];
+      globalReviews.push(reviewData);
+      localStorage.setItem("course_reviews", JSON.stringify(globalReviews));
+
+      const reviewBox = document.getElementById("reviewBox");
+      if (reviewBox) {
+        reviewBox.innerHTML = `<p style="color: #10B981; font-weight: 600; text-align: center; margin: 5px 0;">❤️ Obrigado pelo seu feedback voluntário!</p>`;
+      }
+      showToast("Avaliação enviada com sucesso!");
+    }
+
+    function getChatStorageKey() {
+      if (!course) return "chat_global";
+      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      
+      if (activeUser && activeUser.role === "student") {
+        return `chat_course_${course.id}_user_${activeUser.email}`;
+      } else {
+        const selectedStudent = localStorage.getItem("chat_active_student") || "student_simulation";
+        return `chat_course_${course.id}_user_${selectedStudent}`;
+      }
+    }
+
+    function buildStudentSelector() {
+      const containerSelector = document.getElementById("teacherStudentSelectorContainer");
+      const selector = document.getElementById("chatStudentSelector");
+      if (!containerSelector || !selector) return;
+
+      containerSelector.style.display = "block";
+      selector.innerHTML = '<option value="student_simulation">Simulação Geral (padrão)</option>';
+
+      const prefix = `chat_course_${course.id}_user_`;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) {
+          const studentEmail = key.replace(prefix, "");
+          if (studentEmail !== "student_simulation") {
+            const users = JSON.parse(localStorage.getItem("users")) || [];
+            const foundUser = users.find(u => u.email === studentEmail);
+            const studentName = foundUser ? foundUser.name : studentEmail;
+
+            selector.innerHTML += `<option value="${studentEmail}">${studentName} (${studentEmail})</option>`;
+          }
+        }
+      }
+
+      const active = localStorage.getItem("chat_active_student") || "student_simulation";
+      selector.value = active;
+    }
+
+    function changeActiveStudent(studentEmail) {
+      localStorage.setItem("chat_active_student", studentEmail);
+      renderChatHistory();
+    }
+
+    function renderChatHistory() {
+      const container = document.getElementById("chatMessages");
+      if (!container) return;
+      
+      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      container.innerHTML = "";
+
+      container.innerHTML = `
+        <div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
+          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do curso, envie aqui!
+        </div>
+      `;
+
+      if (!activeUser) return;
+
+      const storageKey = getChatStorageKey();
+      const chatLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      chatLogs.forEach(msg => {
+        const isMe = msg.senderEmail === activeUser.email;
+        const bubble = document.createElement("div");
+        
+        if (isMe) {
+          bubble.style.cssText = "background: #3B82F6; color: white; padding: 10px 14px; border-radius: 12px 12px 0px 12px; align-self: flex-end; max-width: 85%; line-height: 1.4; word-break: break-word; margin-top: 5px;";
+        } else {
+          bubble.style.cssText = "background: rgba(16, 185, 129, 0.2); color: inherit; padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; word-break: break-word; margin-top: 5px; border: 1px solid rgba(16, 185, 129, 0.3);";
+        }
+        
+        bubble.innerHTML = `<strong>${msg.senderName}:</strong> ${msg.text}`;
+        container.appendChild(bubble);
+      });
+      container.scrollTop = container.scrollHeight;
+      updateProgressUI();
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const messageText = input.value.trim();
+      if (!messageText) return;
+
+      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      if (!activeUser) {
+        showToast("Você precisa entrar na sua conta para usar o chat.");
+        return;
+      }
+
+      const storageKey = getChatStorageKey();
+      const chatLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      const newMessage = {
+        senderName: activeUser.role === "teacher" ? "👨‍🏫 Prof. " + activeUser.name : activeUser.name,
+        senderEmail: activeUser.email,
+        text: messageText,
+        timestamp: new Date().getTime()
+      };
+
+      chatLogs.push(newMessage);
+      localStorage.setItem(storageKey, JSON.stringify(chatLogs));
+      
+      input.value = "";
+      renderChatHistory();
+
+      if (activeUser.role === "student") {
+        setTimeout(() => {
+          const currentLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+          const lastMsg = currentLogs[currentLogs.length - 1];
+          if (lastMsg && lastMsg.senderEmail === activeUser.email) {
+            const botMessage = {
+              senderName: "🤖 Notificação do Sistema",
+              senderEmail: "system_bot",
+              text: "Sua dúvida foi enviada! O professor foi notificado e responderá diretamente neste painel em breve.",
+              timestamp: new Date().getTime()
+            };
+            currentLogs.push(botMessage);
+            localStorage.setItem(storageKey, JSON.stringify(currentLogs));
+            renderChatHistory();
+          }
+        }, 2000);
+      } else {
+        showToast("Resposta do professor registrada!");
+      }
+    }
+  </script>
+</body>
+</html>

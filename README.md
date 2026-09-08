@@ -19,8 +19,8 @@ Transformando o aprendizado com tecnologia prática, cursos focados no mercado e
 <br>
 
 [🌐 Demonstração Online](https://nicolasnevesc.github.io/CURSAAQUI/) •
-[Funcionalidades](#-funcionalidades-principais) •
-[Estrutura](#-estrutura-do-repositório) •
+[Funcionalidades](#-funcionalidades) •
+[Estrutura](#-estrutura-de-arquivos) •
 [Como Executar](#-como-executar-o-projeto)
 
 ---
@@ -29,9 +29,7 @@ Transformando o aprendizado com tecnologia prática, cursos focados no mercado e
 
 ## 📌 Sobre o Projeto
 
-O **Cursa Aqui** é uma plataforma educacional gratuita criada para oferecer cursos de alta qualidade, desenvolvidos com foco em impulsionar a carreira profissional dos estudantes. A proposta central é simples: aprender sem limites, com acesso livre a conteúdos, aulas interativas e certificados, tudo em um ambiente intuitivo e moderno.
-
-Ao entrar no site, o usuário encontra uma interface fluida com navegação direta para o catálogo de cursos, perguntas frequentes, suporte e os painéis dedicados para estudantes e professores.
+O **Cursa Aqui** é uma plataforma web educacional desenvolvida para democratizar o acesso ao conhecimento prático de tecnologia, design e negócios. Criada com foco em uma experiência fluida e intuitiva, a plataforma permite que estudantes aprendam no seu próprio ritmo, acompanhem seu desenvolvimento através de métricas em tempo real e conquistem certificados de conclusão válidos.
 
 ---
 
@@ -46,7 +44,7 @@ O site está hospedado e disponível para visualização e testes em tempo real 
 ## ✨ Funcionalidades Principais
 
 ### 👨‍🎓 Para o Aluno
-- **Catálogo Interativo de Cursos:** Busca em tempo real, filtros por categoria, nível de dificuldade e carga horária.
+- **Catálogo Interativo de Cursos:** Busca, filtros por categoria, nível de dificuldade e carga horária.
 - **Sala de Aula Dinâmica:** Visualização de aulas, ementa detalhada, materiais complementares (PDFs) e questionários de fixação.
 - **Dashboard Personalizado:**
   - Acompanhamento de progresso percentual por curso.
@@ -63,47 +61,41 @@ O site está hospedado e disponível para visualização e testes em tempo real 
 
 ## 🛠️ Tecnologias Utilizadas
 
-A plataforma foi construída priorizando leveza, rapidez e independência de dependências pesadas:
+A plataforma foi construída priorizando leveza, rapidez e independência de frameworks pesados:
 
 - **HTML5:** Marcação semântica com foco em SEO e acessibilidade.
 - **CSS3 Moderno:** Design responsivo, variáveis CSS, temas e transições suaves.
-- **JavaScript (ES6+):** Lógica reativa, gerenciamento de estado local (`localStorage`), autenticação e manipulação dinâmica do DOM.
+- **JavaScript (ES6+):** Lógica reativa, gerenciamento de estado local (`localStorage`), simulação de autenticação e manipulação dinâmica do DOM.
 
 ---
 
-## 📂 Estrutura do Repositório
+## 📂 Estrutura de Arquivos
 
 ```bash
-CursaAqui/
-├── .github/workflows/deploy.yml # Pipeline de deploy automatizado no GitHub Pages
-├── diagramas/                   # Diagramas de arquitetura e DER do banco de dados
-├── protótipo/                   # Wireframes e protótipos de interface
-├── site_cursaaqui/              # Código-fonte completo da aplicação web
-│   ├── index.html               # Página inicial e apresentação da plataforma
-│   ├── cursos.html              # Catálogo completo e filtros de busca
-│   ├── course.html              # Visualizador de curso, aulas e questionários
-│   ├── aluno.html               # Painel do estudante e emissão de certificados
-│   ├── professor.html           # Painel administrativo para instrutores
-│   ├── style.css                # Estilização completa e responsividade
-│   ├── app.js                   # Lógica geral e interações da interface
-│   ├── auth.js                  # Gerenciamento de login, cadastro e sessões
-│   ├── courses.js               # Base de dados de cursos, módulos e quizzes
-│   ├── dashboard.js             # Lógica do painel de controle do aluno
-│   └── certificate.js           # Gerador e validador de certificados
-├── index.html                   # Redirecionamento automático para a aplicação
-└── README.md
+site_cursaaqui/
+├── index.html        # Página inicial e apresentação da plataforma
+├── cursos.html       # Catálogo completo e filtros de busca
+├── course.html       # Visualizador de curso, aulas e questionários
+├── aluno.html        # Painel do estudante e emissão de certificados
+├── professor.html    # Painel administrativo para instrutores
+├── style.css         # Estilização completa e responsividade
+├── app.js            # Lógica geral e interações da interface
+├── auth.js           # Gerenciamento de login, cadastro e sessões
+├── courses.js        # Base de dados de cursos, módulos e quizzes
+├── dashboard.js      # Lógica do painel de controle do aluno
+├── certificate.js    # Gerador e validador de certificados
+└── materiais/        # Apostilas e arquivos complementares
 ```
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## 🚀 Como Executar o Projeto
 
-Como o projeto é construído com tecnologias web puras, você pode rodá-lo instantaneamente sem precisar instalar pacotes via `npm`:
+### 1. Acesso Online Direto
+Você pode testar a plataforma diretamente no seu navegador sem instalar nada:
+👉 **[https://nicolasnevesc.github.io/CURSAAQUI/](https://nicolasnevesc.github.io/CURSAAQUI/)**
 
-### Pré-requisitos
-Qualquer navegador web moderno (Google Chrome, Firefox, Microsoft Edge, Opera, Safari).
-
-### Passo a Passo
+### 2. Execução Local
 
 1. **Clone o repositório:**
    ```bash
@@ -124,7 +116,7 @@ Qualquer navegador web moderno (Google Chrome, Firefox, Microsoft Edge, Opera, S
      ```bash
      npx serve .
      ```
-   - Ou abra o arquivo `index.html` diretamente no seu navegador (ou via extensão Live Server do VS Code).
+   - Ou abra o arquivo `index.html` com o Live Server no VS Code.
 
 4. **Acesse no seu navegador:**
    Abra [http://localhost:3000](http://localhost:3000)
