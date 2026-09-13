@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <script>(function(){const t=localStorage.getItem("theme")||"dark";if(t==="dark")document.documentElement.classList.add("dark");})();</script>
@@ -314,11 +314,28 @@ tbody tr:hover td{background:rgba(255,255,255,0.025);}
     <button class="drawer-x" onclick="closeModal()">✕</button>
     <h2 id="mTitle">Correção</h2>
     <div class="dsub" id="mSub"></div>
-    <div class="dsec">Respostas do Aluno</div>
+    <div class="dsec">Respostas das Questões Objetivas</div>
     <div id="mQs"></div>
+
+    <!-- Seção da Resposta Dissertativa / Aberta -->
+    <div class="dsec" style="margin-top:24px; display:flex; justify-content:space-between; align-items:center;">
+      <span>✍️ Questão Dissertativa (Estudo de Caso)</span>
+      <span id="mOpenQBadge" class="pill" style="font-size:0.75rem; font-weight:700;"></span>
+    </div>
+    <div id="mOpenQCard" style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:20px;">
+      <div id="mOpenQPrompt" style="font-size:0.88rem; font-weight:600; opacity:0.9; margin-bottom:12px; line-height:1.5;"></div>
+      <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px; font-weight:700; color:var(--primary); margin-bottom:6px;">Resposta do Aluno:</div>
+      <div id="mOpenQText" style="font-size:0.92rem; line-height:1.6; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px 14px; white-space:pre-wrap; font-style:italic;"></div>
+    </div>
+
     <div class="fb-box">
-      <label for="mFb">💬 Parecer & Feedback ao Aluno</label>
-      <textarea id="mFb" placeholder="Escreva um comentário orientativo para o aluno..."></textarea>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+        <label for="mFb" style="margin-bottom:0; font-weight:700;">💬 Parecer & Feedback ao Aluno</label>
+        <button type="button" class="btn btn-sm" id="btnGenAI" onclick="generateAiFeedback()" style="background:linear-gradient(135deg,#6366F1,#8B5CF6); color:white; border:none; display:inline-flex; align-items:center; gap:6px; font-weight:700; padding:7px 14px; border-radius:8px; box-shadow:0 3px 12px rgba(99,102,241,0.35); cursor:pointer;">
+          ✨ Gerar Parecer com IA (1 Clique)
+        </button>
+      </div>
+      <textarea id="mFb" rows="5" placeholder="Escreva um comentário orientativo para o aluno ou clique em 'Gerar Parecer com IA'..."></textarea>
     </div>
     <div class="drawer-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
@@ -329,6 +346,7 @@ tbody tr:hover td{background:rgba(255,255,255,0.025);}
 
 <div id="toast"></div>
 
+<script src="courses.js?v=7.0"></script>
 <script src="auth.js?v=5.0"></script>
 <script>
 // Guard
@@ -424,33 +442,166 @@ function renderAlunos(){
 }
 
 // Modal
+function optLabel(idx){
+  const labels=["A","B","C","D","E"];
+  return labels[idx]!==undefined?labels[idx]:String(idx+1);
+}
 function openModal(id){
   curSubId=id;
   const sub=getSubs().find(s=>s.id===id);if(!sub)return;
   document.getElementById("mTitle").textContent="📝 "+sub.courseTitle;
   document.getElementById("mSub").textContent="Aluno: "+sub.userName+" ("+sub.userEmail+") · Enviado em: "+sub.submittedAt;
   document.getElementById("mFb").value=sub.feedback||"";
+  
+  // Renderiza questões objetivas
   const qc=document.getElementById("mQs");qc.innerHTML="";
   if(sub.quiz&&sub.quiz.length>0){
     sub.quiz.forEach((q,idx)=>{
       const sel=sub.answers?sub.answers[idx]:undefined;
-      const ok=sel===q.correct;
-      const rb=ok?'<span class="bdg bdg-ok">✅ Correta</span>':'<span class="bdg bdg-err">❌ Incorreta</span>';
+      const hasSel=sel!==undefined&&sel!==null;
+      const ok=hasSel&&sel===q.correct;
+
+      // Badge de resultado + diagnóstico claro de erro
+      let rb=ok?'<span class="bdg bdg-ok">✅ Correta</span>':'<span class="bdg bdg-err">❌ Incorreta</span>';
+      if(!ok&&hasSel&&sel!==q.correct){
+        rb+='<span style="margin-left:8px;font-size:0.75rem;color:#EF4444;font-weight:600;">escolheu '+optLabel(sel)+', correto era '+optLabel(q.correct)+'</span>';
+      } else if(!hasSel){
+        rb='<span class="bdg bdg-warn">⚠️ Não respondida</span>';
+        rb+='<span style="margin-left:8px;font-size:0.75rem;color:#F59E0B;font-weight:600;">correto era '+optLabel(q.correct)+'</span>';
+      }
+
       const opts=q.options.map((o,oi)=>{
         let cls="";
-        if(oi===sel&&oi===q.correct)cls="opt-c";
-        else if(oi===sel)cls="opt-w";
-        const mk=oi===sel?"👈 ":"";
-        const cm=(oi===q.correct&&oi!==sel)?" ← Gabarito":"";
-        return '<div class="opt '+cls+'"><div class="opt-dot"></div><span>'+mk+o+cm+'</span></div>';
+        let icon="";
+        let suffix="";
+        if(hasSel&&oi===sel&&oi===q.correct){cls="opt-c";icon="✅ ";}
+        else if(hasSel&&oi===sel&&oi!==q.correct){cls="opt-w";icon="❌ ";}
+        else if(oi===q.correct&&(!hasSel||sel!==q.correct)){suffix=' <strong style="color:#10B981;font-size:0.78rem;">[✔ Gabarito]</strong>';}
+        return '<div class="opt '+cls+'"><div class="opt-dot"></div><span style="font-weight:'+(oi===q.correct?'700':'400')+'">'+icon+o+suffix+'</span></div>';
       }).join("");
-      qc.innerHTML+='<div class="q-card"><div class="q-hdr"><div class="q-text">Q'+(idx+1)+'. '+q.question+'</div>'+rb+'</div>'+opts+'</div>';
+
+      qc.innerHTML+='<div class="q-card"><div class="q-hdr"><div class="q-text">Q'+(idx+1)+'. '+q.question+'</div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">'+rb+'</div></div>'+opts+'</div>';
     });
   }else{
     qc.innerHTML='<p style="color:var(--muted);font-size:0.855rem;">Respostas registradas: '+sub.score+'/'+sub.totalQuestions+' acertos.</p>';
   }
+
+  // Renderiza a Questão Dissertativa (Aberta)
+  const cList = window.courses || [];
+  const courseObj = cList.find(c => c.id === sub.courseId || c.title === sub.courseTitle) || {};
+  const openQ = sub.openQuestion || courseObj.openQuestion || null;
+  const promptEl = document.getElementById("mOpenQPrompt");
+  const textEl = document.getElementById("mOpenQText");
+  const badgeEl = document.getElementById("mOpenQBadge");
+
+  if (openQ && promptEl) {
+    promptEl.innerHTML = '<strong>' + (openQ.title || 'Estudo de Caso') + ':</strong> ' + (openQ.prompt || 'Síntese de aprendizagem prática.');
+  } else if (promptEl) {
+    promptEl.textContent = "Estudo de Caso Prático da Disciplina";
+  }
+
+  const openAns = (sub.openAnswer || "").trim();
+  if (openAns.length > 0) {
+    const wordCount = openAns.split(/\s+/).filter(Boolean).length;
+    if (textEl) textEl.textContent = openAns;
+    if (badgeEl) {
+      badgeEl.className = "pill";
+      badgeEl.style.background = "rgba(16,185,129,0.15)";
+      badgeEl.style.color = "#10B981";
+      badgeEl.textContent = "✅ " + wordCount + " palavras";
+    }
+  } else {
+    if (textEl) textEl.innerHTML = '<span style="opacity:0.5;">(O aluno não enviou resposta dissertativa nesta submissão)</span>';
+    if (badgeEl) {
+      badgeEl.className = "pill";
+      badgeEl.style.background = "rgba(245,158,11,0.15)";
+      badgeEl.style.color = "#F59E0B";
+      badgeEl.textContent = "⚠️ Não preenchida";
+    }
+  }
+
   document.getElementById("corrModal").classList.add("open");
 }
+
+// Motor de IA Pedagógica (1 Clique, sem API externa)
+function generateAiFeedback(){
+  if(!curSubId)return;
+  const sub=getSubs().find(s=>s.id===curSubId);if(!sub)return;
+
+  const btn=document.getElementById("btnGenAI");
+  const fbTextarea=document.getElementById("mFb");
+  if(btn){
+    btn.disabled=true;
+    btn.innerHTML="🤖 Analisando com IA...";
+  }
+
+  setTimeout(()=>{
+    const cList=window.courses||[];
+    const courseObj=cList.find(c=>c.id===sub.courseId||c.title===sub.courseTitle)||{};
+    const openQ=sub.openQuestion||courseObj.openQuestion||null;
+
+    const totalQ=sub.totalQuestions||(sub.quiz?sub.quiz.length:0)||1;
+    const score=sub.score!==undefined?sub.score:0;
+    const pct=Math.round((score/totalQ)*100);
+    const firstName=(sub.userName||"Aluno").split(" ")[0];
+
+    // Diagnóstico da múltipla escolha
+    let mcAnalysis="";
+    if(pct===100){
+      mcAnalysis="Parabéns pelo gabarito impecável nas questões objetivas ("+score+"/"+totalQ+" acertos - 100%)! Demonstrou domínio integral das bases teóricas da disciplina.";
+    }else if(pct>=75){
+      mcAnalysis="Excelente aproveitamento na avaliação objetiva ("+score+"/"+totalQ+" acertos - "+pct+"%), evidenciando sólida retenção dos conceitos fundamentais do material didático.";
+    }else if(pct>=50){
+      mcAnalysis="Bom aproveitamento na etapa objetiva ("+score+"/"+totalQ+" acertos - "+pct+"%). Identifiquei alguns pontos de atenção conceituais que merecem uma rápida releitura na apostila.";
+    }else{
+      mcAnalysis="Na avaliação objetiva você obteve "+score+"/"+totalQ+" acertos ("+pct+"%). Recomendo revisar os capítulos iniciais do PDF para reforçar as definições essenciais.";
+    }
+
+    // Diagnóstico da resposta dissertativa
+    const openText=(sub.openAnswer||"").trim();
+    let openAnalysis="";
+
+    if(openText.length>0){
+      const words=openText.split(/\s+/).filter(Boolean);
+      const wordCount=words.length;
+
+      const expectedKeywords=(openQ&&openQ.keywords)?openQ.keywords:["conceito","aplicacao","projeto","desenvolvimento"];
+      const lowerText=openText.toLowerCase();
+      const matchedKeywords=expectedKeywords.filter(kw=>lowerText.includes(kw.toLowerCase()));
+
+      if(wordCount>=20&&matchedKeywords.length>=2){
+        openAnalysis="No estudo de caso prático, sua resposta foi articulada e muito bem fundamentada ("+wordCount+" palavras), demonstrando maturidade ao correlacionar conceitos-chave como \""+matchedKeywords.slice(0,3).join('", "')+"\". Excelente síntese técnica!";
+      }else if(wordCount>=15){
+        openAnalysis="No estudo de caso, você apresentou um raciocínio coerente e adequado ao tema proposto ("+wordCount+" palavras). Para os próximos projetos, recomendo expandir ainda mais os exemplos práticos de aplicação.";
+      }else{
+        openAnalysis="Sua resposta dissertativa foi sucinta ("+wordCount+" palavras). A linha de raciocínio é válida, mas vale a pena aprofundar os argumentos teóricos nas próximas avaliações.";
+      }
+    }else{
+      openAnalysis="Observação: A questão dissertativa não foi preenchida nesta submissão. Lembre-se de sempre redigir o estudo de caso para demonstrar sua capacidade analítica.";
+    }
+
+    // Parecer conclusivo
+    const conclusion=pct>=60
+      ?"Atividade avaliada e aprovada pela coordenação acadêmica com parecer altamente favorável. Continue com esse ritmo!"
+      :"Atividade revisada pela coordenação. Continue persistindo e aplicando os conhecimentos nas próximas matérias.";
+
+    const generatedFeedback="Olá, "+firstName+"!\n\n"+mcAnalysis+"\n\n"+openAnalysis+"\n\n"+conclusion;
+
+    if(fbTextarea){
+      fbTextarea.value=generatedFeedback;
+      fbTextarea.style.borderColor="#8B5CF6";
+      setTimeout(()=>{if(fbTextarea)fbTextarea.style.borderColor="";},1200);
+    }
+
+    if(btn){
+      btn.disabled=false;
+      btn.innerHTML="✨ Gerar Parecer com IA (1 Clique)";
+    }
+
+    showToast("✨ Parecer pedagógico gerado com IA! Você pode revisar ou editar antes de salvar.");
+  },350);
+}
+
 function closeModal(){document.getElementById("corrModal").classList.remove("open");curSubId=null;}
 function saveCorr(){
   if(!curSubId)return;

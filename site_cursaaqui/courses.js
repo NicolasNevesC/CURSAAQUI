@@ -68,17 +68,6 @@ var courses = [
         correct: 1
       },
       {
-        question: "No paradigma de Orientação a Objetos (POO), o mecanismo pelo qual uma classe derivada redefine o comportamento de um método existente na classe base, permitindo que objetos de tipos diferentes respondam à mesma mensagem de formas específicas, denomina-se:",
-        options: [
-          "A. Encapsulamento estático",
-          "B. Polimorfismo de sobreposição (Override)",
-          "C. Acoplamento temporal",
-          "D. Herança múltipla de atributos privados",
-          "E. Coesão fraca"
-        ],
-        correct: 1
-      },
-      {
         question: "No contexto de Testes de Software e Garantia da Qualidade (QA), qual a principal diferença conceitual entre 'Verificação' e 'Validação' (V&V)?",
         options: [
           "A. Verificação avalia se estamos construindo o produto corretamente (conforme a especificação), enquanto Validação avalia se estamos construindo o produto certo (atendendo às reais necessidades do usuário).",
@@ -87,6 +76,76 @@ var courses = [
           "D. Não há diferença, ambos são sinônimos para testes de carga e estresse de infraestrutura."
         ],
         correct: 0
+      },
+      {
+        question: "Na dimensão dinâmica do Processo Unificado (RUP), quais são as quatro fases que estruturam o ciclo de vida de um projeto de software?",
+        options: [
+          "A. Análise, Projeto, Codificação e Manutenção",
+          "B. Iniciação (Concepção), Elaboração, Construção e Transição",
+          "C. Planejamento, Execução, Monitoramento e Encerramento",
+          "D. Levantamento, Modelagem, Implementação e Entrega"
+        ],
+        correct: 1
+      },
+      {
+        question: "Em POO, o conceito de 'Encapsulamento' visa principalmente:",
+        options: [
+          "A. Herdar métodos de múltiplas classes simultaneamente sem restrições de acesso.",
+          "B. Ocultar os detalhes internos de implementação de uma classe, expondo apenas uma interface pública controlada e protegendo a integridade dos dados.",
+          "C. Permitir que variáveis globais sejam acessadas de qualquer ponto do sistema sem restrições.",
+          "D. Eliminar a necessidade de interfaces e classes abstratas na modelagem."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual das estratégias abaixo representa corretamente uma abordagem de 'Prototipagem Evolutiva' no desenvolvimento de software?",
+        options: [
+          "A. Criar um protótipo descartável apenas para elicitar requisitos e depois reiniciar do zero.",
+          "B. Construir um protótipo inicial e refiná-lo iterativamente com feedback do usuário até que se torne o produto final.",
+          "C. Desenvolver toda a documentação técnica antes de qualquer linha de código ser escrita.",
+          "D. Utilizar metodologias em cascata rígidas sem ciclos de revisão."
+        ],
+        correct: 1
+      },
+      {
+        question: "No diagrama de Casos de Uso da UML, o relacionamento '<<include>>' entre dois casos de uso indica:",
+        options: [
+          "A. Que o caso de uso base pode opcionalmente invocar o comportamento do caso incluído.",
+          "B. Que o caso de uso base sempre e obrigatoriamente invoca o comportamento do caso incluído como parte de sua execução.",
+          "C. Uma herança entre atores do sistema.",
+          "D. Um relacionamento de composição entre classes de domínio."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual técnica de teste de caixa-branca analisa o fluxo de controle do código para garantir que todos os caminhos lógicos e desvios condicionais sejam exercitados?",
+        options: [
+          "A. Particionamento de Equivalência",
+          "B. Análise de Valor Limite",
+          "C. Teste de Cobertura de Caminhos (Cobertura de Ramos/Branches)",
+          "D. Teste de Carga e Estresse"
+        ],
+        correct: 2
+      },
+      {
+        question: "Em algoritmos e estruturas de dados, a complexidade de tempo O(n log n) é característica de qual classe de algoritmos de ordenação eficientes?",
+        options: [
+          "A. Bubble Sort e Insertion Sort",
+          "B. Merge Sort e Quick Sort (caso médio)",
+          "C. Selection Sort",
+          "D. Busca Sequencial Linear"
+        ],
+        correct: 1
+      },
+      {
+        question: "No paradigma de Orientação a Objetos (POO), o mecanismo pelo qual uma classe derivada redefine o comportamento de um método existente na classe base, permitindo que objetos de tipos diferentes respondam à mesma mensagem de formas específicas, denomina-se:",
+        options: [
+          "A. Encapsulamento estático",
+          "B. Polimorfismo de sobreposição (Override)",
+          "C. Acoplamento temporal",
+          "D. Herança múltipla de atributos privados"
+        ],
+        correct: 1
       }
     ]
   },
@@ -147,6 +206,66 @@ var courses = [
           "B. Execução automatizada de testes unitários e de integração (Test Automation)",
           "C. Envio de newsletter aos usuários cadastrados",
           "D. Desligamento do banco de dados de homologação"
+        ],
+        correct: 1
+      },
+      {
+        question: "No modelo de responsabilidade compartilhada em Cloud Computing, qual das afirmativas descreve corretamente o modelo IaaS (Infrastructure as a Service)?",
+        options: [
+          "A. O provedor gerencia tudo, inclusive aplicações e dados do cliente.",
+          "B. O cliente gerencia o sistema operacional, middleware, runtime e suas aplicações; o provedor gerencia a infraestrutura física (rede, servidores, virtualização).",
+          "C. O cliente só configura parâmetros de negócio, sem acesso à camada de SO.",
+          "D. IaaS elimina completamente a necessidade de equipe de TI do cliente."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual estratégia de deployment em Kubernetes/Cloud elimina o downtime gradualmente, ao criar réplicas da nova versão enquanto as antigas são removidas progressivamente?",
+        options: [
+          "A. Recreate Deployment (reinicialização total)",
+          "B. Rolling Update (Atualização Progressiva)",
+          "C. Canary Deployment (Implantação Canário)",
+          "D. Blue-Green Deployment (Deploy Azul-Verde)"
+        ],
+        correct: 1
+      },
+      {
+        question: "Em DevOps, qual prática garante que mudanças de configuração de servidores sejam rastreáveis, repetíveis e auditáveis, usando código versionado em repositório Git?",
+        options: [
+          "A. GitOps",
+          "B. FTP Manual por Administrador",
+          "C. Configuração por painel de controle web sem versionamento",
+          "D. Scripts Shell sem controle de versão"
+        ],
+        correct: 0
+      },
+      {
+        question: "Qual serviço gerenciado da AWS permite executar código em resposta a eventos sem provisionar ou gerenciar servidores (computação serverless)?",
+        options: [
+          "A. Amazon EC2",
+          "B. Amazon S3",
+          "C. AWS Lambda",
+          "D. Amazon RDS"
+        ],
+        correct: 2
+      },
+      {
+        question: "Em monitoramento de sistemas distribuídos, qual é a diferença entre 'Métricas', 'Logs' e 'Traces'?",
+        options: [
+          "A. São termos equivalentes para qualquer dado de observabilidade.",
+          "B. Métricas são valores numéricos agregados ao longo do tempo; Logs são registros de eventos textuais; Traces rastreiam o caminho de uma requisição por múltiplos serviços.",
+          "C. Logs são coletados apenas em produção, enquanto Métricas funcionam exclusivamente em desenvolvimento.",
+          "D. Traces só são úteis em aplicações monolíticas sem microserviços."
+        ],
+        correct: 1
+      },
+      {
+        question: "O que diferencia o Kubernetes de um simples orquestrador de containers no contexto de alta disponibilidade?",
+        options: [
+          "A. O Kubernetes não oferece mecanismos de recuperação automática (self-healing).",
+          "B. Kubernetes oferece auto-escalonamento, self-healing (reinicia containers com falha), balanceamento de carga e rollback automático, garantindo alta disponibilidade.",
+          "C. Kubernetes é uma ferramenta apenas para desenvolvimento local, sem suporte a produção.",
+          "D. Kubernetes elimina a necessidade de redes virtuais (VPCs) em ambientes de nuvem."
         ],
         correct: 1
       }
@@ -211,6 +330,66 @@ var courses = [
           "D. Variáveis globais do escopo window"
         ],
         correct: 0
+      },
+      {
+        question: "No React Navigation, qual tipo de navegação é recomendado para fluxos de autenticação (Login → Cadastro → Esqueci Senha) onde o usuário não pode voltar com o botão físico após logar?",
+        options: [
+          "A. Stack Navigator sem a opção headerShown",
+          "B. Stack Navigator com gestureEnabled desabilitado e resets de rota via CommonActions.reset",
+          "C. Drawer Navigator com rotas empilhadas",
+          "D. Tab Navigator com botão de voltar global"
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual a principal diferença entre um componente 'Controlado' e 'Não-Controlado' em React?",
+        options: [
+          "A. Componentes controlados usam refs para acessar o DOM; não-controlados usam estado do React.",
+          "B. Componentes controlados têm seu valor gerenciado pelo estado do React via props; não-controlados mantêm seu próprio estado interno no DOM.",
+          "C. Não há diferença funcional entre os dois modelos de componente.",
+          "D. Componentes não-controlados só funcionam em React Native, nunca em React Web."
+        ],
+        correct: 1
+      },
+      {
+        question: "Em React Native com Expo, qual API nativa permite solicitar permissões ao dispositivo (câmera, localização, notificações) de forma unificada entre iOS e Android?",
+        options: [
+          "A. expo-permissions (ou expo-camera, expo-location com módulos específicos)",
+          "B. navigator.geolocation do browser",
+          "C. window.Notification da Web API",
+          "D. document.requestPermission() do DOM"
+        ],
+        correct: 0
+      },
+      {
+        question: "Para compartilhar estado global entre múltiplas telas em React Native sem prop drilling, qual solução é mais adequada para estados simples e moderados?",
+        options: [
+          "A. Passar props manualmente através de toda a árvore de componentes",
+          "B. Context API com useContext Hook",
+          "C. Criar variáveis globais diretamente no arquivo de entrada da aplicação",
+          "D. Salvar tudo no AsyncStorage e reler a cada render"
+        ],
+        correct: 1
+      },
+      {
+        question: "Ao realizar requisições HTTP em React Native para consumo de APIs REST, qual método nativo do JavaScript é amplamente utilizado e funciona nativamente em ambos os ambientes?",
+        options: [
+          "A. XMLHttpRequest com callbacks aninhados",
+          "B. fetch() API (com async/await para melhor legibilidade)",
+          "C. axios exclusivamente, pois fetch não existe em React Native",
+          "D. $.ajax() do jQuery"
+        ],
+        correct: 1
+      },
+      {
+        question: "Para publicar um aplicativo React Native (com Expo) na Google Play Store, qual é o formato de arquivo de build exigido para submissão?",
+        options: [
+          "A. .apk (Android Package) para debug",
+          "B. .aab (Android App Bundle) para release em produção",
+          "C. .ipa (iOS App Archive)",
+          "D. .zip compactado do código-fonte"
+        ],
+        correct: 1
       }
     ]
   },
@@ -273,6 +452,66 @@ var courses = [
           "D. Converter páginas HTML em PDFs para impressão direta."
         ],
         correct: 1
+      },
+      {
+        question: "Em C#, qual é a finalidade da palavra-chave 'async' combinada com 'await' em métodos?",
+        options: [
+          "A. Criar threads paralelas que executam simultaneamente de forma sincrona.",
+          "B. Permitir que o método seja executado de forma assíncrona sem bloquear a thread principal, liberando-a enquanto aguarda operações de I/O.",
+          "C. Forçar a execução síncrona bloqueante em todos os contextos.",
+          "D. Declarar métodos que nunca retornam valores ao chamador."
+        ],
+        correct: 1
+      },
+      {
+        question: "No padrão de arquitetura Clean Architecture aplicado ao .NET, qual a responsabilidade da camada 'Domain' (Domínio)?",
+        options: [
+          "A. Gerenciar conexões HTTP e configurações de roteamento da API.",
+          "B. Conter as regras de negócio centrais, entidades e interfaces, sem dependências de frameworks externos.",
+          "C. Realizar a comunicação direta com o banco de dados via SQL raw.",
+          "D. Controlar a serialização e desserialização de JSON nas responses."
+        ],
+        correct: 1
+      },
+      {
+        question: "Para implementar autenticação stateless em APIs ASP.NET Core, qual tecnologia é amplamente adotada pela sua capacidade de carregar claims do usuário de forma autocontida no token?",
+        options: [
+          "A. Session Cookies com servidor de estado centralizado",
+          "B. JSON Web Token (JWT) com validação via chave secreta ou certificado",
+          "C. Basic Authentication em texto plano sem criptografia",
+          "D. OAuth 1.0 com assinatura HMAC por requisição"
+        ],
+        correct: 1
+      },
+      {
+        question: "Em testes unitários com xUnit no .NET, qual atributo marca um método como caso de teste parametrizado com múltiplos conjuntos de dados de entrada?",
+        options: [
+          "A. [Fact]",
+          "B. [Theory] com [InlineData]",
+          "C. [TestCase]",
+          "D. [DataRow]"
+        ],
+        correct: 1
+      },
+      {
+        question: "O que representa o conceito de 'SOLID' no desenvolvimento orientado a objetos em C#?",
+        options: [
+          "A. Um conjunto de 5 princípios (Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion) para código manutenível e extensível.",
+          "B. Um framework de testes de integração exclusivo do ecossistema .NET.",
+          "C. Um padrão de banco de dados relacional para persistência de objetos C#.",
+          "D. Uma técnica de compressão de assemblies .NET para redução de tamanho."
+        ],
+        correct: 0
+      },
+      {
+        question: "No Entity Framework Core, qual é a diferença entre os métodos 'FirstOrDefault()' e 'SingleOrDefault()' em consultas LINQ?",
+        options: [
+          "A. São equivalentes e podem ser usados de forma intercambiável em qualquer contexto.",
+          "B. FirstOrDefault() retorna o primeiro elemento ou null sem verificar duplicatas; SingleOrDefault() lança exceção se houver mais de um elemento correspondente.",
+          "C. SingleOrDefault() sempre retorna uma lista, enquanto FirstOrDefault() retorna apenas um objeto.",
+          "D. FirstOrDefault() só funciona com chaves primárias, enquanto SingleOrDefault() aceita qualquer predicado."
+        ],
+        correct: 1
       }
     ]
   },
@@ -333,6 +572,66 @@ var courses = [
           "B. Financiamento inicial destinado a validar o produto no mercado, aprimorar o MVP e conquistar os primeiros clientes.",
           "C. É o processo de liquidação judicial da empresa em falência.",
           "D. Trata-se de um empréstimo bancário tradicional garantido por bens imóveis."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual métrica de negócio mede o custo total para adquirir um novo cliente pagante (incluindo marketing, vendas e onboarding)?",
+        options: [
+          "A. LTV (Lifetime Value — Valor do Tempo de Vida do Cliente)",
+          "B. CAC (Customer Acquisition Cost — Custo de Aquisição de Cliente)",
+          "C. MRR (Monthly Recurring Revenue — Receita Recorrente Mensal)",
+          "D. NPS (Net Promoter Score — Índice de Promoção Líquida)"
+        ],
+        correct: 1
+      },
+      {
+        question: "Em startups de TI, o conceito de 'Pivô' (Pivot) significa:",
+        options: [
+          "A. Encerrar definitivamente as operações da empresa por falta de mercado.",
+          "B. Mudar estrategicamente o modelo de negócio, segmento-alvo ou produto com base em aprendizados validados, mantendo o que funciona.",
+          "C. Contratar um novo CEO externo para substituir o fundador original.",
+          "D. Realizar uma fusão compulsória com uma empresa concorrente."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual dos modelos de receita abaixo é característica de empresas SaaS (Software as a Service) no mercado B2B?",
+        options: [
+          "A. Venda única de licença perpétua com upgrade pago separadamente",
+          "B. Assinatura recorrente mensal ou anual com acesso à plataforma na nuvem",
+          "C. Modelo freemium apenas para usuários pessoa física",
+          "D. Venda de hardware com software embarcado de fábrica"
+        ],
+        correct: 1
+      },
+      {
+        question: "No contexto de growth hacking em startups digitais, o que é o 'Funil AARRR' (Pirate Metrics) de Dave McClure?",
+        options: [
+          "A. Um modelo financeiro de projeção de custos operacionais mensais.",
+          "B. Um framework de 5 etapas (Acquisition, Activation, Retention, Revenue, Referral) para medir e otimizar o crescimento de usuários.",
+          "C. Uma metodologia ágil de desenvolvimento de software para squads de produto.",
+          "D. Um sistema de versionamento de código para startups em early-stage."
+        ],
+        correct: 1
+      },
+      {
+        question: "O que diferencia um 'mercado TAM, SAM e SOM' na análise de oportunidade de negócio para investidores?",
+        options: [
+          "A. São três departamentos internos de uma startup (Tech, Admin, Marketing).",
+          "B. TAM é o mercado total disponível; SAM é o mercado endereçável pelo modelo de negócio; SOM é o mercado alcançável realisticamente nos próximos 3-5 anos.",
+          "C. São estágios sequenciais de crescimento: do local para o global.",
+          "D. Representam três indicadores de liquidez financeira para análise de balanço."
+        ],
+        correct: 1
+      },
+      {
+        question: "Qual característica define uma empresa como 'Unicórnio' no ecossistema global de startups?",
+        options: [
+          "A. Empresa com mais de 1.000 funcionários e presença em 10 países.",
+          "B. Startup privada avaliada em pelo menos US$ 1 bilhão sem ter aberto capital na bolsa.",
+          "C. Empresa de tecnologia fundada há mais de 20 anos com receita estável.",
+          "D. Startup que atingiu breakeven no primeiro ano de operação."
         ],
         correct: 1
       }
@@ -960,10 +1259,521 @@ var courses = [
   }
 ];
 
+// ============================================================
+// ENRIQUECIMENTO PEDAGÓGICO: QUESTÕES ABERTAS E EXERCÍCIOS EXTRAS
+// ============================================================
+const openQuestionsCatalog = {
+  1: {
+    title: "Estudo de Caso: Arquitetura e Engenharia de Requisitos",
+    prompt: "Imagine que você foi encarregado de projetar o sistema de matrículas de uma universidade. Descreva a diferença prática entre um Requisito Funcional e um Requisito Não-Funcional para este sistema, citando um exemplo concreto de cada um e explicando como a prototipagem inicial pode reduzir riscos no levantamento de requisitos.",
+    guidelines: "Cite ao menos 1 exemplo de requisito funcional, 1 de não-funcional (ex: tempo de resposta/segurança) e o papel da prototipagem com o usuário.",
+    keywords: ["funcional", "requisito", "prototipagem", "usuario", "desempenho", "seguranca", "risco", "validacao"],
+    minWords: 20
+  },
+  2: {
+    title: "Estudo de Caso: Migração Monólito para Contêineres e CI/CD",
+    prompt: "Explique como a adoção de Docker e pipelines automatizados de CI/CD soluciona o clássico problema 'na minha máquina funciona' e acelera a entrega contínua com segurança em ambientes de nuvem.",
+    guidelines: "Aborde padronização de imagens Docker, automação de testes e deploys reprodutíveis em produção.",
+    keywords: ["docker", "container", "pipeline", "ci/cd", "ambiente", "deploy", "automacao", "nuvem", "producao"],
+    minWords: 20
+  },
+  3: {
+    title: "Estudo de Caso: Defesa em Profundidade e Gestão de Acessos",
+    prompt: "Descreva a importância do princípio do Menor Privilégio aliado à Autenticação Multifator (MFA) para mitigar invasões cibernéticas e conter a movimentação lateral de atacantes na rede.",
+    guidelines: "Explique como o controle de privilégios limita o raio de impacto e por que senhas simples não são suficientes.",
+    keywords: ["privilegio", "mfa", "autenticacao", "seguranca", "acesso", "ataque", "senha", "rede"],
+    minWords: 20
+  },
+  4: {
+    title: "Estudo de Caso: Arquitetura RESTful e Gerenciamento de Estado",
+    prompt: "Em uma aplicação web Full Stack moderna desenvolvida com React e Node.js, por que é uma boa prática manter as APIs REST stateless (sem estado na sessão do servidor) e como o estado da interface deve ser controlado no cliente?",
+    guidelines: "Aborde escalabilidade de servidores sem estado, autenticação via tokens (JWT) e sincronização de estado no frontend.",
+    keywords: ["react", "node", "rest", "stateless", "estado", "jwt", "api", "componente", "escalabilidade"],
+    minWords: 20
+  },
+  5: {
+    title: "Estudo de Caso: Ciclo de Machine Learning e Prevenção de Overfitting",
+    prompt: "Diferencie Aprendizado Supervisionado de Não-Supervisionado e explique o que é o fenômeno do Overfitting (sobreajuste), citando uma técnica prática utilizada para evitá-lo durante o treinamento do modelo.",
+    guidelines: "Destaque dados rotulados vs não rotulados e mencione divisão treino/teste, validação cruzada ou regularização.",
+    keywords: ["supervisionado", "rotulo", "overfitting", "sobreajuste", "treino", "teste", "validacao", "modelo"],
+    minWords: 20
+  },
+  6: {
+    title: "Estudo de Caso: Cerimônias Ágeis e Limitação de Trabalho (WIP)",
+    prompt: "Explique o objetivo da reunião de Retrospectiva da Sprint no Scrum e como a aplicação do limite de trabalho em progresso (WIP Limit) no Kanban auxilia o time a evitar gargalos de entrega.",
+    guidelines: "Conecte a melhoria contínua do time com o fluxo contínuo e a redução de multitarefas.",
+    keywords: ["retrospectiva", "sprint", "kanban", "wip", "gargalo", "melhoria", "fluxo", "time", "scrum"],
+    minWords: 20
+  },
+  7: {
+    title: "Estudo de Caso: Modelagem Relacional vs NoSQL e Propriedades ACID",
+    prompt: "Discuta em quais cenários práticos você optaria por um banco relacional (ex: PostgreSQL com suporte a ACID) em detrimento de um banco NoSQL documental (ex: MongoDB), destacando a integridade transacional.",
+    guidelines: "Cite transações financeiras/críticas vs esquemas flexíveis e alto volume de leitura/escrita.",
+    keywords: ["acid", "transacao", "relacional", "nosql", "postgresql", "mongodb", "integridade", "consistencia"],
+    minWords: 20
+  },
+  8: {
+    title: "Estudo de Caso: Arquitetura Reativa no Flutter",
+    prompt: "Explique a diferença prática entre StatelessWidget e StatefulWidget no Flutter, descrevendo como a renderização reativa da árvore de widgets responde a mudanças no estado da aplicação.",
+    guidelines: "Diferencie interfaces estáticas de dinâmicas e mencione o método setState ou gerenciadores de estado.",
+    keywords: ["statelesswidget", "statefulwidget", "estado", "widget", "setstate", "arvore", "interface"],
+    minWords: 20
+  },
+  9: {
+    title: "Estudo de Caso: Aplicação Prática de Heurísticas de Usabilidade",
+    prompt: "Escolha uma das Heurísticas de Usabilidade de Nielsen (ex: Visibilidade do Status do Sistema ou Prevenção de Erros) e demonstre como aplicá-la no fluxo de checkout ou login de uma plataforma digital.",
+    guidelines: "Demonstre clareza de feedback ao usuário, redução de carga cognitiva e acessibilidade visual.",
+    keywords: ["nielsen", "heuristica", "status", "feedback", "usabilidade", "usuario", "erro", "acessibilidade"],
+    minWords: 20
+  },
+  10: {
+    title: "Estudo de Caso: Resiliência em Microsserviços e Padrão Circuit Breaker",
+    prompt: "Quais os principais riscos de indisponibilidade em cascata em arquiteturas de microsserviços e como o padrão Circuit Breaker protege o ecossistema quando uma dependência externa falha?",
+    guidelines: "Aborde timeouts, falhas em cascata, estados do disjuntor (Fechado, Aberto, Meio-Aberto) e degradação suave.",
+    keywords: ["microsservicos", "circuit breaker", "cascata", "resiliencia", "falha", "timeout", "disjuntor"],
+    minWords: 20
+  },
+  11: {
+    title: "Estudo de Caso: ITIL - Incidente vs Problema e Continuidade",
+    prompt: "No âmbito da biblioteca ITIL 4, qual a distinção essencial entre a Gestão de Incidentes e a Gestão de Problemas, e por que identificar a causa-raiz é crucial para a saúde dos serviços de TI?",
+    guidelines: "Diferencie restaurar o serviço rapidamente (incidente) de eliminar causas recorrentes definitivas (problema).",
+    keywords: ["itil", "incidente", "problema", "causa", "raiz", "restaurar", "servico", "disponibilidade"],
+    minWords: 20
+  },
+  12: {
+    title: "Estudo de Caso: Arquiteturas Modernas de Dados (ETL vs ELT)",
+    prompt: "Compare as estratégias de ETL tradicional com a moderna abordagem ELT em Data Lakes/Data Warehouses, explicando por que o processamento distribuído (como Spark) revolucionou a análise de Big Data.",
+    guidelines: "Explique onde a transformação ocorre e a capacidade computacional em nuvem para ingestão de dados brutos.",
+    keywords: ["etl", "elt", "data warehouse", "spark", "dados", "transformacao", "nuvem", "processamento"],
+    minWords: 20
+  },
+  13: {
+    title: "Estudo de Caso: Camada de Transporte (TCP vs UDP)",
+    prompt: "Compare detalhadamente os protocolos TCP e UDP quanto a controle de fluxo, confirmação de entrega e latência, justificando por que serviços de streaming em tempo real costumam preferir UDP.",
+    guidelines: "Aborde handshake de três vias, retransmissão de pacotes e tolerância a perdas pontuais em prol da baixa latência.",
+    keywords: ["tcp", "udp", "latencia", "pacote", "handshake", "confiabilidade", "streaming", "transporte"],
+    minWords: 20
+  },
+  14: {
+    title: "Estudo de Caso: Alinhamento com OKRs e Foco em Valor",
+    prompt: "Como a definição de OKRs (Objetivos e Resultados-Chave) ajuda equipes que utilizam Scrum ou Kanban a não se tornarem meras 'fábricas de tarefas', conectando o backlog a impactos mensuráveis no negócio?",
+    guidelines: "Destaque a transição de entregas baseadas em 'output' (quantidade de tarefas) para 'outcome' (valor gerado).",
+    keywords: ["okr", "objetivo", "resultados-chave", "valor", "negocio", "metas", "scrum", "impacto"],
+    minWords: 20
+  },
+  15: {
+    title: "Estudo de Caso: Resolução Algorítmica e Estrutura Lógica",
+    prompt: "Descreva a lógica passo a passo (em pseudocódigo ou texto explicativo) de um algoritmo para encontrar o maior valor em um vetor numérico de 10 posições, especificando a variável acumuladora e a condição de comparação.",
+    guidelines: "Mencione a inicialização com o primeiro elemento, o laço de repetição percorrendo os índices e a atualização do maior.",
+    keywords: ["vetor", "maior", "laco", "repeticao", "condicao", "algoritmo", "variavel", "indice"],
+    minWords: 20
+  }
+};
+
+// Questões objetivas complementares para os cursos 6 a 15
+const extraQuizzesCatalog = {
+  6: [
+    {
+      question: "No framework Scrum, quem é o único responsável por gerenciar e priorizar os itens do Product Backlog com base no valor de negócio?",
+      options: [
+        "A. Scrum Master",
+        "B. Product Owner (PO)",
+        "C. Equipe de Desenvolvedores",
+        "D. Gerente de RH"
+      ],
+      correct: 1
+    },
+    {
+      question: "Qual o principal objetivo do gráfico Burndown em uma Sprint Scrum?",
+      options: [
+        "A. Acompanhar a quantidade de trabalho restante ao longo do tempo da Sprint.",
+        "B. Registrar o salário de cada membro do time.",
+        "C. Listar os bugs reportados pelos clientes em tempo real.",
+        "D. Calcular o imposto das notas fiscais do projeto."
+      ],
+      correct: 0
+    }
+  ],
+  7: [
+    {
+      question: "Em bancos de dados relacionais, o que garante a integridade referencial entre duas tabelas distintas?",
+      options: [
+        "A. Índice clustered",
+        "B. Chave Primária (Primary Key) e Chave Estrangeira (Foreign Key)",
+        "C. Comando DROP TABLE em cascata",
+        "D. Visão temporária (VIEW)"
+      ],
+      correct: 1
+    },
+    {
+      question: "Qual cláusula SQL é utilizada para filtrar registros agrupados após a execução da cláusula GROUP BY?",
+      options: [
+        "A. WHERE",
+        "B. HAVING",
+        "C. ORDER BY",
+        "D. LIMIT"
+      ],
+      correct: 1
+    }
+  ],
+  8: [
+    {
+      question: "No desenvolvimento com Flutter, em qual arquivo de configuração do projeto são declaradas as dependências de pacotes e recursos como fontes e imagens?",
+      options: [
+        "A. package.json",
+        "B. pubspec.yaml",
+        "C. build.gradle exclusivamente",
+        "D. manifest.xml"
+      ],
+      correct: 1
+    },
+    {
+      question: "Qual linguagem de programação é utilizada pelo Flutter para compilar aplicações nativas com alto desempenho?",
+      options: [
+        "A. Python",
+        "B. Dart",
+        "C. Ruby",
+        "D. Swift"
+      ],
+      correct: 1
+    }
+  ],
+  9: [
+    {
+      question: "No design de interfaces digitais, o que representa um 'Design System'?",
+      options: [
+        "A. Apenas uma paleta com 3 cores escolhidas aleatoriamente.",
+        "B. Um ecossistema padronizado de componentes reutilizáveis, regras visuais e diretrizes de código para manter consistência.",
+        "C. Um editor de código fonte alternativo ao VS Code.",
+        "D. Um software antivírus para designers."
+      ],
+      correct: 1
+    },
+    {
+      question: "Qual teste de usabilidade compara duas versões diferentes de uma mesma tela (Versão A e Versão B) para medir qual alcança maior taxa de conversão?",
+      options: [
+        "A. Teste Unitário",
+        "B. Teste A/B",
+        "C. Teste de Carga",
+        "D. Teste de Regressão"
+      ],
+      correct: 1
+    }
+  ],
+  10: [
+    {
+      question: "Qual padrão arquitetural atua como um ponto único de entrada para requisições de clientes externos, roteando chamadas e gerenciando autenticação em microsserviços?",
+      options: [
+        "A. API Gateway",
+        "B. Data Lake",
+        "C. Monolito Distribuído",
+        "D. Singleton Memory Cache"
+      ],
+      correct: 0
+    },
+    {
+      question: "O teorema CAP afirma que um sistema distribuído só pode garantir simultaneamente duas das três seguintes propriedades:",
+      options: [
+        "A. Custo, Acurácia e Precisão",
+        "B. Consistência, Disponibilidade e Tolerância a Partições (Consistency, Availability, Partition tolerance)",
+        "C. CPU, Armazenamento e Performance",
+        "D. Criptografia, Autenticação e Privacidade"
+      ],
+      correct: 1
+    }
+  ],
+  11: [
+    {
+      question: "Qual documento formal estabelece as metas negociadas e acordadas de tempo e qualidade do serviço entre o provedor de TI e o cliente?",
+      options: [
+        "A. SLA (Acordo de Nível de Serviço / Service Level Agreement)",
+        "B. Carta de Demissão",
+        "C. Recibo de Pagamento",
+        "D. Relatório de Logs Brutos"
+      ],
+      correct: 0
+    },
+    {
+      question: "No ciclo de gerenciamento de mudanças da ITIL, qual comitê é responsável por avaliar o impacto e aprovar alterações de médio e alto risco?",
+      options: [
+        "A. CAB (Change Advisory Board)",
+        "B. DPO (Data Protection Officer)",
+        "C. CEO",
+        "D. Time de Helpdesk Nível 1"
+      ],
+      correct: 0
+    }
+  ],
+  12: [
+    {
+      question: "Qual componente fundamental do ecossistema Hadoop é responsável pelo armazenamento distribuído e tolerante a falhas de blocos de dados em clusters?",
+      options: [
+        "A. HDFS (Hadoop Distributed File System)",
+        "B. Nginx",
+        "C. SQLite",
+        "D. Redis In-Memory"
+      ],
+      correct: 0
+    },
+    {
+      question: "No contexto de Big Data, qual das opções melhor resume a definição dos '3 Vs' tradicionais?",
+      options: [
+        "A. Velocidade, Valor e Variáveis",
+        "B. Volume, Velocidade e Variedade",
+        "C. Virtualização, Visão e Vendas",
+        "D. Validação, Verificação e Versão"
+      ],
+      correct: 1
+    }
+  ],
+  13: [
+    {
+      question: "Qual protocolo da camada de aplicação é responsável por traduzir nomes de domínio legíveis (ex: cursaaqui.com.br) para endereços IP numéricos?",
+      options: [
+        "A. DHCP",
+        "B. DNS (Domain Name System)",
+        "C. FTP",
+        "D. SNMP"
+      ],
+      correct: 1
+    },
+    {
+      question: "Qual faixa de endereços IPv4 é reservada para testes de loopback local na própria máquina?",
+      options: [
+        "A. 192.168.1.1",
+        "B. 127.0.0.1 (127.0.0.0/8)",
+        "C. 10.0.0.1",
+        "D. 8.8.8.8"
+      ],
+      correct: 1
+    }
+  ],
+  14: [
+    {
+      question: "No framework OKR (Objectives and Key Results), uma característica essencial dos Resultados-Chave (Key Results) é que eles devem ser:",
+      options: [
+        "A. Vagos e sem prazos para não gerar pressão",
+        "B. Estritamente quantitativos, mensuráveis e com prazos definidos",
+        "C. Secretos e conhecidos apenas pela diretoria",
+        "D. Modificados semanalmente de acordo com a vontade individual"
+      ],
+      correct: 1
+    },
+    {
+      question: "Qual prática ágil busca manter o código em produção estável integrando alterações com testes automatizados várias vezes ao dia?",
+      options: [
+        "A. Integração Contínua (CI)",
+        "B. Modelo Cascata (Waterfall)",
+        "C. Deploy manual sem versionamento",
+        "D. Desenvolvimento isolado por 6 meses"
+      ],
+      correct: 0
+    }
+  ],
+  15: [
+    {
+      question: "Qual operador lógico resulta em FALSO apenas se ambas as proposições forem falsas?",
+      options: [
+        "A. Operador AND (E)",
+        "B. Operador OR (OU)",
+        "C. Operador NOT (NÃO)",
+        "D. Operador XOR exclusivo"
+      ],
+      correct: 1
+    },
+    {
+      question: "O que é um 'Loop Infinito' em programação e por que ele deve ser evitado?",
+      options: [
+        "A. Uma função que melhora a velocidade do processador.",
+        "B. Uma repetição cuja condição de término nunca se torna falsa, travando a execução do programa.",
+        "C. Um tipo especial de variável de ponto flutuante.",
+        "D. Uma biblioteca de estilos visuais para botões."
+      ],
+      correct: 1
+    }
+  ]
+};
+
+// ============================================================
+// GLOSSÁRIO TÉCNICO DESCOMPLICADO & DICAS PRÁTICAS
+// Explicações simples em linguagem humana + macetes para questões
+// ============================================================
+const techTermsGlossary = {
+  "mvp": {
+    term: "MVP (Minimum Viable Product / Produto Mínimo Viável)",
+    simple: "É a versão mais básica de um aplicativo ou produto que já funciona e entrega valor real ao cliente, sem perfumarias.",
+    technique: "💡 Técnica de Prova: Pense no MVP como um 'patinete elétrico' antes de construir um 'carro esportivo'. Serve para testar se as pessoas realmente querem o produto sem gastar rios de dinheiro."
+  },
+  "stakeholder": {
+    term: "Stakeholders (Partes Interessadas)",
+    simple: "São todas as pessoas ou grupos que têm interesse, afetam ou são afetados pelo projeto (clientes, chefes, usuários finais, investidores e o próprio time).",
+    technique: "💡 Macete: 'Stake' = fatia/interesse, 'Holder' = quem segura. Quem segura uma fatia do interesse no projeto é um Stakeholder."
+  },
+  "requisito": {
+    term: "Requisitos Funcionais vs Não-Funcionais",
+    simple: "Funcional é 'o que o sistema FAZ' (ex: fazer login, emitir nota). Não-Funcional é 'COMO ele se comporta' (ex: rapidez, segurança, suportar 1.000 usuários simultâneos).",
+    technique: "💡 Técnica: Se começa com verbo de ação do usuário ('calcular', 'cadastrar', 'enviar') = Funcional. Se for adjetivo de qualidade ('rápido', 'seguro', 'responsivo') = Não-Funcional."
+  },
+  "prototip": {
+    term: "Prototipagem de Software",
+    simple: "Criar uma simulação visual ou maquete do sistema para mostrar ao cliente antes de programar de verdade.",
+    technique: "💡 Técnica: Reduz custos e mal-entendidos. É muito mais barato alterar um desenho na tela do que reprogramar milhares de linhas de código prontas."
+  },
+  "valida": {
+    term: "Verificação vs Validação (V&V)",
+    simple: "Verificação: 'Estamos construindo o produto CORRETAMENTE?' (seguiu a especificação técnica?). Validação: 'Estamos construindo o PRODUTO CERTO?' (atende à real necessidade do cliente?).",
+    technique: "💡 Macete: Verificação = olhar para o papel/código. Validação = olhar para a cara do cliente para ver se ele ficou satisfeito."
+  },
+  "polimorf": {
+    term: "Polimorfismo (POO)",
+    simple: "É a capacidade de objetos diferentes responderem à mesma ordem (método) de maneiras diferentes. Exemplo: a ordem 'TocarSom' faz o Pato 'grasnar' e o Cão 'latir'.",
+    technique: "💡 Macete: 'Poli' (muitas) + 'morfo' (formas). O mesmo botão/método assume formas de agir diferentes dependendo de quem é o dono."
+  },
+  "herança": {
+    term: "Herança (POO)",
+    simple: "Mecanismo onde uma classe 'filha' herda automaticamente todos os atributos e funções de uma classe 'mãe', evitando duplicar código.",
+    technique: "💡 Técnica: Pense no 'Cachorro' herdando características de 'Mamífero' (tem sangue quente, respira oxigênio). Reaproveitamento total."
+  },
+  "encapsula": {
+    term: "Encapsulamento (POO)",
+    simple: "Esconder os detalhes internos de funcionamento e proteger os dados para que ninguém mexa neles diretamente de fora sem permissão.",
+    technique: "💡 Analogia: Pense em uma cápsula de remédio ou controle remoto. Você só aperta o botão 'Ligar' (interface pública), sem precisar cutucar a fiação elétrica de dentro (privada)."
+  },
+  "docker": {
+    term: "Docker & Contêineres",
+    simple: "Empacotar o aplicativo junto com tudo o que ele precisa para rodar em uma 'caixa mágica' padronizada, acabando com a desculpa 'na minha máquina funciona'.",
+    technique: "💡 Diferença de VM: A Máquina Virtual carrega um sistema operacional pesado inteiro. O Docker é levíssimo porque compartilha o mesmo motor (kernel) com o computador hospedeiro."
+  },
+  "ci/cd": {
+    term: "CI/CD (Integração Contínua / Entrega Contínua)",
+    simple: "Esteira automatizada que testa e publica seu código em produção sozinho toda vez que você envia novidades para o repositório.",
+    technique: "💡 Técnica: CI = Testar e juntar tudo automaticamente várias vezes ao dia. CD = Colocar no ar para o usuário sem precisar de intervenção manual demorada."
+  },
+  "mfa": {
+    term: "MFA (Autenticação Multifator / 2FA)",
+    simple: "Exigir mais de uma prova de identidade para liberar o acesso (ex: senha digitada + código que chega no celular por SMS ou app).",
+    technique: "💡 Regra de Ouro: Baseia-se em combinar: Algo que você SABE (senha) + Algo que você TEM (celular) + Algo que você É (biometria)."
+  },
+  "privil": {
+    term: "Princípio do Menor Privilégio",
+    simple: "Dar ao usuário ou programa apenas o nível mínimo de permissão estritamente necessário para ele fazer o trabalho dele, nada a mais.",
+    technique: "💡 Técnica: Se um estagiário só precisa ver relatórios, nunca dê acesso de administrador. Se ele for hackeado, o invasor não consegue destruir o banco de dados."
+  },
+  "rest": {
+    term: "APIs REST e Stateless",
+    simple: "Arquitetura onde cada pedido enviado ao servidor é independente e já carrega todas as informações necessárias, sem o servidor precisar guardar 'memória' de quem você é na sessão.",
+    technique: "💡 Analogia: Um caixa de lanchonete sem memória. Em cada pedido você precisa apresentar seu crachá (token JWT), permitindo que qualquer caixa da lanchonete te atenda rápido."
+  },
+  "overfit": {
+    term: "Overfitting (Sobreajuste na IA)",
+    simple: "Quando a IA 'decora' os dados de treino palavra por palavra em vez de realmente 'aprender' a regra geral. Quando chega um dado novo da vida real, ela erra feio.",
+    technique: "💡 Macete: É o aluno que decorou o gabarito da prova anterior. Se o professor trocar uma vírgula ou um número, ele não sabe resolver."
+  },
+  "scrum": {
+    term: "Framework Scrum & Papéis Ágeis",
+    simple: "Método de trabalho em equipe focado em ciclos curtos (Sprints de 1 a 4 semanas) com reuniões diárias e entregas constantes.",
+    technique: "💡 Papéis Rápidos: PO (Product Owner) = define O QUE fazer e o valor. Scrum Master = ajuda o time a remover obstáculos. Dev Team = constrói o produto."
+  },
+  "kanban": {
+    term: "Kanban & Limite de WIP (Work in Progress)",
+    simple: "Quadro visual (A Fazer / Fazendo / Feito) com uma regra sagrada: limitar quantas tarefas podem estar 'Fazendo' ao mesmo tempo.",
+    technique: "💡 Lema do Kanban: 'Pare de começar e comece a terminar!'. Limitar tarefas em andamento evita gargalos e cansaço da equipe."
+  },
+  "acid": {
+    term: "Propriedades ACID (Bancos de Dados)",
+    simple: "Conjunto de 4 garantias que evitam que transações críticas (como transferências de dinheiro) dêem erro pela metade e sumam com seus dados.",
+    technique: "💡 Sigla: Atomicidade (tudo ou nada), Consistência (regras respeitadas), Isolamento (uma não atrapalha a outra), Durabilidade (salvou, não perde mais nem se faltar luz)."
+  },
+  "nosql": {
+    term: "SQL (Relacional) vs NoSQL (Não-Relacional)",
+    simple: "SQL organiza dados em tabelas rígidas e conectadas (como planilhas que se cruzam). NoSQL guarda em documentos livres (como pastas com arquivos JSON flexíveis).",
+    technique: "💡 Quando usar: Transações bancárias e cadastros estritos = SQL (Postgres/MySQL). Alto volume de dados sem formato fixo ou redes sociais = NoSQL (MongoDB)."
+  },
+  "flutter": {
+    term: "Stateless vs StatefulWidget (Flutter)",
+    simple: "Stateless: Tela ou componente estático que nunca muda depois de desenhado (ex: um ícone ou título fixo). Stateful: Componente vivo que muda de cor, valor ou texto conforme o usuário clica.",
+    technique: "💡 Macete: Tem clique que muda contador ou formulário? É Stateful! É só texto estático ou imagem? É Stateless!"
+  },
+  "nielsen": {
+    term: "Heurísticas de Usabilidade de Nielsen",
+    simple: "Regras de bom senso para criar interfaces onde o usuário nunca se sinta perdido, burro ou sem saber o que está acontecendo.",
+    technique: "💡 Dica de Ouro: 'Visibilidade do Status' (mostre barra de carregando para ele saber que está processando) e 'Prevenção de Erros' (pergunte 'Tem certeza que deseja apagar?' antes de deletar)."
+  },
+  "gateway": {
+    term: "API Gateway em Microsserviços",
+    simple: "É a 'portaria' única de um condomínio de serviços. O aplicativo do usuário só fala com o Gateway, e ele se encarrega de encaminhar a mensagem para o microsserviço certo.",
+    technique: "💡 Vantagem: Centraliza login, segurança e bloqueio de ataques em um só lugar, em vez de configurar em 50 servidores separados."
+  },
+  "circuit": {
+    term: "Padrão Circuit Breaker (Disjuntor de Software)",
+    simple: "Funciona igual ao disjuntor elétrico da sua casa: se um serviço externo começar a falhar e travar, ele 'desarma' temporariamente para proteger o resto do sistema de cair junto.",
+    technique: "💡 Estados: Fechado (passa tudo normal), Aberto (bloqueia requisições para poupar recursos), Meio-Aberto (testa se o serviço lá fora já melhorou)."
+  },
+  "itil": {
+    term: "ITIL: Gestão de Incidentes vs Gestão de Problemas",
+    simple: "Incidente: O fogo que você precisa apagar AGORA para fazer o sistema voltar a funcionar. Problema: Investigar o que provocou a faísca para nunca mais pegar fogo.",
+    technique: "💡 Macete: Incidente foca em RESTAURAR o serviço rapidamente. Problema foca em descobrir a CAUSA-RAIZ e prevenir."
+  },
+  "sla": {
+    term: "SLA (Service Level Agreement / Acordo de Nível de Serviço)",
+    simple: "Contrato formal que promete a qualidade mínima e o prazo de resposta (ex: 'O sistema ficará 99.9% do tempo no ar e chamados serão respondidos em até 2 horas').",
+    technique: "💡 Macete: É a promessa com data e hora. Não cumpriu o SLA? A empresa prestadora paga multa."
+  },
+  "spark": {
+    term: "Apache Spark & Processamento Distribuído",
+    simple: "Ferramenta monstro para analisar bilhões de dados em segundos, dividindo a conta entre vários computadores ao mesmo tempo na memória RAM.",
+    technique: "💡 Diferença: Em vez de ler devagar do disco rígido como antigamente, o Spark faz os cálculos em alta velocidade direto na memória RAM de um cluster de máquinas."
+  },
+  "tcp": {
+    term: "TCP vs UDP (Protocolos de Transporte na Rede)",
+    simple: "TCP é a entrega com aviso de recebimento pelos Correios: garante que cada pedaço chegou inteiro, na ordem certa. UDP é o rádio/TV ao vivo: cospe os dados na velocidade máxima, sem ligar se um pacote sumiu no caminho.",
+    technique: "💡 Aplicação: Transferência de arquivos e páginas web = TCP (nada pode sumir). Jogos online e chamadas de vídeo ao vivo = UDP (o que importa é não ter atraso/lag)."
+  },
+  "dns": {
+    term: "DNS (Domain Name System)",
+    simple: "A lista telefônica da internet. Converte nomes fáceis que os humanos entendem (como cursaaqui.com.br) no endereço numérico real que os computadores usam (ex: 185.199.108.153).",
+    technique: "💡 Macete: Sem DNS, você teria que decorar dezenas de números de IP com pontos para entrar nos seus sites favoritos."
+  },
+  "okr": {
+    term: "OKRs (Objectives and Key Results)",
+    simple: "Método para definir metas claras. Objetivo = ONDE queremos chegar (inspirador). Resultados-Chave (KRs) = COMO vamos medir se chegamos lá (com números e métricas estritas).",
+    technique: "💡 Regra de Ouro: Se um Key Result não tem um número (ex: 'Aumentar de 10% para 40%'), ele não é um KR, é só uma tarefa comum."
+  },
+  "recursiv": {
+    term: "Função Recursiva (Programação)",
+    simple: "Uma função que chama a si mesma para resolver pedaços menores do mesmo problema, tendo SEMPRE uma condição de saída (caso base) para não travar.",
+    technique: "💡 Analogia: Pense nas bonecas russas (Matrioska), onde você abre uma boneca e encontra outra igual menor dentro, até chegar na última bonequinha sólida que encerra a busca."
+  },
+  "vetor": {
+    term: "Vetor / Array",
+    simple: "Uma sequência de caixas numeradas na memória do computador, lado a lado, que guardam dados do mesmo tipo acessíveis por um índice (0, 1, 2...).",
+    technique: "💡 Lembrete Universal: Na quase totalidade das linguagens de programação, a contagem de índices começa no ZERO (índice 0 é o primeiro elemento)."
+  }
+};
+
+// Vincula as questões abertas e exercícios extras aos respectivos cursos
+courses.forEach(c => {
+  if (openQuestionsCatalog[c.id]) {
+    c.openQuestion = openQuestionsCatalog[c.id];
+  }
+  if (extraQuizzesCatalog[c.id] && c.quiz) {
+    // Evita duplicatas se já inserido
+    extraQuizzesCatalog[c.id].forEach(extraQ => {
+      const alreadyExists = c.quiz.some(q => q.question === extraQ.question);
+      if (!alreadyExists) {
+        c.quiz.push(extraQ);
+      }
+    });
+  }
+});
+
 // Exporta para uso em navegadores e ambientes Node.js
 if (typeof window !== 'undefined') {
   window.courses = courses;
+  window.techTermsGlossary = techTermsGlossary;
 }
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = courses;
+  module.exports.courses = courses;
+  module.exports.techTermsGlossary = techTermsGlossary;
 }

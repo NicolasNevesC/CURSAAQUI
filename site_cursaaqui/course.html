@@ -13,6 +13,335 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Curso - Cursa Aqui</title>
   <link rel="stylesheet" href="style.css?v=7.0">
+  <style>
+    /* ─── NAVEGADOR DE ETAPAS 1, 2, 3 ─── */
+    .stepper-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 950px;
+      margin: 24px auto 10px auto;
+      padding: 16px 24px;
+      border-radius: 16px;
+      background: var(--card);
+      border: 1px solid rgba(0,0,0,0.08);
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .dark .stepper-nav {
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      cursor: pointer;
+      opacity: 0.55;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .step-item.active {
+      opacity: 1;
+    }
+    .step-item.completed {
+      opacity: 0.95;
+    }
+    .step-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.06);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    .dark .step-circle {
+      background: rgba(255,255,255,0.08);
+    }
+    .step-item.active .step-circle {
+      background: #3B82F6;
+      color: #fff;
+      border-color: #60A5FA;
+      box-shadow: 0 0 16px rgba(59,130,246,0.45);
+      transform: scale(1.06);
+    }
+    .step-item.completed .step-circle {
+      background: #10B981;
+      color: #fff;
+      border-color: #34D399;
+    }
+    .step-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .step-badge-num {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+    }
+    .step-name {
+      font-weight: 700;
+      font-size: 0.94rem;
+      line-height: 1.2;
+    }
+    .step-subtext {
+      font-size: 0.76rem;
+      opacity: 0.75;
+    }
+    .step-connector {
+      width: 32px;
+      height: 2px;
+      background: rgba(0,0,0,0.12);
+      flex-shrink: 0;
+      transition: background 0.3s ease;
+    }
+    .dark .step-connector {
+      background: rgba(255,255,255,0.12);
+    }
+    .step-connector.completed {
+      background: #10B981;
+    }
+
+    /* ─── TEMPORIZADOR DE ESTUDO DO PDF ─── */
+    .study-timer-container {
+      background: rgba(59,130,246,0.06);
+      border: 1px dashed rgba(59,130,246,0.3);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dark .study-timer-container {
+      background: rgba(59,130,246,0.1);
+      border-color: rgba(96,165,250,0.3);
+    }
+    .study-timer-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .dark .study-timer-bar {
+      background: rgba(255,255,255,0.1);
+    }
+    .study-timer-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3B82F6, #10B981);
+      transition: width 1s linear;
+      border-radius: 6px;
+    }
+    .btn-unlock-pulse {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: white;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+      animation: pulseGreen 2s infinite;
+      cursor: pointer;
+    }
+    @keyframes pulseGreen {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* ─── ÁREA AMPLIADA DE EXERCÍCIOS ─── */
+    .wide-exercise-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 26px;
+      border: 1px solid rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      transition: border-color 0.2s ease;
+    }
+    .dark .wide-exercise-card {
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .wide-exercise-card:hover {
+      border-color: rgba(59,130,246,0.3);
+    }
+    .q-opt-btn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      font-size: 0.94rem;
+      line-height: 1.45;
+      background: rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.1);
+      color: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .dark .q-opt-btn {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.1);
+    }
+    .q-opt-btn:hover:not(:disabled) {
+      background: rgba(59,130,246,0.1);
+      border-color: #3B82F6;
+      transform: translateX(4px);
+    }
+    .open-q-box {
+      background: linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(139,92,246,0.04) 100%);
+      border: 2px solid rgba(99,102,241,0.25);
+      border-radius: 16px;
+      padding: 26px;
+      margin-top: 30px;
+      margin-bottom: 24px;
+    }
+    .open-q-textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.15);
+      background: var(--card);
+      color: inherit;
+      font-family: inherit;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      resize: vertical;
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .open-q-textarea:focus {
+      outline: none;
+      border-color: #6366F1;
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+    }
+    .locked-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      border: 2px dashed rgba(0,0,0,0.15);
+      margin: 20px auto;
+      max-width: 800px;
+    }
+    .dark .locked-card {
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    /* ─── DICIONÁRIO & DICAS TÉCNICAS DA QUESTÃO (OPÇÃO 2) ─── */
+    .q-glossary-container {
+      margin-top: 14px;
+      margin-bottom: 18px;
+    }
+    .btn-glossary-toggle {
+      background: rgba(245, 158, 11, 0.1);
+      color: #D97706;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .dark .btn-glossary-toggle {
+      background: rgba(245, 158, 11, 0.15);
+      color: #FBBF24;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .btn-glossary-toggle:hover {
+      background: rgba(245, 158, 11, 0.2);
+      transform: translateY(-1px);
+    }
+    .q-glossary-box {
+      background: rgba(245, 158, 11, 0.04);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: fadeInGlossary 0.25s ease forwards;
+    }
+    .dark .q-glossary-box {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+    @keyframes fadeInGlossary {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .glossary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed rgba(245, 158, 11, 0.2);
+    }
+    .glossary-item:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .glossary-item-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #D97706;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dark .glossary-item-title {
+      color: #FBBF24;
+    }
+    .glossary-item-simple {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+    .glossary-item-technique {
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #2563EB;
+      background: rgba(37, 99, 235, 0.08);
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .dark .glossary-item-technique {
+      color: #93C5FD;
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    @media (max-width: 768px) {
+      .stepper-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+      }
+      .step-connector {
+        display: none;
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -55,9 +384,39 @@
     </div>
   </section>
 
-  <!-- ÁREA DE MATERIAL DE ESTUDO OFICIAL DO CURSO -->
-  <section class="courses" style="margin-top: 10px;">
-    <h2>📚 Área de Material de Estudo</h2>
+  <!-- ═══ NAVEGADOR DE ETAPAS 1, 2, 3 ═══ -->
+  <nav class="stepper-nav" id="stepperNav">
+    <div class="step-item active" id="stepIndicator1" onclick="jumpToStep(1)">
+      <div class="step-circle" id="stepCircle1">1</div>
+      <div class="step-content">
+        <span class="step-badge-num">Etapa 1</span>
+        <span class="step-name">Estudo do Material</span>
+        <span class="step-subtext" id="stepSubtext1">Leitura da Apostila PDF</span>
+      </div>
+    </div>
+    <div class="step-connector" id="stepConnector1"></div>
+    <div class="step-item" id="stepIndicator2" onclick="jumpToStep(2)">
+      <div class="step-circle" id="stepCircle2">2</div>
+      <div class="step-content">
+        <span class="step-badge-num">Etapa 2</span>
+        <span class="step-name">Prática & Exercícios</span>
+        <span class="step-subtext" id="stepSubtext2">Objetivas + Questão Aberta</span>
+      </div>
+    </div>
+    <div class="step-connector" id="stepConnector2"></div>
+    <div class="step-item" id="stepIndicator3" onclick="jumpToStep(3)">
+      <div class="step-circle" id="stepCircle3">3</div>
+      <div class="step-content">
+        <span class="step-badge-num">Etapa 3</span>
+        <span class="step-name">Avaliação do Tutor</span>
+        <span class="step-subtext" id="stepSubtext3">Feedback & Certificado</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ ETAPA 1: ESTUDO DO MATERIAL OFICIAL ═══ -->
+  <section class="courses" id="step1Section" style="margin-top: 15px;">
+    <h2>1️⃣ Estudo do Material Oficial da Disciplina</h2>
     <div class="glass" style="padding: 24px; border-radius: 14px; max-width: 950px; margin: 0 auto; text-align: left;">
       <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
         <div style="flex: 1; min-width: 280px;">
@@ -66,7 +425,7 @@
           </div>
           <h3 id="materialCardTitle" style="font-size: 1.3rem; margin-bottom: 6px; color: var(--text);">Apostila Completa da Disciplina</h3>
           <p id="materialCardInfo" style="opacity: 0.85; font-size: 0.92rem; line-height: 1.5; margin-bottom: 12px;">
-            Acesse o conteúdo acadêmico oficial estruturado para consulta e aprofundamento. A leitura do material é obrigatória e concede <strong>30% do progresso</strong> para a emissão do seu certificado.
+            Acesse o conteúdo acadêmico oficial estruturado para consulta e aprofundamento. A leitura atenta é obrigatória para desbloquear os exercícios e concede <strong>30% do progresso</strong>.
           </p>
           <div id="materialStatusBadge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
             ⏳ Material pendente de leitura (+30% no progresso)
@@ -74,11 +433,34 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; min-width: 230px;">
-          <a id="materialSectionBtn" href="material.pdf" target="_blank" class="btn-primary" onclick="accessMaterial()" style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px;">
+          <a id="materialSectionBtn" href="material.pdf" target="_blank" class="btn-primary" onclick="startStudyCountdown()" style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px;">
             📖 Abrir PDF em Nova Aba
           </a>
           <button id="toggleViewerBtn" class="btn-secondary" onclick="togglePdfViewer()" style="text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px;">
             👁️ Visualizar PDF na Página
+          </button>
+        </div>
+      </div>
+
+      <!-- TEMPORIZADOR DE ESTUDO GUIADO -->
+      <div id="studyTimerBox" class="study-timer-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <span id="studyTimerTitle" style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+            ⏱️ Tempo de Estudo & Fixação Obrigatório: <strong id="studySecondsLabel">15 segundos</strong>
+          </span>
+          <span id="studyTimerBadge" style="font-size: 0.8rem; opacity: 0.85; font-weight: 600;">
+            Aguardando abertura da apostila
+          </span>
+        </div>
+        <div class="study-timer-bar">
+          <div id="studyTimerFill" class="study-timer-fill"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 4px;">
+          <small style="opacity: 0.8; font-size: 0.8rem;">
+            💡 <em>Dica: Abra ou baixe o PDF para iniciar o contador e liberar a Etapa 2 de exercícios.</em>
+          </small>
+          <button id="unlockExercisesBtn" class="btn-secondary" onclick="unlockExercises()" disabled style="opacity: 0.6; cursor: not-allowed; padding: 8px 18px; font-size: 0.88rem;">
+            🔒 Aguarde o término da leitura para desbloquear
           </button>
         </div>
       </div>
@@ -94,10 +476,22 @@
     </div>
   </section>
 
-  <section class="courses">
-    <h2>Avaliação do Curso</h2>
-    <div id="quizContainer"></div>
-    <div id="quizActions" style="margin-top: 20px;"></div>
+  <!-- ═══ ETAPA 2: CENTRAL AMPLA DE EXERCÍCIOS & PRÁTICA ═══ -->
+  <section class="courses" id="step2Section" style="margin-top: 40px;">
+    <h2>2️⃣ Prática & Exercícios do Curso</h2>
+    <div id="exercisesContainerWrapper">
+      <!-- Será renderizado dinamicamente: estado bloqueado ou lista de questões amplas + questão dissertativa -->
+      <div id="quizContainer"></div>
+      <div id="quizActions" style="margin-top: 24px;"></div>
+    </div>
+  </section>
+
+  <!-- ═══ ETAPA 3: AVALIAÇÃO DO TUTOR & CERTIFICAÇÃO ═══ -->
+  <section class="courses" id="step3Section" style="margin-top: 40px; display: none;">
+    <h2>3️⃣ Parecer do Professor & Certificação</h2>
+    <div id="step3Container" class="glass" style="padding: 24px; border-radius: 14px; max-width: 950px; margin: 0 auto; text-align: left;">
+      <!-- Preenchido via renderStep3() -->
+    </div>
   </section>
 
   <section class="courses" style="margin-top: 40px;">
@@ -199,6 +593,7 @@
           course.minLevel = found.minLevel || 1;
           if (found.lessons) course.lessons = found.lessons;
           if (found.quiz) course.quiz = found.quiz;
+          if (found.openQuestion) course.openQuestion = found.openQuestion;
         }
       }
 
@@ -231,6 +626,7 @@
       const heroStudyBtn = document.getElementById("materialStudyBtn");
       if (heroStudyBtn) {
         heroStudyBtn.setAttribute("href", pdfPath);
+        heroStudyBtn.onclick = function() { startStudyCountdown(); };
       }
 
       const heroDownloadBtn = document.getElementById("materialDownloadBtn");
@@ -238,6 +634,7 @@
         heroDownloadBtn.setAttribute("href", pdfPath);
         const fileName = pdfPath.split('/').pop() || `${course.title}.pdf`;
         heroDownloadBtn.setAttribute("download", fileName);
+        heroDownloadBtn.onclick = function() { startStudyCountdown(); };
       }
 
       const sectionMaterialBtn = document.getElementById("materialSectionBtn");
@@ -252,7 +649,10 @@
         if (records[course.id]) {
           course.progress = records[course.id].progress || 0;
           course.answers = records[course.id].answers || {};
+          course.openAnswer = records[course.id].openAnswer || "";
           course.quizCompleted = records[course.id].quizCompleted || false;
+          course.studyCompleted = records[course.id].studyCompleted || (course.quizCompleted || false);
+          course.exercisesUnlocked = records[course.id].exercisesUnlocked || (course.quizCompleted || course.studyCompleted || false);
           course.materialAccessed = records[course.id].materialAccessed || false;
         }
         
@@ -262,17 +662,158 @@
       }
 
       if (!course.answers) course.answers = {};
+      if (course.openAnswer === undefined) course.openAnswer = "";
 
       // Salva estado sincronizado
       localStorage.setItem("selectedCourse", JSON.stringify(course));
 
       // 6. Renderiza a interface
       renderLessons();
-      renderQuiz();
-      renderChatHistory();
       updateMaterialStatusUI();
+      updateStudyTimerUI();
+      renderQuiz();
+      renderStep3();
+      renderChatHistory();
       updateProgressUI();
+      updateStepperUI();
     });
+
+    // ─── GERENCIADOR DO NAVEGADOR DE ETAPAS (1, 2, 3) ───
+    function updateStepperUI() {
+      const s1 = document.getElementById("stepIndicator1");
+      const s2 = document.getElementById("stepIndicator2");
+      const s3 = document.getElementById("stepIndicator3");
+      const c1 = document.getElementById("stepConnector1");
+      const c2 = document.getElementById("stepConnector2");
+      if (!s1 || !s2 || !s3) return;
+
+      const isStep1Done = !!(course.studyCompleted || course.exercisesUnlocked || course.quizCompleted);
+      const isStep2Done = !!(course.quizCompleted);
+
+      // Step 1
+      s1.classList.toggle("completed", isStep1Done);
+      s1.classList.toggle("active", !isStep1Done);
+
+      // Connector 1
+      if (c1) c1.classList.toggle("completed", isStep1Done);
+
+      // Step 2
+      s2.classList.toggle("completed", isStep2Done);
+      s2.classList.toggle("active", isStep1Done && !isStep2Done);
+
+      // Connector 2
+      if (c2) c2.classList.toggle("completed", isStep2Done);
+
+      // Step 3
+      s3.classList.toggle("completed", isStep2Done && course.progress === 100);
+      s3.classList.toggle("active", isStep2Done);
+    }
+
+    function jumpToStep(stepNum) {
+      if (stepNum === 1) {
+        const el = document.getElementById("step1Section");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (stepNum === 2) {
+        const el = document.getElementById("step2Section");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!course.exercisesUnlocked && !course.studyCompleted) {
+          showToast("🔒 Conclua a leitura da apostila na Etapa 1 para desbloquear!");
+        }
+      } else if (stepNum === 3) {
+        const el = document.getElementById("step3Section");
+        if (el) {
+          el.style.display = "block";
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    }
+
+    // ─── TEMPORIZADOR DE LEITURA E DESBLOQUEIO DE EXERCÍCIOS ───
+    let studyTimerInterval = null;
+    let studySecondsRemaining = 15;
+    const TOTAL_STUDY_SECONDS = 15;
+
+    function startStudyCountdown() {
+      accessMaterial(false);
+
+      if (course.exercisesUnlocked || course.studyCompleted) {
+        updateStudyTimerUI();
+        return;
+      }
+
+      const timerFill = document.getElementById("studyTimerFill");
+      const secondsLabel = document.getElementById("studySecondsLabel");
+      const badge = document.getElementById("studyTimerBadge");
+      const btn = document.getElementById("unlockExercisesBtn");
+
+      if (studyTimerInterval) return; // já rodando
+
+      studySecondsRemaining = TOTAL_STUDY_SECONDS;
+      if (badge) {
+        badge.innerHTML = "📖 <span style='color:#3B82F6;'>Estudo em andamento... Mantenha a leitura ativa</span>";
+      }
+
+      studyTimerInterval = setInterval(() => {
+        studySecondsRemaining--;
+        const pct = Math.round(((TOTAL_STUDY_SECONDS - studySecondsRemaining) / TOTAL_STUDY_SECONDS) * 100);
+        if (timerFill) timerFill.style.width = `${pct}%`;
+        if (secondsLabel) secondsLabel.innerText = `${studySecondsRemaining} segundos restantes`;
+
+        if (studySecondsRemaining <= 0) {
+          clearInterval(studyTimerInterval);
+          studyTimerInterval = null;
+          course.studyCompleted = true;
+          course.exercisesUnlocked = true;
+          localStorage.setItem("selectedCourse", JSON.stringify(course));
+          saveProgressToGlobal();
+          updateStudyTimerUI();
+          renderQuiz();
+          updateStepperUI();
+          showToast("🎉 Tempo de estudo cumprido! A Etapa 2 de Exercícios foi liberada.");
+        }
+      }, 1000);
+    }
+
+    function updateStudyTimerUI() {
+      const btn = document.getElementById("unlockExercisesBtn");
+      const timerFill = document.getElementById("studyTimerFill");
+      const secondsLabel = document.getElementById("studySecondsLabel");
+      const badge = document.getElementById("studyTimerBadge");
+      if (!btn) return;
+
+      if (course.exercisesUnlocked || course.studyCompleted) {
+        if (timerFill) timerFill.style.width = "100%";
+        if (secondsLabel) secondsLabel.innerText = "Concluído com sucesso!";
+        if (badge) badge.innerHTML = "✅ <span style='color:#10B981;'>Leitura validada • Exercícios Liberados</span>";
+
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
+        btn.className = "btn-primary btn-unlock-pulse";
+        btn.innerHTML = "🔓 Ir para Exercícios da Etapa 2 ➔";
+        btn.onclick = function() {
+          jumpToStep(2);
+        };
+      } else {
+        btn.disabled = true;
+        btn.style.opacity = "0.6";
+        btn.style.cursor = "not-allowed";
+        btn.className = "btn-secondary";
+        btn.innerHTML = "🔒 Conclua a leitura acima para desbloquear";
+      }
+    }
+
+    function unlockExercises() {
+      course.studyCompleted = true;
+      course.exercisesUnlocked = true;
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      saveProgressToGlobal();
+      updateStudyTimerUI();
+      renderQuiz();
+      updateStepperUI();
+      jumpToStep(2);
+      showToast("✨ Exercícios liberados com sucesso!");
+    }
 
     function renderLessons() {
       const list = document.getElementById("lessonList");
@@ -289,7 +830,7 @@
       const badge = document.getElementById("materialStatusBadge");
       if (!badge) return;
 
-      if (course.materialAccessed) {
+      if (course.materialAccessed || course.studyCompleted) {
         badge.style.background = "rgba(16, 185, 129, 0.15)";
         badge.style.color = "#10B981";
         badge.innerHTML = "✅ Material oficial acessado (+30% no progresso computado)";
@@ -316,8 +857,7 @@
         }
         container.style.display = "block";
         container.scrollIntoView({ behavior: "smooth", block: "start" });
-        // Ao abrir o leitor, já valida o acesso ao material
-        accessMaterial(false);
+        startStudyCountdown();
       } else {
         container.style.display = "none";
       }
@@ -335,6 +875,7 @@
       }
     }
 
+    // ─── RENDERIZADOR AMPLIADO DE EXERCÍCIOS (OBJETIVAS + QUESTÃO ABERTA) ───
     function renderQuiz() {
       const container = document.getElementById("quizContainer");
       const actions = document.getElementById("quizActions");
@@ -343,17 +884,63 @@
       container.innerHTML = "";
       actions.innerHTML = "";
 
-      if (!course.quiz || course.quiz.length === 0) {
-        container.innerHTML = "<p>Este curso não possui avaliação.</p>";
+      // 1. Estado Bloqueado: Exibe card de proteção pedagógica
+      if (!course.exercisesUnlocked && !course.quizCompleted) {
+        container.innerHTML = `
+          <div class="locked-card glass">
+            <div style="font-size: 3.2rem; margin-bottom: 12px;">🔒</div>
+            <h3 style="font-size: 1.35rem; margin-bottom: 8px; color: var(--text);">Exercícios da Etapa 2 Bloqueados</h3>
+            <p style="opacity: 0.85; max-width: 580px; margin: 0 auto 20px auto; font-size: 0.95rem; line-height: 1.6;">
+              Para garantir uma aprendizagem sólida, a realização dos exercícios práticos exige a leitura da apostila oficial. Acesse ou baixe o material na <strong>Etapa 1</strong> e aguarde a validação do tempo de estudo.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-primary" onclick="jumpToStep(1); startStudyCountdown();">
+                📖 Ir para o Material de Estudo (Etapa 1)
+              </button>
+            </div>
+          </div>
+        `;
         return;
       }
 
+      if (!course.quiz || course.quiz.length === 0) {
+        container.innerHTML = "<p>Este curso não possui exercícios cadastrados.</p>";
+        return;
+      }
+
+      // 2. Banner de Progresso dos Exercícios
+      const totalAnswers = Object.keys(course.answers || {}).length;
+      const openAnswerWords = countWords(course.openAnswer || "");
+      const minWords = (course.openQuestion && course.openQuestion.minWords) ? course.openQuestion.minWords : 20;
+
+      container.innerHTML += `
+        <div class="glass" style="padding: 16px 22px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-left: 4px solid #3B82F6;">
+          <div>
+            <span style="font-weight: 700; font-size: 0.95rem; display: block; color: var(--text);">
+              📝 Painel de Respostas da Avaliação
+            </span>
+            <span style="font-size: 0.82rem; opacity: 0.8;">
+              Responda com calma às questões conceituais e elabore sua síntese no Estudo de Caso.
+            </span>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <span class="pill" style="font-size: 0.82rem; padding: 6px 12px; background: rgba(59,130,246,0.15); color: #3B82F6; font-weight: 700;">
+              Objetivas: ${totalAnswers} / ${course.quiz.length}
+            </span>
+            <span class="pill" style="font-size: 0.82rem; padding: 6px 12px; background: ${openAnswerWords >= minWords ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)'}; color: ${openAnswerWords >= minWords ? '#10B981' : '#F59E0B'}; font-weight: 700;">
+              Dissertativa: ${openAnswerWords >= minWords ? '✅ Preenchida' : '⏳ ' + openAnswerWords + '/' + minWords + ' palavras'}
+            </span>
+          </div>
+        </div>
+      `;
+
+      // 3. Questões de Múltipla Escolha
       let correctAnswersCount = 0;
       course.quiz.forEach((q, qIdx) => {
-        if (course.answers[qIdx] === q.correct) correctAnswersCount++;
+        if (course.answers && course.answers[qIdx] === q.correct) correctAnswersCount++;
         let optionsHtml = "";
         q.options.forEach((opt, optIdx) => {
-          const isSelected = course.answers[qIdx] === optIdx;
+          const isSelected = course.answers && course.answers[qIdx] === optIdx;
           const isCorrect = q.correct === optIdx;
           let customStyle = "";
 
@@ -364,80 +951,201 @@
               customStyle = "background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 2px solid #EF4444;";
             }
           } else if (isSelected) {
-            customStyle = "background: #3B82F6; color: white; border-color: #3B82F6;";
+            customStyle = "background: #3B82F6; color: white; border-color: #3B82F6; font-weight: 600;";
           }
 
           const disabled = course.quizCompleted ? "disabled" : "";
           const badgeText = course.quizCompleted ? (isCorrect ? " ✅ (Gabarito Correto)" : (isSelected ? " ❌ (Sua Resposta)" : "")) : "";
 
           optionsHtml += `
-            <button class="btn-secondary" ${disabled} style="display: block; width: 100%; text-align: left; margin-bottom: 8px; padding: 12px; font-size: 0.9rem; ${customStyle}" onclick="selectAnswer(${qIdx}, ${optIdx}, this)">
+            <button class="q-opt-btn" ${disabled} style="${customStyle}" onclick="selectAnswer(${qIdx}, ${optIdx}, this)">
               ${opt}${badgeText}
             </button>
           `;
         });
 
         container.innerHTML += `
-          <div class="glass" style="padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.82rem; color: var(--primary); font-weight: 700;">
+          <div class="wide-exercise-card glass">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
               <span>QUESTÃO ${qIdx + 1} DE ${course.quiz.length}</span>
               ${course.quizCompleted ? (course.answers[qIdx] === q.correct ? '<span style="color:#10B981;">✅ Acertou</span>' : '<span style="color:#EF4444;">❌ Errou</span>') : ''}
             </div>
-            <p style="font-size: 1rem; line-height: 1.5;">${q.question}</p>
+            <p style="font-size: 1.02rem; line-height: 1.6; margin-bottom: 12px; color: var(--text);">${q.question}</p>
+            ${getQuestionGlossaryHtml('mc_' + qIdx, q.question, q.options)}
             <div style="margin-top: 14px;">${optionsHtml}</div>
           </div>
         `;
       });
 
+      // 4. Bloco da Questão Dissertativa (Aberta)
+      const openQ = course.openQuestion || {
+        title: "Estudo de Caso Prático e Síntese de Aprendizagem",
+        prompt: "Com base no material e nas aulas, elabore uma síntese técnica explicando como aplicar os princípios essenciais desta disciplina em um projeto real, destacando os desafios práticos e boas práticas recomendadas.",
+        guidelines: "Desenvolva sua resposta fundamentando termos técnicos e conceitos estudados.",
+        minWords: 20
+      };
+
+      container.innerHTML += `
+        <div class="open-q-box glass">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.15); color: #6366F1; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px;">
+              ✍️ DESAFIO PRÁTICO & DISSERTATIVO
+            </span>
+            <span style="font-size: 0.82rem; opacity: 0.85; font-weight: 600;" id="openQWordsBadge">
+              ${openAnswerWords} palavras digitadas
+            </span>
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 10px; color: var(--text);">
+            ${openQ.title}
+          </h3>
+          <p style="font-size: 0.98rem; line-height: 1.65; margin-bottom: 12px; opacity: 0.95;">
+            ${openQ.prompt}
+          </p>
+          <div style="background: rgba(0,0,0,0.03); border-left: 3px solid #6366F1; padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 0.88rem; opacity: 0.92; line-height: 1.5;">
+            <strong>💡 Diretriz de Avaliação do Professor:</strong> ${openQ.guidelines}
+          </div>
+          ${getQuestionGlossaryHtml('open_0', openQ.prompt + ' ' + (openQ.title || ''), openQ.keywords || [])}
+          <label for="openAnswerInput" style="font-weight: 700; font-size: 0.92rem; display: block; margin-top: 14px; margin-bottom: 8px;">
+            Sua Resposta Dissertativa:
+          </label>
+          <textarea id="openAnswerInput" class="open-q-textarea" placeholder="Redija aqui sua resposta argumentativa com clareza e suas próprias palavras..." oninput="handleOpenAnswerChange(this.value)" ${course.quizCompleted ? 'disabled' : ''}>${course.openAnswer || ""}</textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 10px; font-size: 0.82rem;">
+            <span id="openWordHint" style="color: ${openAnswerWords >= minWords ? '#10B981' : '#F59E0B'}; font-weight: 600;">
+              ${openAnswerWords >= minWords ? '✅ Extensão recomendada atingida (' + openAnswerWords + ' palavras)' : '⚠️ Recomendado ao menos ' + minWords + ' palavras (' + openAnswerWords + ' digitadas)'}
+            </span>
+            <span style="opacity: 0.75;">
+              👨‍🏫 Esta resposta é enviada para correção do tutor com assistência de IA.
+            </span>
+          </div>
+        </div>
+      `;
+
+      // 5. Ações do Rodapé
       if (!course.quizCompleted) {
         actions.innerHTML = `
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <span style="font-size: 0.88rem; opacity: 0.85;">Responda todas as ${course.quiz.length} questões para submeter ao professor.</span>
-            <button class="btn-primary" onclick="submitQuiz()">Finalizar Avaliação (${course.quiz.length} Questões)</button>
+          <div class="glass" style="padding: 20px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <strong style="display: block; font-size: 0.95rem; margin-bottom: 2px;">Pronto para submeter sua atividade?</strong>
+              <span style="font-size: 0.85rem; opacity: 0.85;">Certifique-se de responder todas as ${course.quiz.length} objetivas e a questão dissertativa.</span>
+            </div>
+            <button class="btn-primary" onclick="submitQuiz()" style="padding: 12px 24px; font-size: 0.95rem; font-weight: 700; box-shadow: 0 4px 14px rgba(59,130,246,0.35);">
+              🚀 Finalizar e Enviar para Avaliação (${course.quiz.length} Questões + Estudo de Caso)
+            </button>
           </div>
         `;
       } else {
         const scorePercent = Math.round((correctAnswersCount / course.quiz.length) * 100);
         actions.innerHTML = `
-          <div class="glass" style="padding: 18px; border-radius: 12px; border-left: 5px solid #10B981; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+          <div class="glass" style="padding: 20px; border-radius: 14px; border-left: 5px solid #10B981; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
             <div>
-              <p style="color: #10B981; font-weight: 700; font-size: 1.1rem; margin-bottom: 4px;">🎉 Avaliação Concluída!</p>
-              <p style="font-size: 0.9rem; opacity: 0.9;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões</strong> (${scorePercent}% de aproveitamento).</p>
+              <p style="color: #10B981; font-weight: 800; font-size: 1.15rem; margin-bottom: 4px;">🎉 Avaliação Enviada com Sucesso!</p>
+              <p style="font-size: 0.92rem; opacity: 0.9;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}% de aproveitamento) e sua resposta dissertativa foi registrada para o professor.</p>
             </div>
-            <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 8px 16px;">
-              🔄 Refazer Exercícios
-            </button>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 18px;">
+                🔄 Refazer Exercícios
+              </button>
+              <button class="btn-primary" onclick="jumpToStep(3)" style="font-size: 0.85rem; padding: 10px 18px;">
+                🎓 Ver Parecer do Tutor (Etapa 3) ➔
+              </button>
+            </div>
           </div>
         `;
+      }
+    }
 
-        if (course.progress === 100) {
-          actions.innerHTML += `
-            <div class="glass" id="reviewBox" style="padding: 20px; border-radius: 12px; margin-top: 20px; margin-bottom: 20px; text-align: left;">
-              <h4 style="margin-bottom: 10px;">⭐ Deixe sua Avaliação do Curso (Opcional)</h4>
-              <div style="margin-bottom: 12px;">
-                <label for="reviewStars" style="font-size: 0.9rem; font-weight: 500;">Nota:</label>
-                <select id="reviewStars" style="padding: 6px; margin-left: 10px; border-radius: 6px; background: var(--card); color: inherit; border: 1px solid rgba(0,0,0,0.15);">
-                  <option value="">Selecionar estrelas...</option>
-                  <option value="5">⭐⭐⭐⭐⭐ (5 / 5)</option>
-                  <option value="4">⭐⭐⭐⭐ (4 / 5)</option>
-                  <option value="3">⭐⭐⭐ (3 / 5)</option>
-                  <option value="2">⭐⭐ (2 / 5)</option>
-                  <option value="1">⭐ (1 / 5)</option>
-                </select>
+    function countWords(str) {
+      if (!str) return 0;
+      const clean = str.trim().replace(/\s+/g, ' ');
+      return clean.length === 0 ? 0 : clean.split(' ').length;
+    }
+
+    // ─── DICIONÁRIO DE TERMOS & DICAS EXPANSÍVEL (OPÇÃO 2) ───
+    function getQuestionGlossaryHtml(id, questionText, optionsList) {
+      const glossary = window.techTermsGlossary || {};
+      const fullText = (questionText + " " + (optionsList ? optionsList.join(" ") : "")).toLowerCase();
+      
+      const matchedKeys = Object.keys(glossary).filter(key => fullText.includes(key));
+      
+      if (matchedKeys.length === 0) {
+        return `
+          <div class="q-glossary-container">
+            <button type="button" class="btn-glossary-toggle" onclick="toggleQuestionGlossary('${id}')">
+              💡 Dica de Resolução & Interpretação <span id="glossaryArrow_${id}">▼</span>
+            </button>
+            <div id="glossaryBox_${id}" class="q-glossary-box" style="display:none;">
+              <div class="glossary-item">
+                <div class="glossary-item-title">🔍 Dica de Análise do Enunciado</div>
+                <div class="glossary-item-simple">Leia com atenção o comando final da questão. Descarte primeiro as alternativas que utilizam termos radicais e inflexíveis (como "sempre", "nunca", "exclusivamente") e conecte a alternativa correta às boas práticas recomendadas na apostila oficial.</div>
+                <div class="glossary-item-technique">💡 Técnica de Resolução: Busque a alternativa que prioriza segurança, valor de negócio ao cliente e boas práticas de arquitetura.</div>
               </div>
-              <textarea id="reviewText" placeholder="Escreva um comentário opcional..." rows="3" style="width:100%; padding:10px; border-radius:8px; border:1px solid rgba(0,0,0,0.15); background: var(--card); color: inherit; font-family: inherit; margin-bottom: 12px;"></textarea>
-              <button class="btn-primary" onclick="submitReview()" style="width: 100%; font-size: 0.9rem;">Enviar Avaliação</button>
             </div>
-          `;
-          
-          actions.innerHTML += `<button class="btn-primary" onclick="generateCertificate('${course.title}')">🏆 Imprimir Meu Certificado</button>`;
+          </div>
+        `;
+      }
+
+      const itemsHtml = matchedKeys.map(key => {
+        const item = glossary[key];
+        return `
+          <div class="glossary-item">
+            <div class="glossary-item-title">📖 ${item.term}</div>
+            <div class="glossary-item-simple"><strong>O que significa:</strong> ${item.simple}</div>
+            <div class="glossary-item-technique">${item.technique}</div>
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <div class="q-glossary-container">
+          <button type="button" class="btn-glossary-toggle" onclick="toggleQuestionGlossary('${id}')">
+            💡 Dicionário & Dicas desta Questão <span style="background:rgba(245,158,11,0.25); padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:800;">${matchedKeys.length} termos identificados</span> <span id="glossaryArrow_${id}">▼</span>
+          </button>
+          <div id="glossaryBox_${id}" class="q-glossary-box" style="display:none;">
+            ${itemsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleQuestionGlossary(id) {
+      const box = document.getElementById("glossaryBox_" + id);
+      const arrow = document.getElementById("glossaryArrow_" + id);
+      if (!box) return;
+      if (box.style.display === "none" || box.style.display === "") {
+        box.style.display = "flex";
+        if (arrow) arrow.innerText = "▲";
+      } else {
+        box.style.display = "none";
+        if (arrow) arrow.innerText = "▼";
+      }
+    }
+
+    function handleOpenAnswerChange(val) {
+      if (course.quizCompleted) return;
+      course.openAnswer = val;
+      localStorage.setItem("selectedCourse", JSON.stringify(course));
+
+      const wordCount = countWords(val);
+      const minWords = (course.openQuestion && course.openQuestion.minWords) ? course.openQuestion.minWords : 20;
+
+      const badge = document.getElementById("openQWordsBadge");
+      if (badge) badge.innerText = `${wordCount} palavras digitadas`;
+
+      const hint = document.getElementById("openWordHint");
+      if (hint) {
+        if (wordCount >= minWords) {
+          hint.style.color = "#10B981";
+          hint.innerHTML = `✅ Extensão recomendada atingida (${wordCount} palavras)`;
+        } else {
+          hint.style.color = "#F59E0B";
+          hint.innerHTML = `⚠️ Recomendado ao menos ${minWords} palavras (${wordCount} digitadas)`;
         }
       }
     }
 
     function selectAnswer(qIdx, optIdx, btn) {
       if (course.quizCompleted) return;
-      
+
       course.answers[qIdx] = optIdx;
       localStorage.setItem("selectedCourse", JSON.stringify(course));
       saveProgressToGlobal();
@@ -458,10 +1166,18 @@
 
     function submitQuiz() {
       const totalQuestions = course.quiz ? course.quiz.length : 0;
-      const totalAnswers = Object.keys(course.answers).length;
+      const totalAnswers = Object.keys(course.answers || {}).length;
 
       if (totalAnswers < totalQuestions) {
-        showToast("Por favor, responda todas as questões antes de finalizar!");
+        showToast(`Por favor, responda todas as ${totalQuestions} questões objetivas antes de enviar!`);
+        return;
+      }
+
+      const openWords = countWords(course.openAnswer || "");
+      if (openWords < 5) {
+        showToast("Por favor, preencha sua resposta na Questão Dissertativa antes de finalizar!");
+        const txtArea = document.getElementById("openAnswerInput");
+        if (txtArea) txtArea.focus();
         return;
       }
 
@@ -487,6 +1203,8 @@
           courseId: course.id,
           courseTitle: course.title,
           answers: course.answers,
+          openAnswer: course.openAnswer || "",
+          openQuestion: course.openQuestion || null,
           quiz: course.quiz,
           score: score,
           totalQuestions: totalQuestions,
@@ -505,7 +1223,10 @@
 
       calculateProgress();
       renderQuiz();
-      showToast("Avaliação registrada e enviada para correção do professor!");
+      renderStep3();
+      updateStepperUI();
+      jumpToStep(3);
+      showToast("Avaliação registrada com sucesso e enviada ao professor!");
     }
 
     function resetQuiz() {
@@ -515,11 +1236,85 @@
       saveProgressToGlobal();
       calculateProgress();
       renderQuiz();
+      renderStep3();
+      updateStepperUI();
+      jumpToStep(2);
       showToast("Exercícios liberados para nova tentativa!");
     }
 
+    // ─── ETAPA 3: PARECER DO PROFESSOR E CERTIFICADO ───
+    function renderStep3() {
+      const step3Sec = document.getElementById("step3Section");
+      const container = document.getElementById("step3Container");
+      if (!step3Sec || !container) return;
+
+      if (!course.quizCompleted) {
+        step3Sec.style.display = "none";
+        return;
+      }
+
+      step3Sec.style.display = "block";
+
+      // Busca submissão deste aluno
+      const subs = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
+      const mySub = user ? subs.find(s => s.userEmail === user.email && s.courseId === course.id) : null;
+      const hasFeedback = mySub && mySub.feedback && mySub.feedback.trim().length > 0;
+      const isGraded = mySub && mySub.status === "Corrigido";
+
+      let feedbackBox = "";
+      if (isGraded && hasFeedback) {
+        feedbackBox = `
+          <div style="background: rgba(16,185,129,0.08); border-left: 4px solid #10B981; border-radius: 10px; padding: 18px 22px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="color: #10B981; font-size: 1rem;">💬 Parecer Técnico do Professor:</strong>
+              <span style="font-size: 0.78rem; opacity: 0.7;">Data: ${mySub.gradedAt || mySub.submittedAt}</span>
+            </div>
+            <p style="font-size: 0.95rem; line-height: 1.6; font-style: italic; opacity: 0.95;">
+              "${mySub.feedback}"
+            </p>
+          </div>
+        `;
+      } else {
+        feedbackBox = `
+          <div style="background: rgba(245,158,11,0.08); border-left: 4px solid #F59E0B; border-radius: 10px; padding: 18px 22px; margin-bottom: 20px;">
+            <strong style="color: #F59E0B; font-size: 1rem; display: block; margin-bottom: 6px;">⏳ Atividade na Fila de Correção do Docente</strong>
+            <p style="font-size: 0.9rem; line-height: 1.5; opacity: 0.9;">
+              Sua avaliação objetiva e resposta dissertativa foram enviadas para a banca acadêmica. O professor responsável emitirá o parecer pedagógico em breve.
+            </p>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 4px;">Status Acadêmico do Curso</h3>
+            <span style="font-size: 0.88rem; opacity: 0.85;">Aluno: <strong>${user ? user.name : 'Visitante'}</strong> · Disciplina: <strong>${course.title}</strong></span>
+          </div>
+          <span class="pill" style="font-size: 0.9rem; padding: 8px 16px; background: ${isGraded ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'}; color: ${isGraded ? '#10B981' : '#F59E0B'}; font-weight: 700;">
+            ${isGraded ? '✅ Atividade Corrigida' : '⏳ Aguardando Parecer'}
+          </span>
+        </div>
+
+        ${feedbackBox}
+
+        ${course.progress === 100 ? `
+          <div style="background: var(--card); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px;">
+            <div style="font-size: 2.8rem; margin-bottom: 8px;">🏅</div>
+            <h4 style="font-size: 1.2rem; margin-bottom: 6px;">Parabéns! Requisitos do Curso Cumpridos</h4>
+            <p style="font-size: 0.9rem; opacity: 0.85; max-width: 500px; margin: 0 auto 16px auto;">
+              Você concluiu o material didático oficial e a avaliação prática. Seu certificado de conclusão está liberado para impressão.
+            </p>
+            <button class="btn-primary" onclick="generateCertificate('${course.title}')" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; box-shadow: 0 4px 14px rgba(59,130,246,0.35);">
+              🏆 Emitir e Imprimir Meu Certificado
+            </button>
+          </div>
+        ` : ''}
+      `;
+    }
+
     function calculateProgress() {
-      let weightMaterial = course.materialAccessed ? 30 : 0;
+      let weightMaterial = (course.materialAccessed || course.studyCompleted) ? 30 : 0;
       let weightQuiz = course.quizCompleted ? 70 : 0;
       course.progress = weightMaterial + weightQuiz;
       
@@ -551,9 +1346,13 @@
           title: course.title,
           progress: course.progress || 0,
           answers: course.answers || {},
+          openAnswer: course.openAnswer || "",
+          studyCompleted: course.studyCompleted || false,
+          exercisesUnlocked: course.exercisesUnlocked || false,
           quizCompleted: course.quizCompleted || false,
           materialAccessed: course.materialAccessed || false
         };
+        localStorage.setItem(progressKey, JSON.stringify(records));
         localStorage.setItem(progressKey, JSON.stringify(records));
 
         if (course.progress === 100 && !jaConcluiuAntes) {
