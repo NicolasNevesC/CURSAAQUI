@@ -651,6 +651,9 @@
           course.answers = records[course.id].answers || {};
           course.openAnswer = records[course.id].openAnswer || "";
           course.quizCompleted = records[course.id].quizCompleted || false;
+          course.quizScore = records[course.id].quizScore !== undefined ? records[course.id].quizScore : 0;
+          course.quizScorePercent = records[course.id].quizScorePercent !== undefined ? records[course.id].quizScorePercent : 0;
+          course.quizPassed = records[course.id].quizPassed !== undefined ? records[course.id].quizPassed : false;
           course.studyCompleted = records[course.id].studyCompleted || (course.quizCompleted || false);
           course.exercisesUnlocked = records[course.id].exercisesUnlocked || (course.quizCompleted || course.studyCompleted || false);
           course.materialAccessed = records[course.id].materialAccessed || false;
@@ -663,6 +666,24 @@
 
       if (!course.answers) course.answers = {};
       if (course.openAnswer === undefined) course.openAnswer = "";
+
+      // Se o quiz já estiver marcado como feito, recalcula nota e validação de nota mínima (60%)
+      if (course.quizCompleted && course.quiz && course.quiz.length > 0) {
+        let calcScore = 0;
+        course.quiz.forEach((q, idx) => {
+          if (course.answers && course.answers[idx] === q.correct) calcScore++;
+        });
+        course.quizScore = calcScore;
+        course.quizScorePercent = Math.round((calcScore / course.quiz.length) * 100);
+        course.quizPassed = course.quizScorePercent >= 60;
+
+        // Se errou e estava com 100%, rebaixa o progresso imediatamente para travar certificado
+        if (!course.quizPassed && course.progress === 100) {
+          const weightMat = (course.materialAccessed || course.studyCompleted) ? 30 : 0;
+          const weightPartial = Math.round((course.quizScorePercent / 100) * 35);
+          course.progress = Math.min(weightMat + weightPartial, 65);
+        }
+      }
 
       // Salva estado sincronizado
       localStorage.setItem("selectedCourse", JSON.stringify(course));
@@ -705,7 +726,7 @@
       if (c2) c2.classList.toggle("completed", isStep2Done);
 
       // Step 3
-      s3.classList.toggle("completed", isStep2Done && course.progress === 100);
+      s3.classList.toggle("completed", isStep2Done && course.progress === 100 && course.quizPassed === true);
       s3.classList.toggle("active", isStep2Done);
     }
 
@@ -1035,22 +1056,60 @@
         `;
       } else {
         const scorePercent = Math.round((correctAnswersCount / course.quiz.length) * 100);
-        actions.innerHTML = `
-          <div class="glass" style="padding: 20px; border-radius: 14px; border-left: 5px solid #10B981; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-            <div>
-              <p style="color: #10B981; font-weight: 800; font-size: 1.15rem; margin-bottom: 4px;">🎉 Avaliação Enviada com Sucesso!</p>
-              <p style="font-size: 0.92rem; opacity: 0.9;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}% de aproveitamento) e sua resposta dissertativa foi registrada para o professor.</p>
+        const isPassed = course.quizPassed !== undefined ? course.quizPassed : (scorePercent >= 60);
+
+        if (isPassed) {
+          actions.innerHTML = `
+            <div class="glass" style="padding: 22px; border-radius: 14px; border-left: 6px solid #10B981; margin-bottom: 15px; background: rgba(16,185,129,0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 1.4rem;">🎉</span>
+                    <strong style="color: #10B981; font-size: 1.15rem;">Aprovado com Sucesso! (${scorePercent}%)</strong>
+                    <span class="pill" style="background: rgba(16,185,129,0.2); color: #10B981; font-size: 0.78rem; font-weight: 800; padding: 4px 10px;">APROVADO (≥60%)</span>
+                  </div>
+                  <p style="font-size: 0.92rem; opacity: 0.9; margin: 0;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}% de aproveitamento) e sua resposta dissertativa foi registrada. Requisitos acadêmicos concluídos com êxito!</p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 18px;">
+                    🔄 Refazer Avaliação
+                  </button>
+                  <button class="btn-primary" onclick="jumpToStep(3)" style="font-size: 0.85rem; padding: 10px 18px; background: #10B981; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+                    🏆 Emitir Certificado (Etapa 3) ➔
+                  </button>
+                </div>
+              </div>
             </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 18px;">
-                🔄 Refazer Exercícios
-              </button>
-              <button class="btn-primary" onclick="jumpToStep(3)" style="font-size: 0.85rem; padding: 10px 18px;">
-                🎓 Ver Parecer do Tutor (Etapa 3) ➔
-              </button>
+          `;
+        } else {
+          actions.innerHTML = `
+            <div class="glass" style="padding: 22px; border-radius: 14px; border-left: 6px solid #EF4444; margin-bottom: 15px; background: rgba(239,68,68,0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <div style="max-width: 650px;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 1.4rem;">⚠️</span>
+                    <strong style="color: #EF4444; font-size: 1.15rem;">Aproveitamento Insuficiente (${scorePercent}%)</strong>
+                    <span class="pill" style="background: rgba(239,68,68,0.2); color: #EF4444; font-size: 0.78rem; font-weight: 800; padding: 4px 10px;">REPROVADO (MÍNIMO 60%)</span>
+                  </div>
+                  <p style="font-size: 0.92rem; opacity: 0.9; margin: 0 0 6px 0;">
+                    Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}%). Para ser aprovado e desbloquear o certificado oficial, a nota mínima exigida é de <strong>60% (${Math.ceil(course.quiz.length * 0.6)} acertos)</strong>.
+                  </p>
+                  <p style="font-size: 0.84rem; color: var(--muted); margin: 0;">
+                    💡 Consulte as opções em vermelho e o <em>Dicionário & Dicas</em> de cada questão para fixar os conceitos, ou revise a apostila antes de tentar novamente.
+                  </p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn-secondary" onclick="jumpToStep(1)" style="font-size: 0.85rem; padding: 10px 18px;">
+                    📖 Revisar Apostila
+                  </button>
+                  <button class="btn-primary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 20px; background: #EF4444; box-shadow: 0 4px 14px rgba(239,68,68,0.35);">
+                    🔄 Refazer Avaliação Agora
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        }
       }
     }
 
@@ -1181,18 +1240,25 @@
         return;
       }
 
+      // Calcula pontuação e nota mínima (60%)
+      let score = 0;
+      if (course.quiz) {
+        course.quiz.forEach((q, idx) => {
+          if (course.answers[idx] === q.correct) score++;
+        });
+      }
+
+      const scorePercent = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+      const isPassed = scorePercent >= 60;
+
       course.quizCompleted = true;
+      course.quizScore = score;
+      course.quizScorePercent = scorePercent;
+      course.quizPassed = isPassed;
+
       localStorage.setItem("selectedCourse", JSON.stringify(course));
-      saveProgressToGlobal();
 
       if (user) {
-        let score = 0;
-        if (course.quiz) {
-          course.quiz.forEach((q, idx) => {
-            if (course.answers[idx] === q.correct) score++;
-          });
-        }
-
         const submissions = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
         const existingIdx = submissions.findIndex(s => s.userEmail === user.email && s.courseId === course.id);
 
@@ -1207,6 +1273,8 @@
           openQuestion: course.openQuestion || null,
           quiz: course.quiz,
           score: score,
+          scorePercent: scorePercent,
+          quizPassed: isPassed,
           totalQuestions: totalQuestions,
           status: "Pendente",
           feedback: "",
@@ -1226,20 +1294,27 @@
       renderStep3();
       updateStepperUI();
       jumpToStep(3);
-      showToast("Avaliação registrada com sucesso e enviada ao professor!");
+
+      if (isPassed) {
+        showToast(`🎉 Parabéns! Você atingiu ${scorePercent}% de aproveitamento e foi Aprovado!`);
+      } else {
+        showToast(`⚠️ Nota ${scorePercent}%. Mínimo exigido: 60%. Revise o material e refaça a prova!`);
+      }
     }
 
     function resetQuiz() {
       course.quizCompleted = false;
+      course.quizPassed = false;
+      course.quizScore = 0;
+      course.quizScorePercent = 0;
       course.answers = {};
       localStorage.setItem("selectedCourse", JSON.stringify(course));
-      saveProgressToGlobal();
       calculateProgress();
       renderQuiz();
       renderStep3();
       updateStepperUI();
       jumpToStep(2);
-      showToast("Exercícios liberados para nova tentativa!");
+      showToast("Avaliação liberada para nova tentativa!");
     }
 
     // ─── ETAPA 3: PARECER DO PROFESSOR E CERTIFICADO ───
@@ -1285,38 +1360,87 @@
         `;
       }
 
+      const isPassed = course.quizPassed === true;
+      const scorePct = course.quizScorePercent !== undefined ? course.quizScorePercent : 0;
+      const scoreNum = course.quizScore !== undefined ? course.quizScore : 0;
+      const totalQ = course.quiz ? course.quiz.length : 10;
+
+      let certCard = "";
+      if (isPassed && course.progress === 100) {
+        certCard = `
+          <div style="background: var(--card); border: 1px solid rgba(16,185,129,0.3); border-radius: 14px; padding: 24px; text-align: center; margin-top: 20px; box-shadow: 0 8px 24px rgba(16,185,129,0.08);">
+            <div style="font-size: 3rem; margin-bottom: 8px;">🏅</div>
+            <h4 style="font-size: 1.25rem; margin-bottom: 6px; color: #10B981;">Parabéns! Requisitos Acadêmicos Concluídos</h4>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16,185,129,0.15); color: #10B981; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px;">
+              <span>Nota Obtida: ${scorePct}% (${scoreNum}/${totalQ} acertos)</span>
+              <span>•</span>
+              <span>Nota Mínima Exigida: 60%</span>
+            </div>
+            <p style="font-size: 0.92rem; opacity: 0.9; max-width: 520px; margin: 0 auto 16px auto;">
+              Você concluiu o material didático oficial e atingiu a pontuação mínima necessária na avaliação técnica. Seu certificado de conclusão está liberado para emissão e impressão.
+            </p>
+            <button class="btn-primary" onclick="generateCertificate('${course.title}')" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; background: #10B981; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+              🏆 Emitir e Imprimir Meu Certificado
+            </button>
+          </div>
+        `;
+      } else {
+        certCard = `
+          <div style="background: var(--card); border: 1px solid rgba(239,68,68,0.25); border-radius: 14px; padding: 24px; text-align: center; margin-top: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 8px;">🔒</div>
+            <h4 style="font-size: 1.25rem; margin-bottom: 6px; color: #EF4444;">Certificado Bloqueado — Nota Mínima Não Atingida</h4>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(239,68,68,0.12); color: #EF4444; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px;">
+              <span>Sua Nota: ${scorePct}% (${scoreNum}/${totalQ} acertos)</span>
+              <span>•</span>
+              <span>Mínimo para Aprovação: 60%</span>
+            </div>
+            <p style="font-size: 0.92rem; opacity: 0.9; max-width: 520px; margin: 0 auto 16px auto;">
+              O certificado oficial de conclusão só é emitido para estudantes que atingem aproveitamento igual ou superior a <strong>60%</strong> na avaliação técnica.
+            </p>
+            <button class="btn-primary" onclick="resetQuiz()" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; background: #EF4444; box-shadow: 0 4px 14px rgba(239,68,68,0.35);">
+              🔄 Refazer Avaliação para Atingir a Nota
+            </button>
+          </div>
+        `;
+      }
+
       container.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
           <div>
             <h3 style="font-size: 1.3rem; margin-bottom: 4px;">Status Acadêmico do Curso</h3>
             <span style="font-size: 0.88rem; opacity: 0.85;">Aluno: <strong>${user ? user.name : 'Visitante'}</strong> · Disciplina: <strong>${course.title}</strong></span>
           </div>
-          <span class="pill" style="font-size: 0.9rem; padding: 8px 16px; background: ${isGraded ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'}; color: ${isGraded ? '#10B981' : '#F59E0B'}; font-weight: 700;">
-            ${isGraded ? '✅ Atividade Corrigida' : '⏳ Aguardando Parecer'}
-          </span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="pill" style="font-size: 0.85rem; padding: 6px 14px; background: ${isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color: ${isPassed ? '#10B981' : '#EF4444'}; font-weight: 800;">
+              ${isPassed ? '✅ Aprovado na Prova (' + scorePct + '%)' : '❌ Reprovado na Prova (' + scorePct + '%)'}
+            </span>
+            <span class="pill" style="font-size: 0.85rem; padding: 6px 14px; background: ${isGraded ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'}; color: ${isGraded ? '#10B981' : '#F59E0B'}; font-weight: 700;">
+              ${isGraded ? '✅ Parecer Emitido' : '⏳ Fila de Correção'}
+            </span>
+          </div>
         </div>
 
         ${feedbackBox}
 
-        ${course.progress === 100 ? `
-          <div style="background: var(--card); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px;">
-            <div style="font-size: 2.8rem; margin-bottom: 8px;">🏅</div>
-            <h4 style="font-size: 1.2rem; margin-bottom: 6px;">Parabéns! Requisitos do Curso Cumpridos</h4>
-            <p style="font-size: 0.9rem; opacity: 0.85; max-width: 500px; margin: 0 auto 16px auto;">
-              Você concluiu o material didático oficial e a avaliação prática. Seu certificado de conclusão está liberado para impressão.
-            </p>
-            <button class="btn-primary" onclick="generateCertificate('${course.title}')" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; box-shadow: 0 4px 14px rgba(59,130,246,0.35);">
-              🏆 Emitir e Imprimir Meu Certificado
-            </button>
-          </div>
-        ` : ''}
+        ${certCard}
       `;
     }
 
     function calculateProgress() {
       let weightMaterial = (course.materialAccessed || course.studyCompleted) ? 30 : 0;
-      let weightQuiz = course.quizCompleted ? 70 : 0;
-      course.progress = weightMaterial + weightQuiz;
+      let weightQuiz = 0;
+
+      if (course.quizCompleted) {
+        if (course.quizPassed) {
+          weightQuiz = 70; // 30% material + 70% avaliação aprovada = 100%
+        } else {
+          // Se não atingiu a média mínima, pontuação proporcional até no máximo 35%, nunca 100%
+          const pct = course.quizScorePercent || 0;
+          weightQuiz = Math.round((pct / 100) * 35);
+        }
+      }
+
+      course.progress = course.quizPassed ? (weightMaterial + weightQuiz) : Math.min(weightMaterial + weightQuiz, 65);
       
       localStorage.setItem("selectedCourse", JSON.stringify(course));
       saveProgressToGlobal();
@@ -1339,7 +1463,7 @@
       if (user && course) {
         const progressKey = `user_courses_progress_${user.email}`;
         const records = JSON.parse(localStorage.getItem(progressKey)) || {};
-        const jaConcluiuAntes = records[course.id] && records[course.id].progress === 100;
+        const jaConcluiuAntes = records[course.id] && records[course.id].progress === 100 && records[course.id].quizPassed;
 
         records[course.id] = {
           id: course.id,
@@ -1350,12 +1474,15 @@
           studyCompleted: course.studyCompleted || false,
           exercisesUnlocked: course.exercisesUnlocked || false,
           quizCompleted: course.quizCompleted || false,
+          quizPassed: course.quizPassed || false,
+          quizScore: course.quizScore !== undefined ? course.quizScore : 0,
+          quizScorePercent: course.quizScorePercent !== undefined ? course.quizScorePercent : 0,
           materialAccessed: course.materialAccessed || false
         };
         localStorage.setItem(progressKey, JSON.stringify(records));
-        localStorage.setItem(progressKey, JSON.stringify(records));
 
-        if (course.progress === 100 && !jaConcluiuAntes) {
+        // Só ganha XP e sobe de nível se atingiu 100% E passou na avaliação!
+        if (course.progress === 100 && course.quizPassed && !jaConcluiuAntes) {
           if (user.xp === undefined) user.xp = 0;
           if (user.level === undefined) user.level = 1;
 

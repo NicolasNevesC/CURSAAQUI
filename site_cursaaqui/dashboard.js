@@ -81,7 +81,7 @@ function renderStudentDashboard(container, user) {
       const foundCourse = coursesList.find(c => c.id === parseInt(id) || c.title === record.title);
       const pdfPath = (foundCourse && foundCourse.pdf) ? foundCourse.pdf : (record.pdf || "material.pdf");
       const safeTitle = record.title.replace(/'/g, "\\'");
-      const isDone = record.progress === 100;
+      const isDone = record.progress === 100 && record.quizPassed !== false;
 
       // Card moderno do curso com barra de progresso visual
       coursesHtml += `
@@ -489,13 +489,28 @@ function salvarCorrecaoProfessor() {
 // disponível, senão faz o fallback preenchendo o modal manualmente.
 // ─────────────────────────────────────────────────────────────
 function gerarCertificadoDoPainel(courseTitle) {
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  if (user) {
+    const progressKey = `user_courses_progress_${user.email}`;
+    const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+    const rec = Object.values(records).find(r => r.title === courseTitle);
+    if (rec && (rec.progress < 100 || rec.quizPassed === false)) {
+      const nota = rec.quizScorePercent !== undefined ? rec.quizScorePercent : 0;
+      if (typeof showToast === "function") {
+        showToast(`🔒 Certificado bloqueado: nota de ${nota}%. Mínimo exigido: 60%.`);
+      } else {
+        alert(`🔒 Certificado bloqueado: nota de ${nota}%. Mínimo exigido: 60%.`);
+      }
+      return;
+    }
+  }
+
   if (typeof generateCertificate === "function") {
     // Delegado para certificate.js (método preferencial)
     generateCertificate(courseTitle);
   } else {
     // Fallback: preenche e abre o modal de certificado diretamente
-    const user = JSON.parse(localStorage.getItem("loggedUser"));
-    if(document.getElementById("certUser"))   document.getElementById("certUser").innerText   = user.name;
+    if(document.getElementById("certUser"))   document.getElementById("certUser").innerText   = user ? user.name : "Aluno";
     if(document.getElementById("certCourse")) document.getElementById("certCourse").innerText = courseTitle;
     if(document.getElementById("certDate"))   document.getElementById("certDate").innerText   = new Date().toLocaleDateString('pt-BR');
     if(document.getElementById("certificateModal")) document.getElementById("certificateModal").style.display = "flex";

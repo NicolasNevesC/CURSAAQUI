@@ -1613,7 +1613,7 @@ function renderStudentCoursesGrid() {
   }
 
   grid.innerHTML = filtered.map(course => {
-    const isCompleted = course.progress === 100;
+    const isCompleted = course.progress === 100 && course.quizPassed !== false;
     const safeTitle = course.title.replace(/'/g, "\\'");
     const lvlPill = course.minLevel === 1 ? 'lvl-pill-1' : (course.minLevel === 2 ? 'lvl-pill-2' : 'lvl-pill-3');
 
@@ -2087,14 +2087,14 @@ function renderStudentCertificates() {
 
   const records = getStudentProgressRecords();
   const keys = Object.keys(records);
-  const completedKeys = keys.filter(k => records[k].progress === 100);
+  const completedKeys = keys.filter(k => records[k].progress === 100 && records[k].quizPassed !== false);
 
   if (completedKeys.length === 0) {
     container.innerHTML = `
       <div style="text-align: center; padding: 30px; background: var(--card2); border-radius: 12px; border: 1px dashed var(--border);">
         <span style="font-size: 2rem; display: block; margin-bottom: 6px;">📜</span>
-        <p style="color: var(--muted); font-size: 0.88rem;">Você ainda não completou nenhum curso com 100% de progresso.</p>
-        <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.8;">Finalize as aulas e gabarite os exercícios para liberar seu diploma!</p>
+        <p style="color: var(--muted); font-size: 0.88rem;">Você ainda não completou nenhum curso com 100% de progresso e aprovação.</p>
+        <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.8;">Finalize os estudos e atinja a nota mínima de 60% na avaliação para liberar seu diploma!</p>
       </div>
     `;
     return;
@@ -2103,13 +2103,14 @@ function renderStudentCertificates() {
   container.innerHTML = completedKeys.map(k => {
     const item = records[k];
     const safeTitle = item.title.replace(/'/g, "\\'");
+    const nota = item.quizScorePercent !== undefined ? item.quizScorePercent : 100;
     return `
       <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 12px;">
           <span style="font-size: 2rem;">🏆</span>
           <div>
             <h4 style="font-size: 0.98rem; font-weight: 700;">${item.title}</h4>
-            <small style="color: #10B981; font-weight: 600;">100% Concluído • Aprovado</small>
+            <small style="color: #10B981; font-weight: 600;">100% Concluído • Aprovado (${nota}%)</small>
           </div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="openCertModal('${safeTitle}')">
@@ -2123,6 +2124,14 @@ function renderStudentCertificates() {
 function openCertModal(courseTitle) {
   const user = getLoggedUser();
   if (!user) return;
+
+  const records = getStudentProgressRecords();
+  const rec = Object.values(records).find(r => r.title === courseTitle);
+  if (rec && (rec.progress < 100 || rec.quizPassed === false)) {
+    const nota = rec.quizScorePercent !== undefined ? rec.quizScorePercent : 0;
+    showToast(`🔒 Certificado bloqueado: aproveitamento de ${nota}%. Nota mínima necessária: 60%.`);
+    return;
+  }
 
   document.getElementById("certModalStudentName").textContent = user.name;
   document.getElementById("certModalCourseName").textContent = courseTitle;
