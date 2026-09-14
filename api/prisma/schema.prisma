@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+// O connector "sqlserver" do Prisma não suporta enums nativos (diferente de
+// Postgres/MySQL) — Role e status de submissão viram String, com os valores
+// válidos controlados na camada de aplicação (middleware/requireRole.js e
+// os literais usados em auth/submissionService).
+//
+// Role: os 4 papéis já são suportados pelo requireRole() genérico desde já;
+// nesta etapa só STUDENT e TEACHER têm rotas implementadas. Valores válidos:
+// "STUDENT" | "TEACHER" | "ADMIN" | "SECRETARIA".
+//
+// Status de submissão, valores válidos: "PENDENTE" | "CORRIGIDO".
+
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String @unique
+  password String // hash bcrypt
+  role     String
+  xp       Int    @default(0)
+  level    Int    @default(1)
+
+  createdAt DateTime @default(now())
+
+  progress    CourseProgress[]
+  submissions Submission[]
+  goals       Goal[]
+  notes       Note[]
+  reviews     Review[]
+
+  @@map("users")
+}
+
+model Course {
+  id          Int    @id @default(autoincrement())
+  title       String
+  category    String
+  area        String?
+  teacherName String
+  duration    String
+  rating      Float  @default(0)
+  minLevel    Int    @default(1)
+  image       String?
+  pdf         String?
+
+  // Conteúdo livre serializado em JSON (o connector sqlserver do Prisma
+  // não suporta o tipo Json nativo — ver plano de implementação).
+  lessonsJson      String  @db.NVarChar(Max)
+  quizJson         String  @db.NVarChar(Max)
+  openQuestionJson String? @db.NVarChar(Max)
+
+  createdAt DateTime @default(now())
+
+  progress    CourseProgress[]
+  submissions Submission[]
+  reviews     Review[]
+  notes       Note[]
+
+  @@map("courses")
+}
+
+model CourseProgress {
+  id       Int @id @default(autoincrement())
+  userId   Int
+  courseId Int
+
+  progress          Int     @default(0)
+  answersJson       String? @db.NVarChar(Max)
+  openAnswer        String? @db.NVarChar(Max)
+  quizCompleted     Boolean @default(false)
+  // Nota mínima de aprovação (60%): calculada e gravada pelo servidor a
+  // partir de answersJson + o gabarito do curso — nunca aceita do cliente.
+  quizScore         Int     @default(0)
+  quizScorePercent  Int     @default(0)
+  quizPassed        Boolean @default(false)
+  studyCompleted    Boolean @default(false)
+  materialAccessed  Boolean @default(false)
+  exercisesUnlocked Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([userId, courseId])
+  @@map("course_progress")
+}
+
+model Submission {
+  id       Int @id @default(autoincrement())
+  userId   Int
+  courseId Int
+
+  answersJson    String  @db.NVarChar(Max)
+  openAnswer     String? @db.NVarChar(Max)
+  score          Int
+  totalQuestions Int
+  // Também calculado no servidor a partir do gabarito, não recebido do cliente.
+  passed         Boolean @default(false)
+  status         String  @default("PENDENTE")
+  feedback       String? @db.NVarChar(Max)
+
+  submittedAt DateTime  @default(now())
+  gradedAt    DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // Uma submissão por aluno+curso — reenviar o quiz substitui a submissão
+  // anterior (mesmo comportamento do course.html hoje, que sobrescreve por índice).
+  @@unique([userId, courseId])
+  @@map("submissions")
+}
+
+model Goal {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  text      String
+  completed Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("goals")
+}
+
+model Note {
+  id       Int  @id @default(autoincrement())
+  userId   Int
+  courseId Int? // null = notas gerais (fora de um curso específico, equivalente ao "0" usado no localStorage)
+
+  content   String   @db.NVarChar(Max)
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course Course? @relation(fields: [courseId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  // SQL Server permite múltiplos NULLs num índice único, então a unicidade
+  // da nota "geral" (courseId null) é garantida na camada de serviço (upsert
+  // busca por courseId null antes de criar), não pelo banco.
+  @@unique([userId, courseId])
+  @@map("notes")
+}
+
+model Review {
+  id       Int  @id @default(autoincrement())
+  courseId Int
+  userId   Int? // null = avaliação anônima
+
+  rating  Int
+  comment String? @db.NVarChar(Max)
+
+  createdAt DateTime @default(now())
+
+  course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@map("reviews")
+}

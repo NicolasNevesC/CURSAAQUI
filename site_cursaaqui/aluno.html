@@ -950,11 +950,8 @@ body {
       </div>
     </div>
     <div style="display: flex; gap: 6px;">
-      <button class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center;" onclick="openPersonaSwitcher()">
-        🔄 Trocar Aluno
-      </button>
-      <button class="btn btn-secondary btn-sm" style="color: var(--danger);" onclick="doLogout()" title="Sair">
-        🚪
+      <button class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center; color: var(--danger);" onclick="doLogout()" title="Sair">
+        🚪 Sair
       </button>
     </div>
   </div>
@@ -1338,21 +1335,6 @@ body {
   </div>
 </div>
 
-<!-- ─── MODAL TROCAR ALUNO / PERSONA ─── -->
-<div class="overlay" id="personaModal">
-  <div class="modal-box">
-    <button class="modal-close" onclick="closePersonaSwitcher()">&times;</button>
-    <h3 style="font-size: 1.2rem; margin-bottom: 8px;">🔄 Alternar Perfil de Aluno</h3>
-    <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 20px;">
-      Escolha uma conta para testar e interagir com o Dashboard do Aluno com diferentes níveis e progressos:
-    </p>
-
-    <div style="display: flex; flex-direction: column; gap: 10px;" id="personaList">
-      <!-- Injetado via JS -->
-    </div>
-  </div>
-</div>
-
 <!-- ─── TOAST NOTIFICATION ─── -->
 <div id="toast">
   <span id="toastIcon">✅</span>
@@ -1360,6 +1342,7 @@ body {
 </div>
 
 <!-- SCRIPTS DE SUPORTE -->
+<script src="api.js?v=1.0"></script>
 <script src="courses.js?v=7.0"></script>
 <script src="auth.js?v=7.0"></script>
 
@@ -1374,84 +1357,36 @@ let quizQuestionsPool = [];
 let quizSessionScore = 0;
 
 // Inicialização
-document.addEventListener("DOMContentLoaded", () => {
-  ensureStudentSession();
+document.addEventListener("DOMContentLoaded", async () => {
+  if (!requireStudentSession()) return;
   initTheme();
-  loadAllStudentData();
+  await loadAllStudentData();
   setupNavigationEvents();
 });
 
-// Garante que haja um usuário aluno logado para testar
-function ensureStudentSession() {
-  let user = JSON.parse(localStorage.getItem("loggedUser"));
-  if (!user || user.role === "teacher") {
-    // Se não há aluno logado, define automaticamente o aluno demo para permitir navegação imediata
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const demoStudent = users.find(u => u.email === "aluno@cursaaqui.com") || {
-      name: "Matheus Narvaes",
-      email: "aluno@cursaaqui.com",
-      role: "student",
-      xp: 350,
-      level: 2
-    };
-    localStorage.setItem("loggedUser", JSON.stringify(demoStudent));
-    user = demoStudent;
+// Só entra neste painel quem tiver uma sessão de aluno válida (com token JWT);
+// sem isso, volta para a home para fazer login de verdade — o antigo atalho
+// que auto-criava uma sessão demo aqui não existe mais, já que agora a conta
+// e a senha precisam ser reais (autenticadas pela API).
+function requireStudentSession() {
+  const user = getCurrentUser();
+  if (!user || user.role === "teacher" || !getToken()) {
+    window.location.href = "index.html";
+    return false;
   }
-
-  // Garante progresso demo para o aluno caso ainda esteja vazio
-  const progressKey = `user_courses_progress_${user.email}`;
-  let progress = JSON.parse(localStorage.getItem(progressKey));
-  if (!progress || Object.keys(progress).length === 0) {
-    progress = {
-      1: {
-        title: "Análise e Desenvolvimento de Sistemas - Manual Acadêmico",
-        progress: 85,
-        pdf: "materiais/ads_manual_academico.pdf"
-      },
-      2: {
-        title: "CLOUD COMPUTING E DEVOPS",
-        progress: 100,
-        pdf: "materiais/cloud_computing_devops.pdf"
-      },
-      3: {
-        title: "SEGURANÇA DA INFORMAÇÃO E LGPD",
-        progress: 40,
-        pdf: "materiais/seguranca_lgpd.pdf"
-      }
-    };
-    localStorage.setItem(progressKey, JSON.stringify(progress));
-  }
-
-  // Garante metas de estudo padrão caso ainda não existam
-  const goalsKey = `student_goals_${user.email}`;
-  if (!localStorage.getItem(goalsKey)) {
-    const defaultGoals = [
-      { id: 1, text: "Ler a apostila de Análise e Desenvolvimento de Sistemas", completed: true },
-      { id: 2, text: "Assistir às aulas 1 e 2 do módulo de Cloud Computing", completed: true },
-      { id: 3, text: "Fazer o simulado rápido com 5 questões para ganhar XP", completed: false },
-      { id: 4, text: "Revisar as anotações sobre LGPD e Segurança da Informação", completed: false }
-    ];
-    localStorage.setItem(goalsKey, JSON.stringify(defaultGoals));
-  }
+  return true;
 }
 
 function getLoggedUser() {
-  return JSON.parse(localStorage.getItem("loggedUser"));
+  return getCurrentUser();
 }
 
 function saveLoggedUser(user) {
-  localStorage.setItem("loggedUser", JSON.stringify(user));
-  // Também atualiza na lista geral de usuários
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  const idx = users.findIndex(u => u.email === user.email);
-  if (idx !== -1) {
-    users[idx] = user;
-    localStorage.setItem("users", JSON.stringify(users));
-  }
+  setSession(getToken(), user);
 }
 
 // ─── CARREGAMENTO DE TODOS OS DADOS ───
-function loadAllStudentData() {
+async function loadAllStudentData() {
   const user = getLoggedUser();
   if (!user) return;
 
@@ -1473,13 +1408,13 @@ function loadAllStudentData() {
   document.getElementById("statTotalXp").textContent = `${xp} XP`;
 
   // Renderiza sub-módulos
-  renderStudentCoursesGrid();
-  renderGoalsList();
-  renderQuickGoals();
-  renderStudentFeedbacks();
-  renderStudentCertificates();
-  renderBadges();
-  setupNotesModule();
+  await renderStudentCoursesGrid();
+  await renderGoalsList();
+  await renderQuickGoals();
+  await renderStudentFeedbacks();
+  await renderStudentCertificates();
+  await renderBadges();
+  await setupNotesModule();
   setupQuizPool();
 }
 
@@ -1516,18 +1451,10 @@ function goSec(secId) {
 }
 
 // ─── MÓDULO DE CURSOS DO ALUNO ───
-function getStudentProgressRecords() {
+async function getStudentProgressRecords() {
   const user = getLoggedUser();
   if (!user) return {};
-  const key = `user_courses_progress_${user.email}`;
-  return JSON.parse(localStorage.getItem(key)) || {};
-}
-
-function saveStudentProgressRecords(records) {
-  const user = getLoggedUser();
-  if (!user) return;
-  const key = `user_courses_progress_${user.email}`;
-  localStorage.setItem(key, JSON.stringify(records));
+  return apiFetch("/progress").catch(() => ({}));
 }
 
 function filterStudentCourses(filterType, btn) {
@@ -1537,10 +1464,10 @@ function filterStudentCourses(filterType, btn) {
   renderStudentCoursesGrid();
 }
 
-function renderStudentCoursesGrid() {
+async function renderStudentCoursesGrid() {
   const user = getLoggedUser();
-  const records = getStudentProgressRecords();
-  const allCourses = window.courses || [];
+  const records = await getStudentProgressRecords();
+  const allCourses = await getAllCourses();
   const grid = document.getElementById("studentCoursesGrid");
   const searchInput = document.getElementById("courseSearchInput");
   const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : "";
@@ -1552,16 +1479,18 @@ function renderStudentCoursesGrid() {
   const userCourses = startedIds.map(id => {
     const meta = allCourses.find(c => c.id === id) || {
       id: id,
-      title: records[id].title || `Curso #${id}`,
+      title: `Curso #${id}`,
       category: "Geral",
       teacher: "Prof. Especialista",
       image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80",
-      pdf: records[id].pdf || "material.pdf",
+      pdf: "material.pdf",
       minLevel: 1
     };
     return {
       ...meta,
-      progress: records[id].progress || 0
+      progress: records[id].progress || 0,
+      quizPassed: records[id].quizPassed || false,
+      quizScorePercent: records[id].quizScorePercent || 0
     };
   });
 
@@ -1613,7 +1542,7 @@ function renderStudentCoursesGrid() {
   }
 
   grid.innerHTML = filtered.map(course => {
-    const isCompleted = course.progress === 100;
+    const isCompleted = course.progress === 100 && course.quizPassed === true;
     const safeTitle = course.title.replace(/'/g, "\\'");
     const lvlPill = course.minLevel === 1 ? 'lvl-pill-1' : (course.minLevel === 2 ? 'lvl-pill-2' : 'lvl-pill-3');
 
@@ -1636,17 +1565,6 @@ function renderStudentCoursesGrid() {
             <div class="prog-bar-fill" style="width: ${course.progress}%;"></div>
           </div>
 
-          <!-- Simulador de Progresso Interativo -->
-          <div class="sim-slider-row">
-            <label>
-              <span>Ajustar Progresso (Simulador)</span>
-              <strong><span id="sliderVal_${course.id}">${course.progress}</span>%</strong>
-            </label>
-            <input type="range" min="0" max="100" value="${course.progress}" 
-              oninput="handleProgressSliderChange(${course.id}, this.value)"
-              onchange="commitProgressChange(${course.id}, this.value, '${safeTitle}')">
-          </div>
-
           <div class="course-card-actions">
             <button class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;" onclick="watchCourse('${safeTitle}')">
               🎓 Ir para Aula
@@ -1664,31 +1582,6 @@ function renderStudentCoursesGrid() {
       </div>
     `;
   }).join("");
-}
-
-function handleProgressSliderChange(courseId, val) {
-  const span = document.getElementById(`sliderVal_${courseId}`);
-  if (span) span.textContent = val;
-}
-
-function commitProgressChange(courseId, val, courseTitle) {
-  const numVal = parseInt(val, 10);
-  const records = getStudentProgressRecords();
-  if (!records[courseId]) {
-    records[courseId] = { title: courseTitle, progress: numVal };
-  } else {
-    records[courseId].progress = numVal;
-  }
-  saveStudentProgressRecords(records);
-  
-  if (numVal === 100) {
-    addStudentXp(150);
-    showToast(`🎉 Parabéns! Curso "${courseTitle}" concluído! +150 XP adicionados!`);
-  } else {
-    showToast(`Progresso atualizado para ${numVal}%!`);
-  }
-
-  loadAllStudentData();
 }
 
 function renderContinueCourseCard(userCourses) {
@@ -1726,30 +1619,18 @@ function renderContinueCourseCard(userCourses) {
 }
 
 function watchCourse(title) {
-  const user = getLoggedUser();
-  if (user) {
-    localStorage.setItem("loggedUser", JSON.stringify(user));
-  }
   window.location.href = `course.html?name=${encodeURIComponent(title)}`;
 }
 
 // ─── MÓDULO DE METAS & PLANNER ───
-function getStudentGoals() {
+async function getStudentGoals() {
   const user = getLoggedUser();
   if (!user) return [];
-  const key = `student_goals_${user.email}`;
-  return JSON.parse(localStorage.getItem(key)) || [];
+  return apiFetch("/goals").catch(() => []);
 }
 
-function saveStudentGoals(goals) {
-  const user = getLoggedUser();
-  if (!user) return;
-  const key = `student_goals_${user.email}`;
-  localStorage.setItem(key, JSON.stringify(goals));
-}
-
-function renderGoalsList() {
-  const goals = getStudentGoals();
+async function renderGoalsList() {
+  const goals = await getStudentGoals();
   const container = document.getElementById("fullGoalsList");
   if (!container) return;
 
@@ -1771,8 +1652,8 @@ function renderGoalsList() {
   `).join("");
 }
 
-function renderQuickGoals() {
-  const goals = getStudentGoals();
+async function renderQuickGoals() {
+  const goals = await getStudentGoals();
   const container = document.getElementById("quickGoalsList");
   if (!container) return;
 
@@ -1791,72 +1672,69 @@ function renderQuickGoals() {
   `).join("");
 }
 
-function toggleGoalStatus(id, isCompleted) {
-  const goals = getStudentGoals();
-  const target = goals.find(g => g.id === id);
-  if (target) {
-    target.completed = isCompleted;
-    saveStudentGoals(goals);
+async function toggleGoalStatus(id, isCompleted) {
+  try {
+    await apiFetch(`/goals/${id}`, { method: "PATCH", body: JSON.stringify({ completed: isCompleted }) });
     if (isCompleted) {
-      addStudentXp(50);
+      await addStudentXp(50);
       showToast("🎯 Meta concluída! +50 XP adicionados!");
     } else {
       showToast("Meta desmarcada.");
     }
     loadAllStudentData();
+  } catch (e) {
+    // apiFetch já mostrou o toast de erro
   }
 }
 
-function handleAddNewGoal(e) {
+async function handleAddNewGoal(e) {
   e.preventDefault();
   const input = document.getElementById("newGoalInput");
   const text = input.value.trim();
   if (!text) return;
 
-  const goals = getStudentGoals();
-  goals.push({
-    id: Date.now(),
-    text: text,
-    completed: false
-  });
-  saveStudentGoals(goals);
-  input.value = "";
-  showToast("Nova meta adicionada ao seu cronograma!");
-  loadAllStudentData();
-}
-
-function quickAddGoalPrompt() {
-  const text = prompt("Digite sua nova meta de estudo para hoje:");
-  if (text && text.trim()) {
-    const goals = getStudentGoals();
-    goals.push({
-      id: Date.now(),
-      text: text.trim(),
-      completed: false
-    });
-    saveStudentGoals(goals);
-    showToast("Meta adicionada!");
+  try {
+    await apiFetch("/goals", { method: "POST", body: JSON.stringify({ text }) });
+    input.value = "";
+    showToast("Nova meta adicionada ao seu cronograma!");
     loadAllStudentData();
+  } catch (e) {
+    // apiFetch já mostrou o toast de erro
   }
 }
 
-function deleteGoal(id) {
-  let goals = getStudentGoals();
-  goals = goals.filter(g => g.id !== id);
-  saveStudentGoals(goals);
-  showToast("Meta removida.");
-  loadAllStudentData();
+async function quickAddGoalPrompt() {
+  const text = prompt("Digite sua nova meta de estudo para hoje:");
+  if (text && text.trim()) {
+    try {
+      await apiFetch("/goals", { method: "POST", body: JSON.stringify({ text: text.trim() }) });
+      showToast("Meta adicionada!");
+      loadAllStudentData();
+    } catch (e) {
+      // apiFetch já mostrou o toast de erro
+    }
+  }
+}
+
+async function deleteGoal(id) {
+  try {
+    await apiFetch(`/goals/${id}`, { method: "DELETE" });
+    showToast("Meta removida.");
+    loadAllStudentData();
+  } catch (e) {
+    // apiFetch já mostrou o toast de erro
+  }
 }
 
 // ─── CADERNO DE NOTAS ───
 let notesAutoSaveTimer = null;
 
-function setupNotesModule() {
+async function setupNotesModule() {
   const select = document.getElementById("notesCourseSelect");
   if (!select) return;
 
-  const allCourses = window.courses || [];
-  const records = getStudentProgressRecords();
+  const allCourses = await getAllCourses();
+  const records = await getStudentProgressRecords();
   const startedIds = Object.keys(records).map(Number);
 
   select.innerHTML = "";
@@ -1864,7 +1742,7 @@ function setupNotesModule() {
     select.innerHTML = `<option value="0">Notas Gerais do Estudante</option>`;
   } else {
     startedIds.forEach(id => {
-      const c = allCourses.find(item => item.id === id) || { id: id, title: records[id].title };
+      const c = allCourses.find(item => item.id === id) || { id: id, title: `Curso #${id}` };
       const opt = document.createElement("option");
       opt.value = c.id;
       opt.textContent = c.title;
@@ -1872,10 +1750,10 @@ function setupNotesModule() {
     });
   }
 
-  loadCourseNotes();
+  await loadCourseNotes();
 }
 
-function loadCourseNotes() {
+async function loadCourseNotes() {
   const user = getLoggedUser();
   const select = document.getElementById("notesCourseSelect");
   const textarea = document.getElementById("courseNotesArea");
@@ -1883,8 +1761,8 @@ function loadCourseNotes() {
   if (!user || !select || !textarea) return;
 
   const courseId = select.value;
-  const key = `student_notes_${user.email}_${courseId}`;
-  const savedText = localStorage.getItem(key) || "";
+  const note = await apiFetch(`/notes/${courseId}`).catch(() => ({ content: "" }));
+  const savedText = note.content || "";
 
   textarea.value = savedText;
   if (charSpan) charSpan.textContent = `${savedText.length} caracteres`;
@@ -1904,19 +1782,21 @@ function handleNotesAutoSave() {
   }, 1000);
 }
 
-function saveNotesManual(isAuto = false) {
+async function saveNotesManual(isAuto = false) {
   const user = getLoggedUser();
   const select = document.getElementById("notesCourseSelect");
   const textarea = document.getElementById("courseNotesArea");
   if (!user || !select || !textarea) return;
 
   const courseId = select.value;
-  const key = `student_notes_${user.email}_${courseId}`;
-  localStorage.setItem(key, textarea.value);
-
-  const status = document.getElementById("notesStatusText");
-  if (status) status.textContent = `✅ Salvo às ${new Date().toLocaleTimeString("pt-BR")}`;
-  if (!isAuto) showToast("Anotações salvas com sucesso!");
+  try {
+    await apiFetch(`/notes/${courseId}`, { method: "PUT", body: JSON.stringify({ content: textarea.value }) });
+    const status = document.getElementById("notesStatusText");
+    if (status) status.textContent = `✅ Salvo às ${new Date().toLocaleTimeString("pt-BR")}`;
+    if (!isAuto) showToast("Anotações salvas com sucesso!");
+  } catch (e) {
+    // apiFetch já mostrou o toast de erro
+  }
 }
 
 function copyNotesToClipboard() {
@@ -1931,8 +1811,8 @@ function copyNotesToClipboard() {
 }
 
 // ─── TREINO RÁPIDO & FLASHCARDS ───
-function setupQuizPool() {
-  const allCourses = window.courses || [];
+async function setupQuizPool() {
+  const allCourses = await getAllCourses();
   quizQuestionsPool = [];
   allCourses.forEach(c => {
     if (c.quiz && c.quiz.length > 0) {
@@ -1981,7 +1861,7 @@ function loadQuizQuestion(idx) {
   `;
 }
 
-function handleQuizAnswer(qIdx, selectedOptIdx) {
+async function handleQuizAnswer(qIdx, selectedOptIdx) {
   const q = quizQuestionsPool[qIdx % quizQuestionsPool.length];
   const list = document.getElementById("quizOptionsList");
   if (!list) return;
@@ -1992,7 +1872,7 @@ function handleQuizAnswer(qIdx, selectedOptIdx) {
   if (selectedOptIdx === q.correct) {
     optElements[selectedOptIdx].classList.add("correct");
     quizSessionScore++;
-    addStudentXp(25);
+    await addStudentXp(25);
     showToast("🎉 Resposta Correta! +25 XP conquistados!");
   } else {
     optElements[selectedOptIdx].classList.add("wrong");
@@ -2009,16 +1889,15 @@ function loadNextQuizQuestion() {
 }
 
 // ─── PARECERES DOS PROFESSORES ───
-function renderStudentFeedbacks() {
+async function renderStudentFeedbacks() {
   const user = getLoggedUser();
   const container = document.getElementById("studentFeedbacksContainer");
   const latestCard = document.getElementById("latestFeedbackCard");
   if (!user || !container) return;
 
-  const submissions = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
-  const mySubs = submissions.filter(s => s.userEmail === user.email);
+  const mySubs = await apiFetch("/submissions/mine").catch(() => []);
 
-  document.getElementById("sbFeedbackCount").textContent = mySubs.filter(s => s.status === "Corrigido").length;
+  document.getElementById("sbFeedbackCount").textContent = mySubs.filter(s => s.status === "CORRIGIDO").length;
 
   if (mySubs.length === 0) {
     const emptyHtml = `<p style="color: var(--muted); font-style: italic; font-size: 0.88rem;">Você ainda não enviou atividades para correção dos professores.</p>`;
@@ -2029,8 +1908,8 @@ function renderStudentFeedbacks() {
 
   // Preenche o container completo
   container.innerHTML = mySubs.map(sub => {
-    const isDone = sub.status === "Corrigido";
-    const statusBdg = isDone 
+    const isDone = sub.status === "CORRIGIDO";
+    const statusBdg = isDone
       ? `<span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10B981; font-weight: 700; padding: 4px 10px; border-radius: 12px;">✅ Avaliado pelo Professor</span>`
       : `<span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; font-weight: 700; padding: 4px 10px; border-radius: 12px;">⏳ Em Análise Pedagógica</span>`;
 
@@ -2038,8 +1917,8 @@ function renderStudentFeedbacks() {
       <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
           <div>
-            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 3px;">📘 ${sub.courseTitle}</h4>
-            <small style="color: var(--muted); font-size: 0.78rem;">Enviado em: ${sub.submittedAt || 'Data não registrada'}</small>
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 3px;">📘 ${sub.course.title}</h4>
+            <small style="color: var(--muted); font-size: 0.78rem;">Enviado em: ${sub.submittedAt ? new Date(sub.submittedAt).toLocaleDateString('pt-BR') : 'Data não registrada'}</small>
           </div>
           ${statusBdg}
         </div>
@@ -2062,11 +1941,11 @@ function renderStudentFeedbacks() {
   // Preenche o card recente na Visão Geral
   if (latestCard) {
     const last = mySubs[mySubs.length - 1];
-    const isDone = last.status === "Corrigido";
+    const isDone = last.status === "CORRIGIDO";
     latestCard.innerHTML = `
       <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <strong>📘 ${last.courseTitle}</strong>
+          <strong>📘 ${last.course.title}</strong>
           <span style="font-size: 0.75rem; font-weight: 700; color: ${isDone ? '#10B981' : '#F59E0B'};">
             ${isDone ? '✅ Avaliado' : '⏳ Em Análise'}
           </span>
@@ -2081,35 +1960,37 @@ function renderStudentFeedbacks() {
 }
 
 // ─── CERTIFICADOS & CONQUISTAS ───
-function renderStudentCertificates() {
+async function renderStudentCertificates() {
   const container = document.getElementById("studentCertificatesList");
   if (!container) return;
 
-  const records = getStudentProgressRecords();
+  const [records, allCourses] = await Promise.all([getStudentProgressRecords(), getAllCourses()]);
   const keys = Object.keys(records);
-  const completedKeys = keys.filter(k => records[k].progress === 100);
+  const completedKeys = keys.filter(k => records[k].progress === 100 && records[k].quizPassed === true);
 
   if (completedKeys.length === 0) {
     container.innerHTML = `
       <div style="text-align: center; padding: 30px; background: var(--card2); border-radius: 12px; border: 1px dashed var(--border);">
         <span style="font-size: 2rem; display: block; margin-bottom: 6px;">📜</span>
-        <p style="color: var(--muted); font-size: 0.88rem;">Você ainda não completou nenhum curso com 100% de progresso.</p>
-        <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.8;">Finalize as aulas e gabarite os exercícios para liberar seu diploma!</p>
+        <p style="color: var(--muted); font-size: 0.88rem;">Você ainda não completou nenhum curso com 100% de progresso e aprovação.</p>
+        <p style="font-size: 0.8rem; margin-top: 4px; opacity: 0.8;">Finalize os estudos e atinja a nota mínima de 60% na avaliação para liberar seu diploma!</p>
       </div>
     `;
     return;
   }
 
   container.innerHTML = completedKeys.map(k => {
-    const item = records[k];
-    const safeTitle = item.title.replace(/'/g, "\\'");
+    const course = allCourses.find(c => c.id === Number(k));
+    const title = course ? course.title : `Curso #${k}`;
+    const safeTitle = title.replace(/'/g, "\\'");
+    const nota = records[k].quizScorePercent !== undefined ? records[k].quizScorePercent : 100;
     return `
       <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 12px;">
           <span style="font-size: 2rem;">🏆</span>
           <div>
-            <h4 style="font-size: 0.98rem; font-weight: 700;">${item.title}</h4>
-            <small style="color: #10B981; font-weight: 600;">100% Concluído • Aprovado</small>
+            <h4 style="font-size: 0.98rem; font-weight: 700;">${title}</h4>
+            <small style="color: #10B981; font-weight: 600;">100% Concluído • Aprovado (${nota}%)</small>
           </div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="openCertModal('${safeTitle}')">
@@ -2120,9 +2001,20 @@ function renderStudentCertificates() {
   }).join("");
 }
 
-function openCertModal(courseTitle) {
+async function openCertModal(courseTitle) {
   const user = getLoggedUser();
   if (!user) return;
+
+  // Confere aprovação (progress 100 + nota mínima 60%) direto na API antes
+  // de exibir o certificado — não confia em nenhum estado só do cliente.
+  const [records, allCourses] = await Promise.all([getStudentProgressRecords(), getAllCourses()]);
+  const course = allCourses.find(c => c.title === courseTitle);
+  const rec = course ? records[course.id] : null;
+  if (rec && (rec.progress < 100 || rec.quizPassed !== true)) {
+    const nota = rec.quizScorePercent !== undefined ? rec.quizScorePercent : 0;
+    showToast(`🔒 Certificado bloqueado: aproveitamento de ${nota}%. Nota mínima necessária: 60%.`);
+    return;
+  }
 
   document.getElementById("certModalStudentName").textContent = user.name;
   document.getElementById("certModalCourseName").textContent = courseTitle;
@@ -2140,27 +2032,35 @@ function printCertificate() {
 }
 
 // ─── MEDALHAS E BADGES GAMIFICADAS ───
+// Cada check recebe (user, records, goals, submissions) já resolvidos —
+// como as fontes agora vêm da API, buscamos tudo uma vez em renderBadges
+// em vez de cada check refazer sua própria chamada assíncrona.
 const BADGES_CONFIG = [
   { id: 1, icon: "🌱", title: "Primeiro Passo", desc: "Iniciou o seu primeiro curso no portal.", check: (u, rec) => Object.keys(rec).length > 0 },
-  { id: 2, icon: "⚡", title: "Foco Total", desc: "Completou uma meta diária no Planner.", check: (u, rec) => getStudentGoals().some(g => g.completed) },
+  { id: 2, icon: "⚡", title: "Foco Total", desc: "Completou uma meta diária no Planner.", check: (u, rec, goals) => goals.some(g => g.completed) },
   { id: 3, icon: "📖", title: "Leitor Voraz", desc: "Acessou material e apostila em PDF.", check: (u, rec) => true },
   { id: 4, icon: "🎯", title: "Mestre do Quiz", desc: "Acertou questão no Treino Rápido.", check: (u, rec) => quizSessionScore > 0 || (u.xp || 0) >= 300 },
   { id: 5, icon: "🏆", title: "Primeiro Diploma", desc: "Concluiu 100% de um curso oficial.", check: (u, rec) => Object.values(rec).some(r => r.progress === 100) },
   { id: 6, icon: "🚀", title: "Rumo ao Topo", desc: "Alcançou o Nível 2 ou superior.", check: (u, rec) => (u.level || 1) >= 2 },
   { id: 7, icon: "👑", title: "Especialista", desc: "Acumulou mais de 500 XP.", check: (u, rec) => (u.xp || 0) >= 500 },
-  { id: 8, icon: "💬", title: "Aprovado!", desc: "Recebeu parecer aprovado do professor.", check: (u, rec) => (JSON.parse(localStorage.getItem("teacher_activity_submissions")) || []).some(s => s.userEmail === u.email && s.status === "Corrigido") }
+  { id: 8, icon: "💬", title: "Aprovado!", desc: "Recebeu parecer aprovado do professor.", check: (u, rec, goals, submissions) => submissions.some(s => s.status === "CORRIGIDO") }
 ];
 
-function renderBadges() {
+async function renderBadges() {
   const user = getLoggedUser();
-  const records = getStudentProgressRecords();
   const container = document.getElementById("badgesContainer");
   if (!user || !container) return;
+
+  const [records, goals, submissions] = await Promise.all([
+    getStudentProgressRecords(),
+    getStudentGoals(),
+    apiFetch("/submissions/mine").catch(() => []),
+  ]);
 
   let unlockedCount = 0;
 
   container.innerHTML = BADGES_CONFIG.map(b => {
-    const isUnlocked = b.check(user, records);
+    const isUnlocked = b.check(user, records, goals, submissions);
     if (isUnlocked) unlockedCount++;
 
     return `
@@ -2179,87 +2079,22 @@ function renderBadges() {
 }
 
 // ─── SISTEMA DE XP E NÍVEIS ───
-function addStudentXp(amount) {
+// XP agora é concedido pelo servidor (POST /users/me/xp), que já faz a
+// matemática de subida de nível e persiste no banco — evita o mesmo problema
+// de integridade que corrigimos no fluxo de conclusão de curso.
+async function addStudentXp(amount) {
   const user = getLoggedUser();
   if (!user) return;
 
-  user.xp = (user.xp || 0) + amount;
-  const currentLvl = user.level || 1;
-  const neededForNext = currentLvl * 1000;
-
-  if (user.xp >= neededForNext) {
-    user.level = currentLvl + 1;
-    showToast(`🌟 LEVEL UP! Você subiu para o Nível ${user.level}! Cursos avançados foram destrancados!`);
+  try {
+    const result = await apiFetch("/users/me/xp", { method: "POST", body: JSON.stringify({ amount }) });
+    setSession(getToken(), result.user);
+    if (result.leveledUp) {
+      showToast(`🌟 LEVEL UP! Você subiu para o Nível ${result.user.level}! Cursos avançados foram destrancados!`);
+    }
+  } catch (e) {
+    // apiFetch já mostrou o toast de erro
   }
-
-  saveLoggedUser(user);
-}
-
-// ─── MODAL DE ALTERNÂNCIA DE PERSONA ───
-function openPersonaSwitcher() {
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  const list = document.getElementById("personaList");
-  if (!list) return;
-
-  const students = users.filter(u => u.role !== "teacher");
-
-  list.innerHTML = students.map(st => `
-    <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center;">
-      <div>
-        <strong>${st.name}</strong>
-        <div style="font-size: 0.75rem; color: var(--muted);">${st.email} • Nível ${st.level || 1} • ${st.xp || 0} XP</div>
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="switchStudent('${st.email}')">
-        Entrar
-      </button>
-    </div>
-  `).join("");
-
-  // Opção para adicionar aluno novo
-  list.innerHTML += `
-    <button class="btn btn-secondary btn-sm" style="margin-top: 8px; justify-content: center;" onclick="promptNewStudent()">
-      + Criar Novo Aluno de Teste
-    </button>
-  `;
-
-  document.getElementById("personaModal").classList.add("open");
-}
-
-function closePersonaSwitcher() {
-  document.getElementById("personaModal").classList.remove("open");
-}
-
-function switchStudent(email) {
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  const target = users.find(u => u.email === email);
-  if (target) {
-    localStorage.setItem("loggedUser", JSON.stringify(target));
-    closePersonaSwitcher();
-    showToast(`Perfil alterado para ${target.name}!`);
-    loadAllStudentData();
-  }
-}
-
-function promptNewStudent() {
-  const name = prompt("Nome do novo aluno:");
-  if (!name || !name.trim()) return;
-
-  const email = `${name.toLowerCase().replace(/\s+/g, "")}@cursaaqui.com`;
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  const newSt = {
-    name: name.trim(),
-    email: email,
-    password: "123",
-    role: "student",
-    xp: 100,
-    level: 1
-  };
-  users.push(newSt);
-  localStorage.setItem("users", JSON.stringify(users));
-  localStorage.setItem("loggedUser", JSON.stringify(newSt));
-  closePersonaSwitcher();
-  showToast(`Aluno ${name} criado com sucesso!`);
-  loadAllStudentData();
 }
 
 // ─── TEMA E TOAST ───
@@ -2286,7 +2121,7 @@ function showToast(msg) {
 }
 
 function doLogout() {
-  localStorage.removeItem("loggedUser");
+  clearSession();
   window.location.href = "index.html";
 }
 </script>

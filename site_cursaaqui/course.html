@@ -541,6 +541,7 @@
     </div>
   </div>
 
+  <script src="api.js?v=1.0"></script>
   <script src="courses.js?v=7.0"></script>
   <script src="auth.js?v=7.0"></script>
   <script src="certificate.js?v=7.0"></script>
@@ -549,14 +550,14 @@
 
   <script>
     let course = null;
-    const user = JSON.parse(localStorage.getItem("loggedUser"));
+    const user = getCurrentUser();
 
-    document.addEventListener("DOMContentLoaded", () => {
-      // 1. Carrega curso do localStorage ou parâmetros de URL
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Carrega curso do localStorage (handoff transiente do catálogo) ou parâmetros de URL
       const params = new URLSearchParams(window.location.search);
       const urlCourseName = params.get("name");
       const urlCourseId = params.get("id");
-      const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+      const coursesList = await getAllCourses();
 
       course = JSON.parse(localStorage.getItem("selectedCourse"));
 
@@ -642,23 +643,25 @@
         sectionMaterialBtn.setAttribute("href", pdfPath);
       }
 
-      // 5. Carrega o histórico de progresso do usuário logado
-      if (user) {
-        const progressKey = `user_courses_progress_${user.email}`;
-        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
-        if (records[course.id]) {
-          course.progress = records[course.id].progress || 0;
-          course.answers = records[course.id].answers || {};
-          course.openAnswer = records[course.id].openAnswer || "";
-          course.quizCompleted = records[course.id].quizCompleted || false;
-          course.studyCompleted = records[course.id].studyCompleted || (course.quizCompleted || false);
-          course.exercisesUnlocked = records[course.id].exercisesUnlocked || (course.quizCompleted || course.studyCompleted || false);
-          course.materialAccessed = records[course.id].materialAccessed || false;
+      // 5. Carrega o histórico de progresso do usuário logado (rota exclusiva de aluno)
+      if (user && user.role !== "teacher") {
+        const record = await apiFetch(`/progress/${course.id}`).catch(() => null);
+        if (record) {
+          course.progress = record.progress || 0;
+          course.answers = record.answers || {};
+          course.openAnswer = record.openAnswer || "";
+          course.quizCompleted = record.quizCompleted || false;
+          course.quizScore = record.quizScore || 0;
+          course.quizScorePercent = record.quizScorePercent || 0;
+          course.quizPassed = record.quizPassed || false;
+          course.studyCompleted = record.studyCompleted || (course.quizCompleted || false);
+          course.exercisesUnlocked = record.exercisesUnlocked || (course.quizCompleted || course.studyCompleted || false);
+          course.materialAccessed = record.materialAccessed || false;
         }
-        
-        if (user.role === "teacher") {
-          buildStudentSelector();
-        }
+      }
+
+      if (user && user.role === "teacher") {
+        buildStudentSelector();
       }
 
       if (!course.answers) course.answers = {};
@@ -672,7 +675,7 @@
       updateMaterialStatusUI();
       updateStudyTimerUI();
       renderQuiz();
-      renderStep3();
+      await renderStep3();
       renderChatHistory();
       updateProgressUI();
       updateStepperUI();
@@ -705,7 +708,7 @@
       if (c2) c2.classList.toggle("completed", isStep2Done);
 
       // Step 3
-      s3.classList.toggle("completed", isStep2Done && course.progress === 100);
+      s3.classList.toggle("completed", isStep2Done && course.progress === 100 && course.quizPassed === true);
       s3.classList.toggle("active", isStep2Done);
     }
 
@@ -753,7 +756,7 @@
         badge.innerHTML = "📖 <span style='color:#3B82F6;'>Estudo em andamento... Mantenha a leitura ativa</span>";
       }
 
-      studyTimerInterval = setInterval(() => {
+      studyTimerInterval = setInterval(async () => {
         studySecondsRemaining--;
         const pct = Math.round(((TOTAL_STUDY_SECONDS - studySecondsRemaining) / TOTAL_STUDY_SECONDS) * 100);
         if (timerFill) timerFill.style.width = `${pct}%`;
@@ -765,7 +768,7 @@
           course.studyCompleted = true;
           course.exercisesUnlocked = true;
           localStorage.setItem("selectedCourse", JSON.stringify(course));
-          saveProgressToGlobal();
+          await saveProgressToGlobal();
           updateStudyTimerUI();
           renderQuiz();
           updateStepperUI();
@@ -803,11 +806,11 @@
       }
     }
 
-    function unlockExercises() {
+    async function unlockExercises() {
       course.studyCompleted = true;
       course.exercisesUnlocked = true;
       localStorage.setItem("selectedCourse", JSON.stringify(course));
-      saveProgressToGlobal();
+      await saveProgressToGlobal();
       updateStudyTimerUI();
       renderQuiz();
       updateStepperUI();
@@ -863,12 +866,11 @@
       }
     }
 
-    function accessMaterial(showNotification = true) {
+    async function accessMaterial(showNotification = true) {
       const wasAlreadyAccessed = course.materialAccessed;
       course.materialAccessed = true;
       localStorage.setItem("selectedCourse", JSON.stringify(course));
-      saveProgressToGlobal();
-      calculateProgress();
+      await saveProgressToGlobal();
       updateMaterialStatusUI();
       if (showNotification && !wasAlreadyAccessed) {
         showToast("📖 Material de estudo acessado! +30% adicionado ao progresso.");
@@ -1034,23 +1036,64 @@
           </div>
         `;
       } else {
-        const scorePercent = Math.round((correctAnswersCount / course.quiz.length) * 100);
-        actions.innerHTML = `
-          <div class="glass" style="padding: 20px; border-radius: 14px; border-left: 5px solid #10B981; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-            <div>
-              <p style="color: #10B981; font-weight: 800; font-size: 1.15rem; margin-bottom: 4px;">🎉 Avaliação Enviada com Sucesso!</p>
-              <p style="font-size: 0.92rem; opacity: 0.9;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}% de aproveitamento) e sua resposta dissertativa foi registrada para o professor.</p>
+        // A nota/aprovação exibida vem do servidor (course.quizPassed/quizScorePercent,
+        // preenchidos por saveProgressToGlobal após corrigir o gabarito) — correctAnswersCount
+        // é só um recálculo local para exibição, não a fonte de verdade.
+        const scorePercent = course.quizScorePercent !== undefined ? course.quizScorePercent : Math.round((correctAnswersCount / course.quiz.length) * 100);
+        const isPassed = course.quizPassed === true;
+
+        if (isPassed) {
+          actions.innerHTML = `
+            <div class="glass" style="padding: 22px; border-radius: 14px; border-left: 6px solid #10B981; margin-bottom: 15px; background: rgba(16,185,129,0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 1.4rem;">🎉</span>
+                    <strong style="color: #10B981; font-size: 1.15rem;">Aprovado com Sucesso! (${scorePercent}%)</strong>
+                    <span class="pill" style="background: rgba(16,185,129,0.2); color: #10B981; font-size: 0.78rem; font-weight: 800; padding: 4px 10px;">APROVADO (≥60%)</span>
+                  </div>
+                  <p style="font-size: 0.92rem; opacity: 0.9; margin: 0;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}% de aproveitamento) e sua resposta dissertativa foi registrada. Requisitos acadêmicos concluídos com êxito!</p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 18px;">
+                    🔄 Refazer Avaliação
+                  </button>
+                  <button class="btn-primary" onclick="jumpToStep(3)" style="font-size: 0.85rem; padding: 10px 18px; background: #10B981; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+                    🏆 Emitir Certificado (Etapa 3) ➔
+                  </button>
+                </div>
+              </div>
             </div>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-              <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 18px;">
-                🔄 Refazer Exercícios
-              </button>
-              <button class="btn-primary" onclick="jumpToStep(3)" style="font-size: 0.85rem; padding: 10px 18px;">
-                🎓 Ver Parecer do Tutor (Etapa 3) ➔
-              </button>
+          `;
+        } else {
+          actions.innerHTML = `
+            <div class="glass" style="padding: 22px; border-radius: 14px; border-left: 6px solid #EF4444; margin-bottom: 15px; background: rgba(239,68,68,0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <div style="max-width: 650px;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 1.4rem;">⚠️</span>
+                    <strong style="color: #EF4444; font-size: 1.15rem;">Aproveitamento Insuficiente (${scorePercent}%)</strong>
+                    <span class="pill" style="background: rgba(239,68,68,0.2); color: #EF4444; font-size: 0.78rem; font-weight: 800; padding: 4px 10px;">REPROVADO (MÍNIMO 60%)</span>
+                  </div>
+                  <p style="font-size: 0.92rem; opacity: 0.9; margin: 0 0 6px 0;">
+                    Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}%). Para ser aprovado e desbloquear o certificado oficial, a nota mínima exigida é de <strong>60% (${Math.ceil(course.quiz.length * 0.6)} acertos)</strong>.
+                  </p>
+                  <p style="font-size: 0.84rem; color: var(--muted); margin: 0;">
+                    💡 Consulte as opções em vermelho e o <em>Dicionário & Dicas</em> de cada questão para fixar os conceitos, ou revise a apostila antes de tentar novamente.
+                  </p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn-secondary" onclick="jumpToStep(1)" style="font-size: 0.85rem; padding: 10px 18px;">
+                    📖 Revisar Apostila
+                  </button>
+                  <button class="btn-primary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 20px; background: #EF4444; box-shadow: 0 4px 14px rgba(239,68,68,0.35);">
+                    🔄 Refazer Avaliação Agora
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        `;
+          `;
+        }
       }
     }
 
@@ -1143,12 +1186,11 @@
       }
     }
 
-    function selectAnswer(qIdx, optIdx, btn) {
+    async function selectAnswer(qIdx, optIdx, btn) {
       if (course.quizCompleted) return;
 
       course.answers[qIdx] = optIdx;
       localStorage.setItem("selectedCourse", JSON.stringify(course));
-      saveProgressToGlobal();
 
       const parent = btn.parentElement;
       const buttons = parent.querySelectorAll("button");
@@ -1161,10 +1203,10 @@
       btn.style.color = "white";
       btn.style.borderColor = "#3B82F6";
 
-      calculateProgress();
+      await saveProgressToGlobal();
     }
 
-    function submitQuiz() {
+    async function submitQuiz() {
       const totalQuestions = course.quiz ? course.quiz.length : 0;
       const totalAnswers = Object.keys(course.answers || {}).length;
 
@@ -1183,67 +1225,52 @@
 
       course.quizCompleted = true;
       localStorage.setItem("selectedCourse", JSON.stringify(course));
-      saveProgressToGlobal();
+      // A nota é sempre corrigida no servidor a partir do gabarito (nunca
+      // aceita pronta do cliente) — saveProgressToGlobal já popula
+      // course.quizPassed/quizScorePercent/quizScore com o resultado oficial.
+      await saveProgressToGlobal();
 
-      if (user) {
-        let score = 0;
-        if (course.quiz) {
-          course.quiz.forEach((q, idx) => {
-            if (course.answers[idx] === q.correct) score++;
+      if (user && user.role !== "teacher") {
+        try {
+          await apiFetch("/submissions", {
+            method: "POST",
+            body: JSON.stringify({
+              courseId: course.id,
+              answers: course.answers,
+              openAnswer: course.openAnswer || "",
+            }),
           });
+        } catch (e) {
+          // apiFetch já mostrou o toast de erro
         }
-
-        const submissions = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
-        const existingIdx = submissions.findIndex(s => s.userEmail === user.email && s.courseId === course.id);
-
-        const newSub = {
-          id: existingIdx >= 0 ? submissions[existingIdx].id : Date.now(),
-          userName: user.name,
-          userEmail: user.email,
-          courseId: course.id,
-          courseTitle: course.title,
-          answers: course.answers,
-          openAnswer: course.openAnswer || "",
-          openQuestion: course.openQuestion || null,
-          quiz: course.quiz,
-          score: score,
-          totalQuestions: totalQuestions,
-          status: "Pendente",
-          feedback: "",
-          submittedAt: new Date().toLocaleDateString('pt-BR')
-        };
-
-        if (existingIdx >= 0) {
-          submissions[existingIdx] = newSub;
-        } else {
-          submissions.push(newSub);
-        }
-        localStorage.setItem("teacher_activity_submissions", JSON.stringify(submissions));
       }
 
-      calculateProgress();
       renderQuiz();
-      renderStep3();
+      await renderStep3();
       updateStepperUI();
       jumpToStep(3);
-      showToast("Avaliação registrada com sucesso e enviada ao professor!");
+
+      if (course.quizPassed) {
+        showToast(`🎉 Parabéns! Você atingiu ${course.quizScorePercent}% de aproveitamento e foi Aprovado!`);
+      } else {
+        showToast(`⚠️ Nota ${course.quizScorePercent}%. Mínimo exigido: 60%. Revise o material e refaça a prova!`);
+      }
     }
 
-    function resetQuiz() {
+    async function resetQuiz() {
       course.quizCompleted = false;
       course.answers = {};
       localStorage.setItem("selectedCourse", JSON.stringify(course));
-      saveProgressToGlobal();
-      calculateProgress();
+      await saveProgressToGlobal();
       renderQuiz();
-      renderStep3();
+      await renderStep3();
       updateStepperUI();
       jumpToStep(2);
-      showToast("Exercícios liberados para nova tentativa!");
+      showToast("Avaliação liberada para nova tentativa!");
     }
 
     // ─── ETAPA 3: PARECER DO PROFESSOR E CERTIFICADO ───
-    function renderStep3() {
+    async function renderStep3() {
       const step3Sec = document.getElementById("step3Section");
       const container = document.getElementById("step3Container");
       if (!step3Sec || !container) return;
@@ -1255,19 +1282,22 @@
 
       step3Sec.style.display = "block";
 
-      // Busca submissão deste aluno
-      const subs = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
-      const mySub = user ? subs.find(s => s.userEmail === user.email && s.courseId === course.id) : null;
+      // Busca submissão deste aluno (rota exclusiva de aluno)
+      const subs = (user && user.role !== "teacher")
+        ? await apiFetch(`/submissions/mine?courseId=${course.id}`).catch(() => [])
+        : [];
+      const mySub = subs[0] || null;
       const hasFeedback = mySub && mySub.feedback && mySub.feedback.trim().length > 0;
-      const isGraded = mySub && mySub.status === "Corrigido";
+      const isGraded = mySub && mySub.status === "CORRIGIDO";
 
       let feedbackBox = "";
       if (isGraded && hasFeedback) {
+        const dataParecer = mySub.gradedAt || mySub.submittedAt;
         feedbackBox = `
           <div style="background: rgba(16,185,129,0.08); border-left: 4px solid #10B981; border-radius: 10px; padding: 18px 22px; margin-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <strong style="color: #10B981; font-size: 1rem;">💬 Parecer Técnico do Professor:</strong>
-              <span style="font-size: 0.78rem; opacity: 0.7;">Data: ${mySub.gradedAt || mySub.submittedAt}</span>
+              <span style="font-size: 0.78rem; opacity: 0.7;">Data: ${new Date(dataParecer).toLocaleDateString('pt-BR')}</span>
             </div>
             <p style="font-size: 0.95rem; line-height: 1.6; font-style: italic; opacity: 0.95;">
               "${mySub.feedback}"
@@ -1285,42 +1315,70 @@
         `;
       }
 
+      const isPassed = course.quizPassed === true;
+      const scorePct = course.quizScorePercent !== undefined ? course.quizScorePercent : 0;
+      const scoreNum = course.quizScore !== undefined ? course.quizScore : 0;
+      const totalQ = course.quiz ? course.quiz.length : 10;
+
+      let certCard = "";
+      if (isPassed && course.progress === 100) {
+        certCard = `
+          <div style="background: var(--card); border: 1px solid rgba(16,185,129,0.3); border-radius: 14px; padding: 24px; text-align: center; margin-top: 20px; box-shadow: 0 8px 24px rgba(16,185,129,0.08);">
+            <div style="font-size: 3rem; margin-bottom: 8px;">🏅</div>
+            <h4 style="font-size: 1.25rem; margin-bottom: 6px; color: #10B981;">Parabéns! Requisitos Acadêmicos Concluídos</h4>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16,185,129,0.15); color: #10B981; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px;">
+              <span>Nota Obtida: ${scorePct}% (${scoreNum}/${totalQ} acertos)</span>
+              <span>•</span>
+              <span>Nota Mínima Exigida: 60%</span>
+            </div>
+            <p style="font-size: 0.92rem; opacity: 0.9; max-width: 520px; margin: 0 auto 16px auto;">
+              Você concluiu o material didático oficial e atingiu a pontuação mínima necessária na avaliação técnica. Seu certificado de conclusão está liberado para emissão e impressão.
+            </p>
+            <button class="btn-primary" onclick="generateCertificate('${course.title}')" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; background: #10B981; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+              🏆 Emitir e Imprimir Meu Certificado
+            </button>
+          </div>
+        `;
+      } else if (course.quizCompleted) {
+        certCard = `
+          <div style="background: var(--card); border: 1px solid rgba(239,68,68,0.25); border-radius: 14px; padding: 24px; text-align: center; margin-top: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 8px;">🔒</div>
+            <h4 style="font-size: 1.25rem; margin-bottom: 6px; color: #EF4444;">Certificado Bloqueado — Nota Mínima Não Atingida</h4>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(239,68,68,0.12); color: #EF4444; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px;">
+              <span>Sua Nota: ${scorePct}% (${scoreNum}/${totalQ} acertos)</span>
+              <span>•</span>
+              <span>Mínimo para Aprovação: 60%</span>
+            </div>
+            <p style="font-size: 0.92rem; opacity: 0.9; max-width: 520px; margin: 0 auto 16px auto;">
+              O certificado oficial de conclusão só é emitido para estudantes que atingem aproveitamento igual ou superior a <strong>60%</strong> na avaliação técnica.
+            </p>
+            <button class="btn-primary" onclick="resetQuiz()" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; background: #EF4444; box-shadow: 0 4px 14px rgba(239,68,68,0.35);">
+              🔄 Refazer Avaliação para Atingir a Nota
+            </button>
+          </div>
+        `;
+      }
+
       container.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
           <div>
             <h3 style="font-size: 1.3rem; margin-bottom: 4px;">Status Acadêmico do Curso</h3>
             <span style="font-size: 0.88rem; opacity: 0.85;">Aluno: <strong>${user ? user.name : 'Visitante'}</strong> · Disciplina: <strong>${course.title}</strong></span>
           </div>
-          <span class="pill" style="font-size: 0.9rem; padding: 8px 16px; background: ${isGraded ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'}; color: ${isGraded ? '#10B981' : '#F59E0B'}; font-weight: 700;">
-            ${isGraded ? '✅ Atividade Corrigida' : '⏳ Aguardando Parecer'}
-          </span>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="pill" style="font-size: 0.85rem; padding: 6px 14px; background: ${isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color: ${isPassed ? '#10B981' : '#EF4444'}; font-weight: 800;">
+              ${isPassed ? '✅ Aprovado na Prova (' + scorePct + '%)' : '❌ Reprovado na Prova (' + scorePct + '%)'}
+            </span>
+            <span class="pill" style="font-size: 0.85rem; padding: 6px 14px; background: ${isGraded ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'}; color: ${isGraded ? '#10B981' : '#F59E0B'}; font-weight: 700;">
+              ${isGraded ? '✅ Parecer Emitido' : '⏳ Fila de Correção'}
+            </span>
+          </div>
         </div>
 
         ${feedbackBox}
 
-        ${course.progress === 100 ? `
-          <div style="background: var(--card); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px;">
-            <div style="font-size: 2.8rem; margin-bottom: 8px;">🏅</div>
-            <h4 style="font-size: 1.2rem; margin-bottom: 6px;">Parabéns! Requisitos do Curso Cumpridos</h4>
-            <p style="font-size: 0.9rem; opacity: 0.85; max-width: 500px; margin: 0 auto 16px auto;">
-              Você concluiu o material didático oficial e a avaliação prática. Seu certificado de conclusão está liberado para impressão.
-            </p>
-            <button class="btn-primary" onclick="generateCertificate('${course.title}')" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; box-shadow: 0 4px 14px rgba(59,130,246,0.35);">
-              🏆 Emitir e Imprimir Meu Certificado
-            </button>
-          </div>
-        ` : ''}
+        ${certCard}
       `;
-    }
-
-    function calculateProgress() {
-      let weightMaterial = (course.materialAccessed || course.studyCompleted) ? 30 : 0;
-      let weightQuiz = course.quizCompleted ? 70 : 0;
-      course.progress = weightMaterial + weightQuiz;
-      
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
-      saveProgressToGlobal();
-      updateProgressUI();
     }
 
     function updateProgressUI() {
@@ -1335,65 +1393,53 @@
       }
     }
 
-    function saveProgressToGlobal() {
-      if (user && course) {
-        const progressKey = `user_courses_progress_${user.email}`;
-        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
-        const jaConcluiuAntes = records[course.id] && records[course.id].progress === 100;
+    // Progresso, nota do quiz e aprovação (mínimo 60%) são sempre calculados
+    // pelo servidor a partir do gabarito do curso — o cliente só informa o
+    // que fez (respostas, material acessado, quiz concluído) e reage ao
+    // resultado oficial. Isso evita tanto a edição de XP via devtools quanto
+    // a auto-declaração de nota/aprovação.
+    async function saveProgressToGlobal() {
+      if (!user || !course || user.role === "teacher") return;
 
-        records[course.id] = {
-          id: course.id,
-          title: course.title,
-          progress: course.progress || 0,
-          answers: course.answers || {},
-          openAnswer: course.openAnswer || "",
-          studyCompleted: course.studyCompleted || false,
-          exercisesUnlocked: course.exercisesUnlocked || false,
-          quizCompleted: course.quizCompleted || false,
-          materialAccessed: course.materialAccessed || false
-        };
-        localStorage.setItem(progressKey, JSON.stringify(records));
-        localStorage.setItem(progressKey, JSON.stringify(records));
+      try {
+        const result = await apiFetch(`/progress/${course.id}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            answers: course.answers || {},
+            openAnswer: course.openAnswer || "",
+            studyCompleted: course.studyCompleted || false,
+            exercisesUnlocked: course.exercisesUnlocked || false,
+            quizCompleted: course.quizCompleted || false,
+            materialAccessed: course.materialAccessed || false,
+          }),
+        });
 
-        if (course.progress === 100 && !jaConcluiuAntes) {
-          if (user.xp === undefined) user.xp = 0;
-          if (user.level === undefined) user.level = 1;
+        // Reflete o resultado oficial do servidor no objeto local usado pela UI
+        course.progress = result.progress.progress;
+        course.quizScore = result.progress.quizScore;
+        course.quizScorePercent = result.progress.quizScorePercent;
+        course.quizPassed = result.progress.quizPassed;
+        localStorage.setItem("selectedCourse", JSON.stringify(course));
+        updateProgressUI();
 
-          const xpGanho = 1000; 
-          user.xp += xpGanho;
-          
-          showToast(`🎉 Parabéns! Você ganhou +${xpGanho} XP por concluir o curso!`);
+        // Atualiza o cache local do usuário logado (xp/level vêm do servidor)
+        setSession(getToken(), result.user);
 
-          let subiuNivel = false;
-          let xpNecessario = user.level * 1000;
-          while (user.xp >= xpNecessario) {
-            user.xp -= xpNecessario;
-            user.level += 1;
-            subiuNivel = true;
-            xpNecessario = user.level * 1000;
-            showToast(`✨ SUBIU DE NÍVEL! Você agora está no Nível ${user.level}!`);
-          }
-
-          localStorage.setItem("loggedUser", JSON.stringify(user));
-
-          const listaUsuarios = JSON.parse(localStorage.getItem("users")) || [];
-          const index = listaUsuarios.findIndex(u => u.email === user.email);
-          if (index !== -1) {
-            listaUsuarios[index].xp = user.xp;
-            listaUsuarios[index].level = user.level;
-            localStorage.setItem("users", JSON.stringify(listaUsuarios));
-          }
-
-          if (subiuNivel) {
-            setTimeout(() => {
-              showLevelUpCelebration(user.level);
-            }, 800);
-          }
+        if (result.xpGained > 0) {
+          showToast(`🎉 Parabéns! Você ganhou +${result.xpGained} XP por concluir o curso!`);
         }
+
+        if (result.leveledUp) {
+          setTimeout(() => {
+            showLevelUpCelebration(result.user.level);
+          }, 800);
+        }
+      } catch (e) {
+        // apiFetch já mostrou o toast de erro
       }
     }
 
-    function showLevelUpCelebration(newLevel) {
+    async function showLevelUpCelebration(newLevel) {
       let modal = document.getElementById("levelUpCelebrationModal");
       if (!modal) {
         modal = document.createElement("div");
@@ -1402,7 +1448,7 @@
         document.body.appendChild(modal);
       }
 
-      const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+      const coursesList = await getAllCourses();
       const unlockedCourses = coursesList.filter(c => (c.minLevel || 1) === newLevel);
 
       let coursesUnlockedHTML = "";
@@ -1470,32 +1516,30 @@
       modal.style.display = "flex";
     }
 
-    function submitReview() {
-      const stars = document.getElementById("reviewStars").value;
+    async function submitReview() {
+      const stars = Number(document.getElementById("reviewStars").value);
       const feedbackText = document.getElementById("reviewText").value.trim();
-      
-      const reviewData = {
-        courseId: course.id,
-        user: user ? user.email : "anonimo",
-        rating: stars || "Não avaliado",
-        comment: feedbackText || "Sem comentários"
-      };
 
-      const globalReviews = JSON.parse(localStorage.getItem("course_reviews")) || [];
-      globalReviews.push(reviewData);
-      localStorage.setItem("course_reviews", JSON.stringify(globalReviews));
+      try {
+        await apiFetch(`/reviews/${course.id}`, {
+          method: "POST",
+          body: JSON.stringify({ rating: stars, comment: feedbackText || "Sem comentários" }),
+        });
 
-      const reviewBox = document.getElementById("reviewBox");
-      if (reviewBox) {
-        reviewBox.innerHTML = `<p style="color: #10B981; font-weight: 600; text-align: center; margin: 5px 0;">❤️ Obrigado pelo seu feedback voluntário!</p>`;
+        const reviewBox = document.getElementById("reviewBox");
+        if (reviewBox) {
+          reviewBox.innerHTML = `<p style="color: #10B981; font-weight: 600; text-align: center; margin: 5px 0;">❤️ Obrigado pelo seu feedback voluntário!</p>`;
+        }
+        showToast("Avaliação enviada com sucesso!");
+      } catch (e) {
+        // apiFetch já mostrou o toast de erro
       }
-      showToast("Avaliação enviada com sucesso!");
     }
 
     function getChatStorageKey() {
       if (!course) return "chat_global";
-      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
-      
+      const activeUser = getCurrentUser();
+
       if (activeUser && activeUser.role === "student") {
         return `chat_course_${course.id}_user_${activeUser.email}`;
       } else {
@@ -1540,7 +1584,7 @@
       const container = document.getElementById("chatMessages");
       if (!container) return;
       
-      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      const activeUser = getCurrentUser();
       container.innerHTML = "";
 
       container.innerHTML = `
@@ -1576,7 +1620,7 @@
       const messageText = input.value.trim();
       if (!messageText) return;
 
-      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      const activeUser = getCurrentUser();
       if (!activeUser) {
         showToast("Você precisa entrar na sua conta para usar o chat.");
         return;

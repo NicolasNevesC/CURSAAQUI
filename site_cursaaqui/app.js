@@ -204,7 +204,7 @@ function renderUserLevelBanner() {
   const banner = document.getElementById("userLevelBanner");
   if (!banner) return;
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = getCurrentUser();
   if (user) {
     const userLevel = user.level || 1;
     const isTeacher = user.role === "teacher";
@@ -307,52 +307,43 @@ function renderLevelTracks(coursesList, records, user, container) {
   renderUserLevelBanner();
 }
 
-function getAllCourses() {
-  const base = window.courses || (typeof courses !== "undefined" ? courses : []);
-  let stored = [];
+// Catálogo agora vem da API (populada via seed a partir do antigo courses.js).
+// Cacheado em memória por página para não refazer a requisição a cada filtro.
+let __coursesCache = null;
+
+async function getAllCourses() {
+  if (__coursesCache) return __coursesCache;
   try {
-    const custom = JSON.parse(localStorage.getItem("custom_courses")) || [];
-    if (Array.isArray(custom)) stored = custom;
+    __coursesCache = await apiFetch("/courses");
   } catch (e) {
-    stored = [];
+    __coursesCache = [];
   }
-  
-  if (stored.length > 0) {
-    const baseMap = new Map(base.map(c => [c.id, c]));
-    const merged = base.map(c => ({ ...c }));
-    stored.forEach(c => {
-      if (!baseMap.has(c.id)) {
-        merged.push(c);
-      }
-    });
-    return merged;
-  }
-  return base;
+  return __coursesCache;
 }
 
-function renderCourses() {
+async function renderCourses() {
   const grid = document.getElementById("courseGrid");
-  if (!grid) return; 
+  if (!grid) return;
 
   grid.innerHTML = "";
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
-  const records = user ? (JSON.parse(localStorage.getItem(`user_courses_progress_${user.email}`)) || {}) : {};
-  const coursesList = getAllCourses();
+  const user = getCurrentUser();
+  const records = user ? await apiFetch("/progress").catch(() => ({})) : {};
+  const coursesList = await getAllCourses();
 
   if (coursesList && coursesList.length > 0) {
     renderLevelTracks(coursesList, records, user, grid);
   }
 }
 
-function watchCourse(courseName) {
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+async function watchCourse(courseName) {
+  const user = getCurrentUser();
   if (!user) {
     showToast("Faça login para assistir as aulas.");
     if (typeof openAuthModal === "function") openAuthModal();
     return;
   }
-  const coursesList = getAllCourses();
+  const coursesList = await getAllCourses();
   if (coursesList) {
     const found = coursesList.find(c => c.title === courseName);
     if (found) {
@@ -362,6 +353,8 @@ function watchCourse(courseName) {
         showLockedModal(found.title, minLevel, userLevel);
         return;
       }
+      // selectedCourse continua no localStorage: é só o "handoff" transiente
+      // entre o catálogo e course.html, não um dado que precise de persistência real.
       localStorage.setItem("selectedCourse", JSON.stringify(found));
     }
   }
@@ -394,10 +387,10 @@ function setupFilterEvents() {
   }
 }
 
-function filterCourses() {
+async function filterCourses() {
   const searchInput = document.getElementById("searchInput");
   const grid = document.getElementById("courseGrid");
-  
+
   if (!grid) return;
 
   let search = searchInput ? searchInput.value.toLowerCase().trim() : "";
@@ -406,10 +399,10 @@ function filterCourses() {
     if (searchInput) searchInput.value = "";
   }
 
-  const coursesList = getAllCourses();
+  const coursesList = await getAllCourses();
   if (!coursesList) return;
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = getCurrentUser();
 
   let filtered = coursesList.filter(course => {
     const matchesSearch = !search || (
@@ -435,7 +428,7 @@ function filterCourses() {
     return;
   }
 
-  const records = user ? (JSON.parse(localStorage.getItem(`user_courses_progress_${user.email}`)) || {}) : {};
+  const records = user ? await apiFetch("/progress").catch(() => ({})) : {};
   renderLevelTracks(filtered, records, user, grid);
 }
 
@@ -452,7 +445,7 @@ function showLockedModal(courseTitle, minLevel, currentLevel) {
     document.body.appendChild(modal);
   }
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = getCurrentUser();
   const userXp = user ? (user.xp || 0) : 0;
   const userLvl = user ? (user.level || 1) : (currentLevel || 1);
   const xpNeeded = userLvl * 1000;
@@ -568,8 +561,8 @@ function playPadlockUnlockDemo() {
 function updateAuthUI() {
   const loginBtn = document.getElementById("login-btn");
   const userProfile = document.getElementById("user-profile");
-  
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+
+  const user = getCurrentUser();
 
   if (user) {
     if (loginBtn) loginBtn.style.display = "none";
@@ -591,20 +584,20 @@ function updateAuthUI() {
     if (xpRatio) xpRatio.innerText = `${user.xp} / ${xpNeeded} XP`;
     if (xpBar) xpBar.style.width = `${progressPercent}%`;
 
-    updateUserStats(user.email);
+    updateUserStats();
   } else {
     if (loginBtn) loginBtn.style.display = "block";
     if (userProfile) userProfile.style.display = "none";
   }
 }
 
-function updateUserStats(email) {
+async function updateUserStats() {
   const list = document.getElementById("started-courses-list");
   if (!list) return;
   list.innerHTML = "";
 
-  const progressKey = `user_courses_progress_${email}`;
-  const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+  const records = await apiFetch("/progress").catch(() => ({}));
+  const coursesList = await getAllCourses();
 
   const keys = Object.keys(records);
   if (keys.length === 0) {
@@ -614,9 +607,10 @@ function updateUserStats(email) {
 
   keys.forEach(id => {
     const record = records[id];
+    const course = coursesList.find(c => c.id === Number(id));
     list.innerHTML += `
       <li>
-        <span>${record.title}</span>
+        <span>${course ? course.title : "Curso"}</span>
         <strong>${record.progress}%</strong>
       </li>
     `;

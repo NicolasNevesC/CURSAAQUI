@@ -1,0 +1,8 @@
+node_modules/
+api/.env
+api/prisma/dev.db
+*.log
+
+# Scripts locais de setup do SQL Server (contêm senha de dev em texto puro)
+setup-sqlserver.ps1
+setup-sqlserver.bat
