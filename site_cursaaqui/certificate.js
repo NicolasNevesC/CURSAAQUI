@@ -1,6 +1,6 @@
 function generateCertificate(courseName){
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
 
   if(!user){
     showToast("Faça login primeiro.");
@@ -11,7 +11,7 @@ function generateCertificate(courseName){
   const progressKey = `user_courses_progress_${user.email}`;
   const records = JSON.parse(localStorage.getItem(progressKey)) || {};
   const rec = Object.values(records).find(r => r.title === courseName);
-  const selectedCourse = JSON.parse(localStorage.getItem("selectedCourse"));
+  const selectedCourse = Storage.getSelectedCourse();
   const targetRec = rec || (selectedCourse && selectedCourse.title === courseName ? selectedCourse : null);
 
   if (targetRec) {

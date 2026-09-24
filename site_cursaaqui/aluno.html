@@ -1360,6 +1360,7 @@ body {
 </div>
 
 <!-- SCRIPTS DE SUPORTE -->
+<script src="storage.js?v=1.0"></script>
 <script src="courses.js?v=7.0"></script>
 <script src="auth.js?v=7.0"></script>
 
@@ -1383,18 +1384,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Garante que haja um usuário aluno logado para testar
 function ensureStudentSession() {
-  let user = JSON.parse(localStorage.getItem("loggedUser"));
+  let user = Storage.getLoggedUser();
   if (!user || user.role === "teacher") {
     // Se não há aluno logado, define automaticamente o aluno demo para permitir navegação imediata
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const demoStudent = users.find(u => u.email === "aluno@cursaaqui.com") || {
+    const demoStudent = Storage.findUserByEmail("aluno@cursaaqui.com") || {
       name: "Matheus Narvaes",
       email: "aluno@cursaaqui.com",
       role: "student",
       xp: 350,
       level: 2
     };
-    localStorage.setItem("loggedUser", JSON.stringify(demoStudent));
+    Storage.setLoggedUser(demoStudent);
     user = demoStudent;
   }
 
@@ -1436,18 +1436,11 @@ function ensureStudentSession() {
 }
 
 function getLoggedUser() {
-  return JSON.parse(localStorage.getItem("loggedUser"));
+  return Storage.getLoggedUser();
 }
 
 function saveLoggedUser(user) {
-  localStorage.setItem("loggedUser", JSON.stringify(user));
-  // Também atualiza na lista geral de usuários
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  const idx = users.findIndex(u => u.email === user.email);
-  if (idx !== -1) {
-    users[idx] = user;
-    localStorage.setItem("users", JSON.stringify(users));
-  }
+  Storage.setLoggedUser(user);
 }
 
 // ─── CARREGAMENTO DE TODOS OS DADOS ───
@@ -1556,7 +1549,7 @@ function renderStudentCoursesGrid() {
       category: "Geral",
       teacher: "Prof. Especialista",
       image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80",
-      pdf: records[id].pdf || "material.pdf",
+      pdf: records[id].pdf || null,
       minLevel: 1
     };
     return {
@@ -1651,9 +1644,9 @@ function renderStudentCoursesGrid() {
             <button class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;" onclick="watchCourse('${safeTitle}')">
               🎓 Ir para Aula
             </button>
-            <a href="${course.pdf || 'material.pdf'}" target="_blank" class="btn btn-secondary btn-sm" title="Apostila PDF">
-              📖 PDF
-            </a>
+            ${course.pdf
+              ? `<a href="${course.pdf}" target="_blank" class="btn btn-secondary btn-sm" title="Apostila PDF">📖 PDF</a>`
+              : `<span class="btn btn-secondary btn-sm" style="opacity: 0.6; cursor: not-allowed;" title="Nenhum material disponível para este curso">📕 Sem material</span>`}
             ${isCompleted ? `
               <button class="btn btn-success btn-sm" onclick="openCertModal('${safeTitle}')" title="Emitir Certificado">
                 🏆 Certificado
@@ -1726,10 +1719,6 @@ function renderContinueCourseCard(userCourses) {
 }
 
 function watchCourse(title) {
-  const user = getLoggedUser();
-  if (user) {
-    localStorage.setItem("loggedUser", JSON.stringify(user));
-  }
   window.location.href = `course.html?name=${encodeURIComponent(title)}`;
 }
 
@@ -2206,7 +2195,7 @@ function addStudentXp(amount) {
 
 // ─── MODAL DE ALTERNÂNCIA DE PERSONA ───
 function openPersonaSwitcher() {
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const users = Storage.getUsers();
   const list = document.getElementById("personaList");
   if (!list) return;
 
@@ -2239,10 +2228,9 @@ function closePersonaSwitcher() {
 }
 
 function switchStudent(email) {
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  const target = users.find(u => u.email === email);
+  const target = Storage.findUserByEmail(email);
   if (target) {
-    localStorage.setItem("loggedUser", JSON.stringify(target));
+    Storage.setLoggedUser(target);
     closePersonaSwitcher();
     showToast(`Perfil alterado para ${target.name}!`);
     loadAllStudentData();
@@ -2254,7 +2242,6 @@ function promptNewStudent() {
   if (!name || !name.trim()) return;
 
   const email = `${name.toLowerCase().replace(/\s+/g, "")}@cursaaqui.com`;
-  const users = JSON.parse(localStorage.getItem("users")) || [];
   const newSt = {
     name: name.trim(),
     email: email,
@@ -2263,9 +2250,7 @@ function promptNewStudent() {
     xp: 100,
     level: 1
   };
-  users.push(newSt);
-  localStorage.setItem("users", JSON.stringify(users));
-  localStorage.setItem("loggedUser", JSON.stringify(newSt));
+  Storage.setLoggedUser(newSt);
   closePersonaSwitcher();
   showToast(`Aluno ${name} criado com sucesso!`);
   loadAllStudentData();
@@ -2295,7 +2280,7 @@ function showToast(msg) {
 }
 
 function doLogout() {
-  localStorage.removeItem("loggedUser");
+  Storage.clearLoggedUser();
   window.location.href = "index.html";
 }
 </script>

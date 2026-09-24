@@ -204,7 +204,7 @@ function renderUserLevelBanner() {
   const banner = document.getElementById("userLevelBanner");
   if (!banner) return;
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
   if (user) {
     const userLevel = user.level || 1;
     const isTeacher = user.role === "teacher";
@@ -336,7 +336,7 @@ function renderCourses() {
 
   grid.innerHTML = "";
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
   const records = user ? (JSON.parse(localStorage.getItem(`user_courses_progress_${user.email}`)) || {}) : {};
   const coursesList = getAllCourses();
 
@@ -346,7 +346,7 @@ function renderCourses() {
 }
 
 function watchCourse(courseName) {
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
   if (!user) {
     showToast("Faça login para assistir as aulas.");
     if (typeof openAuthModal === "function") openAuthModal();
@@ -362,7 +362,7 @@ function watchCourse(courseName) {
         showLockedModal(found.title, minLevel, userLevel);
         return;
       }
-      localStorage.setItem("selectedCourse", JSON.stringify(found));
+      Storage.setSelectedCourse(found);
     }
   }
   window.location.href = `course.html?name=${encodeURIComponent(courseName)}`;
@@ -409,7 +409,7 @@ function filterCourses() {
   const coursesList = getAllCourses();
   if (!coursesList) return;
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
 
   let filtered = coursesList.filter(course => {
     const matchesSearch = !search || (
@@ -452,7 +452,7 @@ function showLockedModal(courseTitle, minLevel, currentLevel) {
     document.body.appendChild(modal);
   }
 
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
   const userXp = user ? (user.xp || 0) : 0;
   const userLvl = user ? (user.level || 1) : (currentLevel || 1);
   const xpNeeded = userLvl * 1000;
@@ -569,7 +569,7 @@ function updateAuthUI() {
   const loginBtn = document.getElementById("login-btn");
   const userProfile = document.getElementById("user-profile");
   
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
 
   if (user) {
     if (loginBtn) loginBtn.style.display = "none";

@@ -369,10 +369,10 @@
         <div class="progress-bar" id="courseProgress" style="width: 0%;"></div>
       </div>
       <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-        <a id="materialStudyBtn" href="material.pdf" target="_blank" class="btn-primary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <a id="materialStudyBtn" href="#" target="_blank" class="btn-primary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
           📖 Acessar Apostila Oficial (PDF)
         </a>
-        <a id="materialDownloadBtn" href="material.pdf" download class="btn-secondary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <a id="materialDownloadBtn" href="#" download class="btn-secondary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
           ⬇️ Baixar PDF
         </a>
       </div>
@@ -433,7 +433,7 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 10px; min-width: 230px;">
-          <a id="materialSectionBtn" href="material.pdf" target="_blank" class="btn-primary" onclick="startStudyCountdown()" style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px;">
+          <a id="materialSectionBtn" href="#" target="_blank" class="btn-primary" onclick="startStudyCountdown()" style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px;">
             📖 Abrir PDF em Nova Aba
           </a>
           <button id="toggleViewerBtn" class="btn-secondary" onclick="togglePdfViewer()" style="text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px;">
@@ -541,6 +541,7 @@
     </div>
   </div>
 
+  <script src="storage.js?v=1.0"></script>
   <script src="courses.js?v=7.0"></script>
   <script src="auth.js?v=7.0"></script>
   <script src="certificate.js?v=7.0"></script>
@@ -549,32 +550,39 @@
 
   <script>
     let course = null;
-    const user = JSON.parse(localStorage.getItem("loggedUser"));
+    const user = Storage.getLoggedUser();
 
     document.addEventListener("DOMContentLoaded", () => {
-      // 1. Carrega curso do localStorage ou parâmetros de URL
+      // 1. O parâmetro da URL manda: um link direto para um curso específico
+      //    nunca deve ser ofuscado pelo último curso salvo no localStorage.
       const params = new URLSearchParams(window.location.search);
       const urlCourseName = params.get("name");
       const urlCourseId = params.get("id");
       const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
 
-      course = JSON.parse(localStorage.getItem("selectedCourse"));
-
-      if (!course && (urlCourseName || urlCourseId) && coursesList) {
+      if (urlCourseName || urlCourseId) {
         if (urlCourseName) {
           course = coursesList.find(c => c.title.toLowerCase() === decodeURIComponent(urlCourseName).toLowerCase());
         }
         if (!course && urlCourseId) {
           course = coursesList.find(c => c.id === parseInt(urlCourseId));
         }
-      }
 
-      if (!course && coursesList && coursesList.length > 0) {
-        course = coursesList[0];
+        if (!course) {
+          // O link apontava para um curso inexistente: avisa em vez de abrir
+          // silenciosamente o primeiro curso da lista.
+          alert("Curso não encontrado. Você será redirecionado ao catálogo.");
+          window.location.href = "cursos.html";
+          return;
+        }
+      } else {
+        // Sem parâmetro na URL: mantém o comportamento de retomar o último
+        // curso acessado (ex.: clique no card "Continuar Aula").
+        course = Storage.getSelectedCourse();
       }
 
       if (!course) {
-        window.location.href = "index.html";
+        window.location.href = "cursos.html";
         return;
       }
 
@@ -621,26 +629,8 @@
       }
 
       // 4. Vincula os arquivos PDF específicos a todos os botões de material
-      const pdfPath = course.pdf || "material.pdf";
-
-      const heroStudyBtn = document.getElementById("materialStudyBtn");
-      if (heroStudyBtn) {
-        heroStudyBtn.setAttribute("href", pdfPath);
-        heroStudyBtn.onclick = function() { startStudyCountdown(); };
-      }
-
-      const heroDownloadBtn = document.getElementById("materialDownloadBtn");
-      if (heroDownloadBtn) {
-        heroDownloadBtn.setAttribute("href", pdfPath);
-        const fileName = pdfPath.split('/').pop() || `${course.title}.pdf`;
-        heroDownloadBtn.setAttribute("download", fileName);
-        heroDownloadBtn.onclick = function() { startStudyCountdown(); };
-      }
-
-      const sectionMaterialBtn = document.getElementById("materialSectionBtn");
-      if (sectionMaterialBtn) {
-        sectionMaterialBtn.setAttribute("href", pdfPath);
-      }
+      //    (ou desabilita os botões quando o curso não possui apostila própria)
+      updateMaterialAvailabilityUI(course.pdf || null);
 
       // 5. Carrega o histórico de progresso do usuário logado
       if (user) {
@@ -667,6 +657,14 @@
       if (!course.answers) course.answers = {};
       if (course.openAnswer === undefined) course.openAnswer = "";
 
+      // Curso sem apostila cadastrada: não há material para ler, então libera
+      // a Etapa 2 diretamente em vez de travar o aluno esperando uma leitura impossível.
+      if (!course.pdf) {
+        course.studyCompleted = true;
+        course.exercisesUnlocked = true;
+        course.materialAccessed = true;
+      }
+
       // Se o quiz já estiver marcado como feito, recalcula nota e validação de nota mínima (60%)
       if (course.quizCompleted && course.quiz && course.quiz.length > 0) {
         let calcScore = 0;
@@ -686,7 +684,7 @@
       }
 
       // Salva estado sincronizado
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      Storage.setSelectedCourse(course);
 
       // 6. Renderiza a interface
       renderLessons();
@@ -785,7 +783,7 @@
           studyTimerInterval = null;
           course.studyCompleted = true;
           course.exercisesUnlocked = true;
-          localStorage.setItem("selectedCourse", JSON.stringify(course));
+          Storage.setSelectedCourse(course);
           saveProgressToGlobal();
           updateStudyTimerUI();
           renderQuiz();
@@ -827,7 +825,7 @@
     function unlockExercises() {
       course.studyCompleted = true;
       course.exercisesUnlocked = true;
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      Storage.setSelectedCourse(course);
       saveProgressToGlobal();
       updateStudyTimerUI();
       renderQuiz();
@@ -851,6 +849,13 @@
       const badge = document.getElementById("materialStatusBadge");
       if (!badge) return;
 
+      if (!course.pdf) {
+        badge.style.background = "rgba(148, 163, 184, 0.15)";
+        badge.style.color = "#64748B";
+        badge.innerHTML = "📕 Nenhum material disponível para este curso";
+        return;
+      }
+
       if (course.materialAccessed || course.studyCompleted) {
         badge.style.background = "rgba(16, 185, 129, 0.15)";
         badge.style.color = "#10B981";
@@ -862,14 +867,68 @@
       }
     }
 
+    function updateMaterialAvailabilityUI(pdfPath) {
+      const heroStudyBtn = document.getElementById("materialStudyBtn");
+      const heroDownloadBtn = document.getElementById("materialDownloadBtn");
+      const sectionMaterialBtn = document.getElementById("materialSectionBtn");
+      const toggleViewerBtn = document.getElementById("toggleViewerBtn");
+      const buttons = [heroStudyBtn, heroDownloadBtn, sectionMaterialBtn];
+
+      if (pdfPath) {
+        buttons.forEach(btn => {
+          if (!btn) return;
+          btn.style.pointerEvents = "";
+          btn.style.opacity = "";
+        });
+
+        if (heroStudyBtn) {
+          heroStudyBtn.setAttribute("href", pdfPath);
+          heroStudyBtn.onclick = function() { startStudyCountdown(); };
+        }
+        if (heroDownloadBtn) {
+          heroDownloadBtn.setAttribute("href", pdfPath);
+          const fileName = pdfPath.split('/').pop() || `${course.title}.pdf`;
+          heroDownloadBtn.setAttribute("download", fileName);
+          heroDownloadBtn.onclick = function() { startStudyCountdown(); };
+        }
+        if (sectionMaterialBtn) sectionMaterialBtn.setAttribute("href", pdfPath);
+        if (toggleViewerBtn) {
+          toggleViewerBtn.disabled = false;
+          toggleViewerBtn.style.opacity = "";
+          toggleViewerBtn.style.cursor = "pointer";
+        }
+      } else {
+        // Curso sem apostila própria: desabilita os botões em vez de abrir
+        // o material de outro curso.
+        buttons.forEach(btn => {
+          if (!btn) return;
+          btn.removeAttribute("href");
+          btn.onclick = function(e) { e.preventDefault(); };
+          btn.style.pointerEvents = "none";
+          btn.style.opacity = "0.5";
+          btn.innerHTML = "📕 Material indisponível";
+        });
+        if (toggleViewerBtn) {
+          toggleViewerBtn.disabled = true;
+          toggleViewerBtn.style.opacity = "0.5";
+          toggleViewerBtn.style.cursor = "not-allowed";
+        }
+      }
+    }
+
     function togglePdfViewer() {
+      if (!course.pdf) {
+        showToast("📕 Nenhum material disponível para este curso.");
+        return;
+      }
+
       const container = document.getElementById("pdfViewerContainer");
       const iframe = document.getElementById("pdfIframe");
       const headerTitle = document.getElementById("pdfViewerHeaderTitle");
       if (!container || !iframe) return;
 
       if (container.style.display === "none" || container.style.display === "") {
-        const pdfPath = course.pdf || "material.pdf";
+        const pdfPath = course.pdf;
         if (iframe.getAttribute("src") !== pdfPath) {
           iframe.setAttribute("src", pdfPath);
         }
@@ -887,7 +946,7 @@
     function accessMaterial(showNotification = true) {
       const wasAlreadyAccessed = course.materialAccessed;
       course.materialAccessed = true;
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      Storage.setSelectedCourse(course);
       saveProgressToGlobal();
       calculateProgress();
       updateMaterialStatusUI();
@@ -1182,7 +1241,7 @@
     function handleOpenAnswerChange(val) {
       if (course.quizCompleted) return;
       course.openAnswer = val;
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      Storage.setSelectedCourse(course);
 
       const wordCount = countWords(val);
       const minWords = (course.openQuestion && course.openQuestion.minWords) ? course.openQuestion.minWords : 20;
@@ -1206,7 +1265,7 @@
       if (course.quizCompleted) return;
 
       course.answers[qIdx] = optIdx;
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      Storage.setSelectedCourse(course);
       saveProgressToGlobal();
 
       const parent = btn.parentElement;
@@ -1256,7 +1315,7 @@
       course.quizScorePercent = scorePercent;
       course.quizPassed = isPassed;
 
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      Storage.setSelectedCourse(course);
 
       if (user) {
         const submissions = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
@@ -1308,7 +1367,7 @@
       course.quizScore = 0;
       course.quizScorePercent = 0;
       course.answers = {};
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      Storage.setSelectedCourse(course);
       calculateProgress();
       renderQuiz();
       renderStep3();
@@ -1442,7 +1501,7 @@
 
       course.progress = course.quizPassed ? (weightMaterial + weightQuiz) : Math.min(weightMaterial + weightQuiz, 65);
       
-      localStorage.setItem("selectedCourse", JSON.stringify(course));
+      Storage.setSelectedCourse(course);
       saveProgressToGlobal();
       updateProgressUI();
     }
@@ -1501,15 +1560,7 @@
             showToast(`✨ SUBIU DE NÍVEL! Você agora está no Nível ${user.level}!`);
           }
 
-          localStorage.setItem("loggedUser", JSON.stringify(user));
-
-          const listaUsuarios = JSON.parse(localStorage.getItem("users")) || [];
-          const index = listaUsuarios.findIndex(u => u.email === user.email);
-          if (index !== -1) {
-            listaUsuarios[index].xp = user.xp;
-            listaUsuarios[index].level = user.level;
-            localStorage.setItem("users", JSON.stringify(listaUsuarios));
-          }
+          Storage.setLoggedUser(user);
 
           if (subiuNivel) {
             setTimeout(() => {
@@ -1621,7 +1672,7 @@
 
     function getChatStorageKey() {
       if (!course) return "chat_global";
-      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      const activeUser = Storage.getLoggedUser();
       
       if (activeUser && activeUser.role === "student") {
         return `chat_course_${course.id}_user_${activeUser.email}`;
@@ -1645,8 +1696,7 @@
         if (key && key.startsWith(prefix)) {
           const studentEmail = key.replace(prefix, "");
           if (studentEmail !== "student_simulation") {
-            const users = JSON.parse(localStorage.getItem("users")) || [];
-            const foundUser = users.find(u => u.email === studentEmail);
+            const foundUser = Storage.findUserByEmail(studentEmail);
             const studentName = foundUser ? foundUser.name : studentEmail;
 
             selector.innerHTML += `<option value="${studentEmail}">${studentName} (${studentEmail})</option>`;
@@ -1667,7 +1717,7 @@
       const container = document.getElementById("chatMessages");
       if (!container) return;
       
-      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      const activeUser = Storage.getLoggedUser();
       container.innerHTML = "";
 
       container.innerHTML = `
@@ -1703,7 +1753,7 @@
       const messageText = input.value.trim();
       if (!messageText) return;
 
-      const activeUser = JSON.parse(localStorage.getItem("loggedUser"));
+      const activeUser = Storage.getLoggedUser();
       if (!activeUser) {
         showToast("Você precisa entrar na sua conta para usar o chat.");
         return;

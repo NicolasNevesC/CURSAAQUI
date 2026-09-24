@@ -346,17 +346,18 @@ tbody tr:hover td{background:rgba(255,255,255,0.025);}
 
 <div id="toast"></div>
 
+<script src="storage.js?v=1.0"></script>
 <script src="courses.js?v=7.0"></script>
 <script src="auth.js?v=5.0"></script>
 <script>
 // Guard
-(function(){const u=JSON.parse(localStorage.getItem("loggedUser"));if(!u||u.role!=="teacher"){window.location.href="index.html";}})();
+(function(){const u=Storage.getLoggedUser();if(!u||u.role!=="teacher"){window.location.href="index.html";}})();
 
 let curSubId=null,curFilter="all";
 
 // Persona
 function initPersona(){
-  const u=JSON.parse(localStorage.getItem("loggedUser"));
+  const u=Storage.getLoggedUser();
   if(!u)return;
   const ini=u.name.split(" ").map(n=>n[0]).join("").substring(0,2).toUpperCase();
   document.getElementById("sbAv").textContent=ini;
@@ -632,7 +633,7 @@ applyTheme();
 function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3200);}
 
 // Logout
-function doLogout(){localStorage.removeItem("loggedUser");window.location.href="index.html";}
+function doLogout(){Storage.clearLoggedUser();window.location.href="index.html";}
 
 // Init
 initPersona();renderOverview();
