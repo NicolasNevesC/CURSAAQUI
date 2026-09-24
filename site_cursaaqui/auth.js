@@ -13,7 +13,7 @@
 (function inicializarDadosProfessor() {
 
   // Lê a lista de usuários salva; se não existir, começa com array vazio
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const users = Storage.getUsers();
   let updated = false; // flag: indica se precisamos salvar de volta
 
   // Se a conta do professor demo não existe, cria ela
@@ -44,7 +44,7 @@
 
   // Só grava se algo foi adicionado (evita writes desnecessários)
   if (updated) {
-    localStorage.setItem("users", JSON.stringify(users));
+    Storage.setUsers(users);
   }
 
   // Inicializa progresso de demonstração para o aluno demo caso não exista
@@ -127,14 +127,14 @@
 // campos do formulário HTML.
 // ─────────────────────────────────────────────────────────────
 function loginAsRole(email, password) {
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const users = Storage.getUsers();
 
   // Procura um usuário que tenha exatamente esse e-mail E senha
   const user = users.find(u => u.email === email && u.password === password);
 
   if (user) {
     // Salva o usuário logado para persistir a sessão
-    localStorage.setItem("loggedUser", JSON.stringify(user));
+    Storage.setLoggedUser(user);
 
     // Fecha o modal de autenticação se estiver aberto
     if (typeof closeAuthModal === "function") closeAuthModal();
@@ -207,8 +207,8 @@ function register(){
     return;
   }
 
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  
+  const users = Storage.getUsers();
+
   // Verifica se o e-mail já está em uso por outra conta
   if(users.some(u => u.email === email)) {
     if (typeof showToast === "function") showToast("Este e-mail já está cadastrado.");
@@ -216,7 +216,7 @@ function register(){
   }
 
   // Cria o objeto do novo usuário e insere na lista
-  users.push({
+  Storage.upsertUser({
     name,
     email,
     password,
@@ -224,8 +224,6 @@ function register(){
     xp: 0,     // começa sem experiência
     level: 1   // começa no nível 1
   });
-
-  localStorage.setItem("users", JSON.stringify(users));
 
   if (typeof showToast === "function") showToast("Conta criada com sucesso!");
   showLogin(); // após cadastro, volta para a tela de login
@@ -249,14 +247,14 @@ function login(){
   const email    = emailInput.value.trim();
   const password = passwordInput.value;
 
-  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const users = Storage.getUsers();
 
   // Busca o usuário com e-mail E senha correspondentes
   const user = users.find(u => u.email === email && u.password === password);
 
   if(user){
     // Persiste a sessão do usuário autenticado no localStorage
-    localStorage.setItem("loggedUser", JSON.stringify(user));
+    Storage.setLoggedUser(user);
 
     if (typeof showToast === "function") {
       showToast("Login realizado com sucesso!");
@@ -312,7 +310,7 @@ function toggleUserMenu() {
 // e recarregando a página na URL atual (sem hash/parâmetros).
 // ─────────────────────────────────────────────────────────────
 function logout() {
-  localStorage.removeItem("loggedUser"); // remove a sessão salva
+  Storage.clearLoggedUser(); // remove a sessão salva
 
   // Volta a UI para o estado de "não logado"
   if (typeof updateAuthUI === "function") {

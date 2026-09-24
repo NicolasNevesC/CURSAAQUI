@@ -23,7 +23,7 @@ function loadDashboard() {
   if (!container) return; // sai se o elemento não existir na página
 
   // Lê o usuário atualmente logado do localStorage
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
 
   // Ninguém logado: exibe mensagem de boas-vindas com botão de login
   if (!user) {
@@ -79,7 +79,10 @@ function renderStudentDashboard(container, user) {
     keys.forEach(id => {
       const record = records[id];
       const foundCourse = coursesList.find(c => c.id === parseInt(id) || c.title === record.title);
-      const pdfPath = (foundCourse && foundCourse.pdf) ? foundCourse.pdf : (record.pdf || "material.pdf");
+      const pdfPath = (foundCourse && foundCourse.pdf) ? foundCourse.pdf : (record.pdf || null);
+      const materialLinkHtml = pdfPath
+        ? `<a href="${pdfPath}" target="_blank" class="btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">📖 Material (PDF)</a>`
+        : `<span class="btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; opacity: 0.6; cursor: not-allowed; display: inline-flex; align-items: center; gap: 5px;" title="Nenhum material disponível para este curso">📕 Sem material</span>`;
       const safeTitle = record.title.replace(/'/g, "\\'");
       const isDone = record.progress === 100 && record.quizPassed !== false;
 
@@ -105,9 +108,7 @@ function renderStudentDashboard(container, user) {
             <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem;" onclick="watchCourse('${safeTitle}')">
               🎓 Ir para Aula
             </button>
-            <a href="${pdfPath}" target="_blank" class="btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-              📖 Material (PDF)
-            </a>
+            ${materialLinkHtml}
             ${isDone ? `
               <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem; background: #10B981;" onclick="gerarCertificadoDoPainel('${safeTitle}')">
                 🏆 Emitir Certificado
@@ -489,7 +490,7 @@ function salvarCorrecaoProfessor() {
 // disponível, senão faz o fallback preenchendo o modal manualmente.
 // ─────────────────────────────────────────────────────────────
 function gerarCertificadoDoPainel(courseTitle) {
-  const user = JSON.parse(localStorage.getItem("loggedUser"));
+  const user = Storage.getLoggedUser();
   if (user) {
     const progressKey = `user_courses_progress_${user.email}`;
     const records = JSON.parse(localStorage.getItem(progressKey)) || {};
