@@ -1,3 +1,32 @@
+// ─────────────────────────────────────────────────────────────
+// checkCertificateEligibility(user, courseName)
+// Função pura: decide se o usuário logado pode emitir o
+// certificado do curso informado. Nega por padrão: só libera
+// quando existe registro de progresso DO PRÓPRIO USUÁRIO para
+// o curso, com progress >= 100 e quizPassed === true.
+// Retorna { ok: true, record } ou { ok: false, reason, message }.
+// ─────────────────────────────────────────────────────────────
+function checkCertificateEligibility(user, courseName){
+  const progressKey = `user_courses_progress_${user.email}`;
+  const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+  const rec = Object.values(records).find(r => r.title === courseName);
+
+  if (!rec) {
+    return { ok: false, reason: "not_started", message: "🔒 Você ainda não iniciou este curso." };
+  }
+
+  if (rec.progress < 100) {
+    return { ok: false, reason: "incomplete", message: `🔒 Conclua 100% do curso para liberar o certificado (atual: ${rec.progress}%).` };
+  }
+
+  if (rec.quizPassed !== true) {
+    const nota = rec.quizScorePercent !== undefined ? rec.quizScorePercent : 0;
+    return { ok: false, reason: "quiz_failed", message: `🔒 Certificado bloqueado: aproveitamento de ${nota}%. A nota mínima exigida é 60%.` };
+  }
+
+  return { ok: true, record: rec };
+}
+
 function generateCertificate(courseName){
 
   const user = Storage.getLoggedUser();
@@ -7,19 +36,10 @@ function generateCertificate(courseName){
     return;
   }
 
-  // Validação de nota mínima (60%) e progresso de 100%
-  const progressKey = `user_courses_progress_${user.email}`;
-  const records = JSON.parse(localStorage.getItem(progressKey)) || {};
-  const rec = Object.values(records).find(r => r.title === courseName);
-  const selectedCourse = Storage.getSelectedCourse();
-  const targetRec = rec || (selectedCourse && selectedCourse.title === courseName ? selectedCourse : null);
-
-  if (targetRec) {
-    if (targetRec.progress < 100 || targetRec.quizPassed === false) {
-      const nota = targetRec.quizScorePercent !== undefined ? targetRec.quizScorePercent : 0;
-      showToast(`🔒 Certificado bloqueado: aproveitamento de ${nota}%. A nota mínima exigida para aprovação é 60%.`);
-      return;
-    }
+  const eligibility = checkCertificateEligibility(user, courseName);
+  if (!eligibility.ok) {
+    showToast(eligibility.message);
+    return;
   }
 
   document.getElementById("certificateModal").style.display="flex";

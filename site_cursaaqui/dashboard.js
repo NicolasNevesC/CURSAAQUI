@@ -487,35 +487,43 @@ function salvarCorrecaoProfessor() {
 // gerarCertificadoDoPainel(courseTitle)
 // Abre o modal de certificado para um curso concluído.
 // Usa a função generateCertificate() de certificate.js se
-// disponível, senão faz o fallback preenchendo o modal manualmente.
+// disponível; caso contrário, valida com checkCertificateEligibility()
+// (também de certificate.js) antes de preencher o modal manualmente.
+// Em nenhum caso o modal é aberto sem passar por essa validação.
 // ─────────────────────────────────────────────────────────────
 function gerarCertificadoDoPainel(courseTitle) {
   const user = Storage.getLoggedUser();
-  if (user) {
-    const progressKey = `user_courses_progress_${user.email}`;
-    const records = JSON.parse(localStorage.getItem(progressKey)) || {};
-    const rec = Object.values(records).find(r => r.title === courseTitle);
-    if (rec && (rec.progress < 100 || rec.quizPassed === false)) {
-      const nota = rec.quizScorePercent !== undefined ? rec.quizScorePercent : 0;
-      if (typeof showToast === "function") {
-        showToast(`🔒 Certificado bloqueado: nota de ${nota}%. Mínimo exigido: 60%.`);
-      } else {
-        alert(`🔒 Certificado bloqueado: nota de ${nota}%. Mínimo exigido: 60%.`);
-      }
-      return;
-    }
+  if (!user) {
+    if (typeof showToast === "function") showToast("Faça login primeiro.");
+    return;
   }
 
   if (typeof generateCertificate === "function") {
     // Delegado para certificate.js (método preferencial)
     generateCertificate(courseTitle);
-  } else {
-    // Fallback: preenche e abre o modal de certificado diretamente
-    if(document.getElementById("certUser"))   document.getElementById("certUser").innerText   = user ? user.name : "Aluno";
-    if(document.getElementById("certCourse")) document.getElementById("certCourse").innerText = courseTitle;
-    if(document.getElementById("certDate"))   document.getElementById("certDate").innerText   = new Date().toLocaleDateString('pt-BR');
-    if(document.getElementById("certificateModal")) document.getElementById("certificateModal").style.display = "flex";
+    return;
   }
+
+  // Fallback: certificate.js indisponível, mas a validação é obrigatória
+  if (typeof checkCertificateEligibility !== "function") {
+    return;
+  }
+
+  const eligibility = checkCertificateEligibility(user, courseTitle);
+  if (!eligibility.ok) {
+    if (typeof showToast === "function") {
+      showToast(eligibility.message);
+    } else {
+      alert(eligibility.message);
+    }
+    return;
+  }
+
+  // Fallback: preenche e abre o modal de certificado diretamente
+  if(document.getElementById("certUser"))   document.getElementById("certUser").innerText   = user.name;
+  if(document.getElementById("certCourse")) document.getElementById("certCourse").innerText = courseTitle;
+  if(document.getElementById("certDate"))   document.getElementById("certDate").innerText   = new Date().toLocaleDateString('pt-BR');
+  if(document.getElementById("certificateModal")) document.getElementById("certificateModal").style.display = "flex";
 }
 
 
