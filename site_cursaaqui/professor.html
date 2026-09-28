@@ -347,6 +347,7 @@ tbody tr:hover td{background:rgba(255,255,255,0.025);}
 <div id="toast"></div>
 
 <script src="storage.js?v=1.0"></script>
+<script src="utils.js?v=1.0"></script>
 <script src="courses.js?v=7.0"></script>
 <script src="auth.js?v=5.0"></script>
 <script>
@@ -404,7 +405,7 @@ function renderOverview(){
   if(pend.length===0){tb.innerHTML='<tr><td colspan="5" style="padding:30px;text-align:center;color:var(--muted);">Nenhuma atividade pendente 🎉</td></tr>';return;}
   tb.innerHTML=pend.slice(0,6).map(s=>{
     const pct=s.totalQuestions>0?Math.round(s.score/s.totalQuestions*100):0;
-    return '<tr><td><div class="student-cell"><div class="av" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6);">'+s.userName.charAt(0)+'</div><span class="student-name">'+s.userName+'</span></div></td><td><span class="pill">📘 '+s.courseTitle+'</span></td><td><strong>'+s.score+'/'+s.totalQuestions+'</strong></td><td style="color:var(--muted);font-size:0.8rem;">'+s.submittedAt+'</td><td><button class="btn btn-primary btn-sm" onclick="openModal('+s.id+')">📝 Corrigir</button></td></tr>';
+    return '<tr><td><div class="student-cell"><div class="av" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6);">'+esc(s.userName.charAt(0))+'</div><span class="student-name">'+esc(s.userName)+'</span></div></td><td><span class="pill">📘 '+esc(s.courseTitle)+'</span></td><td><strong>'+s.score+'/'+s.totalQuestions+'</strong></td><td style="color:var(--muted);font-size:0.8rem;">'+esc(s.submittedAt)+'</td><td><button class="btn btn-primary btn-sm" onclick="openModal('+(Number(s.id)||0)+')">📝 Corrigir</button></td></tr>';
   }).join("");
 }
 
@@ -420,7 +421,7 @@ function renderCorr(){
     const ip=sub.status==="Pendente";
     const pct=sub.totalQuestions>0?Math.round(sub.score/sub.totalQuestions*100):0;
     const bc=pct>=70?"#10B981":pct>=40?"#F59E0B":"#EF4444";
-    return '<tr><td><div class="student-cell"><div class="av" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6);">'+sub.userName.charAt(0)+'</div><div><div class="student-name">'+sub.userName+'</div><div class="student-email">'+sub.userEmail+'</div></div></div></td><td><span class="pill">📘 '+sub.courseTitle+'</span></td><td><div style="display:flex;flex-direction:column;gap:4px;min-width:80px;"><strong>'+sub.score+'/'+sub.totalQuestions+' pts</strong><div class="prg"><div class="prg-fill" style="width:'+pct+'%;background:'+bc+';"></div></div></div></td><td><span class="bdg '+(ip?"bdg-warn":"bdg-ok")+'">'+(ip?"⏳ Pendente":"✅ Corrigido")+'</span></td><td style="color:var(--muted);font-size:0.79rem;">'+(sub.submittedAt||"—")+'</td><td style="max-width:170px;font-size:0.79rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(sub.feedback?'"'+sub.feedback+'"':'<span style="opacity:.4;">—</span>')+'</td><td><button class="btn btn-primary btn-sm" onclick="openModal('+sub.id+')">📝 '+(ip?"Corrigir":"Rever")+'</button></td></tr>';
+    return '<tr><td><div class="student-cell"><div class="av" style="background:linear-gradient(135deg,#3B82F6,#8B5CF6);">'+esc(sub.userName.charAt(0))+'</div><div><div class="student-name">'+esc(sub.userName)+'</div><div class="student-email">'+esc(sub.userEmail)+'</div></div></div></td><td><span class="pill">📘 '+esc(sub.courseTitle)+'</span></td><td><div style="display:flex;flex-direction:column;gap:4px;min-width:80px;"><strong>'+sub.score+'/'+sub.totalQuestions+' pts</strong><div class="prg"><div class="prg-fill" style="width:'+pct+'%;background:'+bc+';"></div></div></div></td><td><span class="bdg '+(ip?"bdg-warn":"bdg-ok")+'">'+(ip?"⏳ Pendente":"✅ Corrigido")+'</span></td><td style="color:var(--muted);font-size:0.79rem;">'+esc(sub.submittedAt||"—")+'</td><td style="max-width:170px;font-size:0.79rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(sub.feedback?'"'+esc(sub.feedback)+'"':'<span style="opacity:.4;">—</span>')+'</td><td><button class="btn btn-primary btn-sm" onclick="openModal('+(Number(sub.id)||0)+')">📝 '+(ip?"Corrigir":"Rever")+'</button></td></tr>';
   }).join("");
 }
 function filterSubs(f,btn){curFilter=f;document.querySelectorAll(".ftab").forEach(b=>b.classList.remove("active"));if(btn)btn.classList.add("active");renderCorr();}
@@ -438,7 +439,7 @@ function renderAlunos(){
     const done=st.subs.filter(s=>s.status==="Corrigido").length;
     const avg=st.subs.length>0?Math.round(st.subs.reduce((a,s)=>a+(s.totalQuestions>0?s.score/s.totalQuestions*100:0),0)/st.subs.length):0;
     const ini=st.name.split(" ").map(n=>n[0]).join("").substring(0,2).toUpperCase();
-    return '<div class="aluno-card"><div class="aluno-hdr"><div class="aluno-av" style="background:linear-gradient(135deg,'+c+','+c+'99);">'+ini+'</div><div class="aluno-info"><strong>'+st.name+'</strong><small>'+st.email+'</small></div></div><div class="aluno-stats-row"><div class="a-stat"><strong>'+st.subs.length+'</strong><small>Atividades</small></div><div class="a-stat"><strong>'+done+'</strong><small>Corrigidas</small></div><div class="a-stat"><strong>'+avg+'%</strong><small>Aproveit.</small></div></div></div>';
+    return '<div class="aluno-card"><div class="aluno-hdr"><div class="aluno-av" style="background:linear-gradient(135deg,'+c+','+c+'99);">'+esc(ini)+'</div><div class="aluno-info"><strong>'+esc(st.name)+'</strong><small>'+esc(st.email)+'</small></div></div><div class="aluno-stats-row"><div class="a-stat"><strong>'+st.subs.length+'</strong><small>Atividades</small></div><div class="a-stat"><strong>'+done+'</strong><small>Corrigidas</small></div><div class="a-stat"><strong>'+avg+'%</strong><small>Aproveit.</small></div></div></div>';
   }).join("");
 }
 
@@ -478,10 +479,10 @@ function openModal(id){
         if(hasSel&&oi===sel&&oi===q.correct){cls="opt-c";icon="✅ ";}
         else if(hasSel&&oi===sel&&oi!==q.correct){cls="opt-w";icon="❌ ";}
         else if(oi===q.correct&&(!hasSel||sel!==q.correct)){suffix=' <strong style="color:#10B981;font-size:0.78rem;">[✔ Gabarito]</strong>';}
-        return '<div class="opt '+cls+'"><div class="opt-dot"></div><span style="font-weight:'+(oi===q.correct?'700':'400')+'">'+icon+o+suffix+'</span></div>';
+        return '<div class="opt '+cls+'"><div class="opt-dot"></div><span style="font-weight:'+(oi===q.correct?'700':'400')+'">'+icon+esc(o)+suffix+'</span></div>';
       }).join("");
 
-      qc.innerHTML+='<div class="q-card"><div class="q-hdr"><div class="q-text">Q'+(idx+1)+'. '+q.question+'</div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">'+rb+'</div></div>'+opts+'</div>';
+      qc.innerHTML+='<div class="q-card"><div class="q-hdr"><div class="q-text">Q'+(idx+1)+'. '+esc(q.question)+'</div><div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">'+rb+'</div></div>'+opts+'</div>';
     });
   }else{
     qc.innerHTML='<p style="color:var(--muted);font-size:0.855rem;">Respostas registradas: '+sub.score+'/'+sub.totalQuestions+' acertos.</p>';
@@ -496,7 +497,7 @@ function openModal(id){
   const badgeEl = document.getElementById("mOpenQBadge");
 
   if (openQ && promptEl) {
-    promptEl.innerHTML = '<strong>' + (openQ.title || 'Estudo de Caso') + ':</strong> ' + (openQ.prompt || 'Síntese de aprendizagem prática.');
+    promptEl.innerHTML = '<strong>' + esc(openQ.title || 'Estudo de Caso') + ':</strong> ' + esc(openQ.prompt || 'Síntese de aprendizagem prática.');
   } else if (promptEl) {
     promptEl.textContent = "Estudo de Caso Prático da Disciplina";
   }
