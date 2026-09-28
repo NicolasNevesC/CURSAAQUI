@@ -1361,6 +1361,7 @@ body {
 
 <!-- SCRIPTS DE SUPORTE -->
 <script src="storage.js?v=1.0"></script>
+<script src="utils.js?v=1.0"></script>
 <script src="courses.js?v=7.0"></script>
 <script src="auth.js?v=7.0"></script>
 
@@ -1607,23 +1608,27 @@ function renderStudentCoursesGrid() {
 
   grid.innerHTML = filtered.map(course => {
     const isCompleted = course.progress === 100 && course.quizPassed !== false;
-    const safeTitle = course.title.replace(/'/g, "\\'");
+    // Título passa por JSON.stringify + esc() antes de entrar no onclick: o
+    // navegador decodifica as entidades HTML antes de interpretar o JS, então
+    // isso protege contra quebra de atributo (aspas) e injeção de código.
+    const titleArg = esc(JSON.stringify(course.title));
+    const titleText = esc(course.title);
     const lvlPill = course.minLevel === 1 ? 'lvl-pill-1' : (course.minLevel === 2 ? 'lvl-pill-2' : 'lvl-pill-3');
 
     return `
       <div class="student-course-card">
         <div class="course-thumb">
-          <img src="${course.image}" alt="${course.title}">
-          <span class="course-tag-category">${course.category}</span>
+          <img src="${esc(safeUrl(course.image))}" alt="${titleText}">
+          <span class="course-tag-category">${esc(course.category)}</span>
           <span class="course-tag-lvl ${lvlPill}">Nível ${course.minLevel || 1}</span>
         </div>
         <div class="course-body">
-          <h4>${course.title}</h4>
-          <p class="teacher">👨‍🏫 ${course.teacher}</p>
+          <h4>${titleText}</h4>
+          <p class="teacher">👨‍🏫 ${esc(course.teacher)}</p>
 
           <div class="prog-label">
             <span>Progresso da Matéria</span>
-            <strong style="color: ${isCompleted ? '#10B981' : 'var(--primary)'};">${course.progress}%</strong>
+            <strong style="color: ${isCompleted ? '#10B981' : 'var(--primary)'};">${esc(course.progress)}%</strong>
           </div>
           <div class="prog-bar-bg">
             <div class="prog-bar-fill" style="width: ${course.progress}%;"></div>
@@ -1635,20 +1640,20 @@ function renderStudentCoursesGrid() {
               <span>Ajustar Progresso (Simulador)</span>
               <strong><span id="sliderVal_${course.id}">${course.progress}</span>%</strong>
             </label>
-            <input type="range" min="0" max="100" value="${course.progress}" 
+            <input type="range" min="0" max="100" value="${course.progress}"
               oninput="handleProgressSliderChange(${course.id}, this.value)"
-              onchange="commitProgressChange(${course.id}, this.value, '${safeTitle}')">
+              onchange="commitProgressChange(${course.id}, this.value, ${titleArg})">
           </div>
 
           <div class="course-card-actions">
-            <button class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;" onclick="watchCourse('${safeTitle}')">
+            <button class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;" onclick="watchCourse(${titleArg})">
               🎓 Ir para Aula
             </button>
             ${course.pdf
-              ? `<a href="${course.pdf}" target="_blank" class="btn btn-secondary btn-sm" title="Apostila PDF">📖 PDF</a>`
+              ? `<a href="${esc(safeUrl(course.pdf))}" target="_blank" class="btn btn-secondary btn-sm" title="Apostila PDF">📖 PDF</a>`
               : `<span class="btn btn-secondary btn-sm" style="opacity: 0.6; cursor: not-allowed;" title="Nenhum material disponível para este curso">📕 Sem material</span>`}
             ${isCompleted ? `
-              <button class="btn btn-success btn-sm" onclick="openCertModal('${safeTitle}')" title="Emitir Certificado">
+              <button class="btn btn-success btn-sm" onclick="openCertModal(${titleArg})" title="Emitir Certificado">
                 🏆 Certificado
               </button>
             ` : ''}
@@ -1698,20 +1703,20 @@ function renderContinueCourseCard(userCourses) {
 
   // Pega o primeiro curso em andamento ou o primeiro da lista
   const activeCourse = userCourses.find(c => c.progress < 100) || userCourses[0];
-  const safeTitle = activeCourse.title.replace(/'/g, "\\'");
+  const titleArg = esc(JSON.stringify(activeCourse.title));
 
   container.innerHTML = `
     <div style="display: flex; gap: 16px; align-items: center; background: var(--card2); padding: 16px; border-radius: 12px; border: 1px solid var(--border); flex-wrap: wrap;">
-      <img src="${activeCourse.image}" alt="${activeCourse.title}" style="width: 72px; height: 72px; border-radius: 10px; object-fit: cover;">
+      <img src="${esc(safeUrl(activeCourse.image))}" alt="${esc(activeCourse.title)}" style="width: 72px; height: 72px; border-radius: 10px; object-fit: cover;">
       <div style="flex: 1; min-width: 200px;">
-        <span class="badge highlight" style="font-size: 0.72rem; margin-bottom: 4px; display: inline-block;">${activeCourse.category}</span>
-        <h4 style="font-size: 0.96rem; font-weight: 700;">${activeCourse.title}</h4>
+        <span class="badge highlight" style="font-size: 0.72rem; margin-bottom: 4px; display: inline-block;">${esc(activeCourse.category)}</span>
+        <h4 style="font-size: 0.96rem; font-weight: 700;">${esc(activeCourse.title)}</h4>
         <div class="prog-bar-bg" style="margin: 8px 0 4px 0;">
           <div class="prog-bar-fill" style="width: ${activeCourse.progress}%;"></div>
         </div>
-        <small style="color: var(--muted); font-size: 0.75rem;">${activeCourse.progress}% Concluído</small>
+        <small style="color: var(--muted); font-size: 0.75rem;">${esc(activeCourse.progress)}% Concluído</small>
       </div>
-      <button class="btn btn-primary" onclick="watchCourse('${safeTitle}')">
+      <button class="btn btn-primary" onclick="watchCourse(${titleArg})">
         ▶ Continuar Aula
       </button>
     </div>
@@ -1753,7 +1758,7 @@ function renderGoalsList() {
   container.innerHTML = goals.map(g => `
     <div class="goal-item ${g.completed ? 'completed' : ''}" id="goalItem_${g.id}">
       <input type="checkbox" ${g.completed ? 'checked' : ''} onchange="toggleGoalStatus(${g.id}, this.checked)">
-      <span class="goal-text">${g.text}</span>
+      <span class="goal-text">${esc(g.text)}</span>
       <span class="goal-xp">+50 XP</span>
       <button class="goal-del-btn" onclick="deleteGoal(${g.id})" title="Remover meta">✕</button>
     </div>
@@ -1774,7 +1779,7 @@ function renderQuickGoals() {
   container.innerHTML = quickGoals.map(g => `
     <div class="goal-item ${g.completed ? 'completed' : ''}" style="padding: 8px 12px; margin-bottom: 6px;">
       <input type="checkbox" ${g.completed ? 'checked' : ''} onchange="toggleGoalStatus(${g.id}, this.checked)">
-      <span class="goal-text" style="font-size: 0.82rem;">${g.text}</span>
+      <span class="goal-text" style="font-size: 0.82rem;">${esc(g.text)}</span>
       <span class="goal-xp">+50 XP</span>
     </div>
   `).join("");
@@ -1955,15 +1960,15 @@ function loadQuizQuestion(idx) {
   const q = quizQuestionsPool[idx % quizQuestionsPool.length];
   box.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
-      <span class="badge highlight" style="font-size: 0.72rem; display: inline-block;">📘 ${q.courseTitle}</span>
+      <span class="badge highlight" style="font-size: 0.72rem; display: inline-block;">📘 ${esc(q.courseTitle)}</span>
       <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary);">Questão ${currentNum} de ${quizQuestionsPool.length}</span>
     </div>
-    <div class="quiz-q-title">${q.question}</div>
+    <div class="quiz-q-title">${esc(q.question)}</div>
     <div id="quizOptionsList">
       ${q.options.map((opt, oIdx) => `
         <div class="quiz-opt" onclick="handleQuizAnswer(${idx}, ${oIdx})">
           <span style="font-weight: 700; width: 22px;">${String.fromCharCode(65 + oIdx)}.</span>
-          <span>${opt}</span>
+          <span>${esc(opt)}</span>
         </div>
       `).join("")}
     </div>
@@ -2027,8 +2032,8 @@ function renderStudentFeedbacks() {
       <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px;">
         <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
           <div>
-            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 3px;">📘 ${sub.courseTitle}</h4>
-            <small style="color: var(--muted); font-size: 0.78rem;">Enviado em: ${sub.submittedAt || 'Data não registrada'}</small>
+            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 3px;">📘 ${esc(sub.courseTitle)}</h4>
+            <small style="color: var(--muted); font-size: 0.78rem;">Enviado em: ${esc(sub.submittedAt) || 'Data não registrada'}</small>
           </div>
           ${statusBdg}
         </div>
@@ -2041,7 +2046,7 @@ function renderStudentFeedbacks() {
         <div style="background: rgba(59, 130, 246, 0.06); border-left: 4px solid var(--primary); padding: 12px 16px; border-radius: 8px; margin-top: 10px;">
           <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; margin-bottom: 4px;">Parecer do Docente:</div>
           <p style="font-size: 0.88rem; font-style: italic; line-height: 1.5;">
-            "${sub.feedback || (isDone ? 'Atividade avaliada e aprovada pela coordenação pedagógica.' : 'Aguardando avaliação do professor responsável...')}"
+            "${esc(sub.feedback) || (isDone ? 'Atividade avaliada e aprovada pela coordenação pedagógica.' : 'Aguardando avaliação do professor responsável...')}"
           </p>
         </div>
       </div>
@@ -2055,13 +2060,13 @@ function renderStudentFeedbacks() {
     latestCard.innerHTML = `
       <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <strong>📘 ${last.courseTitle}</strong>
+          <strong>📘 ${esc(last.courseTitle)}</strong>
           <span style="font-size: 0.75rem; font-weight: 700; color: ${isDone ? '#10B981' : '#F59E0B'};">
             ${isDone ? '✅ Avaliado' : '⏳ Em Análise'}
           </span>
         </div>
         <p style="font-size: 0.85rem; font-style: italic; opacity: 0.9; margin-bottom: 10px;">
-          "${last.feedback || (isDone ? 'Atividade corrigida com aproveitamento satisfatório.' : 'Sua submissão está na fila de avaliação pedagógica.')}"
+          "${esc(last.feedback) || (isDone ? 'Atividade corrigida com aproveitamento satisfatório.' : 'Sua submissão está na fila de avaliação pedagógica.')}"
         </p>
         <div style="font-size: 0.8rem; color: var(--muted);">Nota: ${last.score}/${last.totalQuestions} pts</div>
       </div>
@@ -2091,18 +2096,18 @@ function renderStudentCertificates() {
 
   container.innerHTML = completedKeys.map(k => {
     const item = records[k];
-    const safeTitle = item.title.replace(/'/g, "\\'");
+    const titleArg = esc(JSON.stringify(item.title));
     const nota = item.quizScorePercent !== undefined ? item.quizScorePercent : 100;
     return `
       <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <div style="display: flex; align-items: center; gap: 12px;">
           <span style="font-size: 2rem;">🏆</span>
           <div>
-            <h4 style="font-size: 0.98rem; font-weight: 700;">${item.title}</h4>
-            <small style="color: #10B981; font-weight: 600;">100% Concluído • Aprovado (${nota}%)</small>
+            <h4 style="font-size: 0.98rem; font-weight: 700;">${esc(item.title)}</h4>
+            <small style="color: #10B981; font-weight: 600;">100% Concluído • Aprovado (${esc(nota)}%)</small>
           </div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openCertModal('${safeTitle}')">
+        <button class="btn btn-primary btn-sm" onclick="openCertModal(${titleArg})">
           📜 Visualizar Certificado
         </button>
       </div>
@@ -2204,10 +2209,10 @@ function openPersonaSwitcher() {
   list.innerHTML = students.map(st => `
     <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; justify-content: space-between; align-items: center;">
       <div>
-        <strong>${st.name}</strong>
-        <div style="font-size: 0.75rem; color: var(--muted);">${st.email} • Nível ${st.level || 1} • ${st.xp || 0} XP</div>
+        <strong>${esc(st.name)}</strong>
+        <div style="font-size: 0.75rem; color: var(--muted);">${esc(st.email)} • Nível ${st.level || 1} • ${st.xp || 0} XP</div>
       </div>
-      <button class="btn btn-primary btn-sm" onclick="switchStudent('${st.email}')">
+      <button class="btn btn-primary btn-sm" onclick="switchStudent(${esc(JSON.stringify(st.email))})">
         Entrar
       </button>
     </div>

@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCourses();
   setupFilterEvents();
   updateAuthUI();
+
+  const courseGrid = document.getElementById("courseGrid");
+  if (courseGrid) courseGrid.addEventListener("click", handleCourseGridClick);
 });
 
 /**
@@ -64,7 +67,14 @@ function generateCourseCardHTML(course, actualProgress, user) {
   const userLevel = user ? (user.level || 1) : 1;
   const isTeacher = user && user.role === "teacher";
   const isLocked = !isTeacher && (userLevel < minLevel);
-  const safeTitle = course.title.replace(/'/g, "\\'");
+  // Título escapado tanto para uso em texto/atributos HTML quanto para os
+  // data-* usados pelo listener delegado (evita onclick com dados interpolados).
+  const titleAttr = esc(course.title);
+  const imgSrc = esc(safeUrl(course.image));
+  const categoryText = esc(course.category);
+  const teacherText = esc(course.teacher);
+  const ratingText = esc(course.rating);
+  const durationText = esc(course.duration);
 
   const levelBadgeClass = minLevel === 1 ? 'lvl-1' : (minLevel === 2 ? 'lvl-2' : 'lvl-3');
   const levelBadgeLabel = minLevel === 1 ? '🌱 Nível 1 • Básico' : (minLevel === 2 ? '📘 Nível 2 • Intermediário' : '👑 Nível 3 • Avançado');
@@ -72,10 +82,10 @@ function generateCourseCardHTML(course, actualProgress, user) {
 
   if (isLocked) {
     return `
-      <div class="course-card is-locked" onclick="showLockedModal('${safeTitle}', ${minLevel}, ${userLevel})">
+      <div class="course-card is-locked" data-action="locked" data-course-title="${titleAttr}" data-min-level="${minLevel}" data-user-level="${userLevel}">
         <div class="course-img-wrapper">
-          <img src="${course.image}" alt="${course.title}">
-          <span class="category-tag">${course.category}</span>
+          <img src="${imgSrc}" alt="${titleAttr}">
+          <span class="category-tag">${categoryText}</span>
           ${levelTagHTML}
           <span class="lock-tag">🔒 Nível ${minLevel}</span>
           <div class="lock-overlay">
@@ -87,18 +97,18 @@ function generateCourseCardHTML(course, actualProgress, user) {
             <span style="font-size: 0.75rem; font-weight: 700; color: #EF4444; display: inline-flex; align-items: center; gap: 4px;">🔒 Requer Nível ${minLevel}</span>
             <span style="font-size: 0.75rem; opacity: 0.75; display: inline-flex; align-items: center; gap: 4px;">📄 Apostila em PDF</span>
           </div>
-          <h3 class="course-title" title="${course.title}">${course.title}</h3>
+          <h3 class="course-title" title="${titleAttr}">${titleAttr}</h3>
           <div class="course-meta">
-            <span>👨‍🏫 ${course.teacher}</span>
+            <span>👨‍🏫 ${teacherText}</span>
             <div class="course-stats">
-              <span>⭐ ${course.rating}</span>
-              <span>⏱️ ${course.duration}</span>
+              <span>⭐ ${ratingText}</span>
+              <span>⏱️ ${durationText}</span>
             </div>
           </div>
           <div class="progress">
             <div class="progress-bar" style="width: 0%"></div>
           </div>
-          <button class="btn-locked card-btn" onclick="event.stopPropagation(); showLockedModal('${safeTitle}', ${minLevel}, ${userLevel})">
+          <button class="btn-locked card-btn" data-action="locked" data-course-title="${titleAttr}" data-min-level="${minLevel}" data-user-level="${userLevel}">
             🔒 Desbloqueia no Nível ${minLevel}
           </button>
         </div>
@@ -106,15 +116,15 @@ function generateCourseCardHTML(course, actualProgress, user) {
     `;
   }
 
-  const unlockBadge = (minLevel > 1) 
+  const unlockBadge = (minLevel > 1)
     ? `<span class="unlocked-tag">🔓 Nível ${minLevel}</span>`
     : ``;
 
   return `
-    <div class="course-card" onclick="watchCourse('${safeTitle}')">
+    <div class="course-card" data-action="watch" data-course-title="${titleAttr}">
       <div class="course-img-wrapper">
-        <img src="${course.image}" alt="${course.title}">
-        <span class="category-tag">${course.category}</span>
+        <img src="${imgSrc}" alt="${titleAttr}">
+        <span class="category-tag">${categoryText}</span>
         ${levelTagHTML}
         ${unlockBadge}
       </div>
@@ -123,23 +133,42 @@ function generateCourseCardHTML(course, actualProgress, user) {
           <span style="font-size: 0.75rem; font-weight: 700; color: #10B981; display: inline-flex; align-items: center; gap: 4px;">🔓 Nível ${minLevel} Liberado</span>
           <span style="font-size: 0.75rem; opacity: 0.75; display: inline-flex; align-items: center; gap: 4px;">📄 Apostila em PDF</span>
         </div>
-        <h3 class="course-title" title="${course.title}">${course.title}</h3>
+        <h3 class="course-title" title="${titleAttr}">${titleAttr}</h3>
         <div class="course-meta">
-          <span>👨‍🏫 ${course.teacher}</span>
+          <span>👨‍🏫 ${teacherText}</span>
           <div class="course-stats">
-            <span>⭐ ${course.rating}</span>
-            <span>⏱️ ${course.duration}</span>
+            <span>⭐ ${ratingText}</span>
+            <span>⏱️ ${durationText}</span>
           </div>
         </div>
         <div class="progress">
           <div class="progress-bar" style="width:${actualProgress}%"></div>
         </div>
-        <button class="btn-primary card-btn" onclick="event.stopPropagation(); watchCourse('${safeTitle}')">
+        <button class="btn-primary card-btn" data-action="watch" data-course-title="${titleAttr}">
           Acessar Matéria ➔
         </button>
       </div>
     </div>
   `;
+}
+
+// Listener delegado para os cards de curso: substitui os antigos onclick com
+// dados interpolados (title podia conter aspas/HTML vindo de custom_courses).
+// Um único clique dispara uma única ação, então não é necessário stopPropagation.
+function handleCourseGridClick(e) {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+
+  const action = target.dataset.action;
+  const courseTitle = target.dataset.courseTitle || "";
+
+  if (action === "watch") {
+    watchCourse(courseTitle);
+  } else if (action === "locked") {
+    const minLevel = Number(target.dataset.minLevel) || 1;
+    const userLevel = Number(target.dataset.userLevel) || 1;
+    showLockedModal(courseTitle, minLevel, userLevel);
+  }
 }
 
 const LEVEL_TRACKS = [
@@ -229,7 +258,7 @@ function renderUserLevelBanner() {
           <div class="level-banner-content">
             <span class="level-banner-badge lvl-${userLevel}">⭐ Seu Progresso: Nível ${userLevel}</span>
             <div class="level-banner-text">
-              <h4>Aluno: ${user.name} (${user.xp || 0} XP)</h4>
+              <h4>Aluno: ${esc(user.name)} (${user.xp || 0} XP)</h4>
               <p>Níveis liberados para você: <strong>Nível 1 ${userLevel >= 2 ? '• Nível 2' : ''} ${userLevel >= 3 ? '• Nível 3' : ''}</strong>. ${nextLevelText}</p>
             </div>
           </div>
@@ -493,7 +522,7 @@ function showLockedModal(courseTitle, minLevel, currentLevel) {
       </div>
 
       <h2 style="font-size: 1.4rem; margin-bottom: 6px; color: var(--text);">Curso Bloqueado por Nível</h2>
-      <p style="font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 12px;">${courseTitle}</p>
+      <p style="font-size: 1.05rem; font-weight: 700; color: var(--primary); margin-bottom: 12px;">${esc(courseTitle)}</p>
       
       <p style="font-size: 0.92rem; opacity: 0.85; line-height: 1.5; margin-bottom: 15px;">
         Este curso é avançado e requer <strong>Nível ${minLevel}</strong> de experiência para ser cursado.
@@ -616,8 +645,8 @@ function updateUserStats(email) {
     const record = records[id];
     list.innerHTML += `
       <li>
-        <span>${record.title}</span>
-        <strong>${record.progress}%</strong>
+        <span>${esc(record.title)}</span>
+        <strong>${esc(record.progress)}%</strong>
       </li>
     `;
   });

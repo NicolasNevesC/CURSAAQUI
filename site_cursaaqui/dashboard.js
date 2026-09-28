@@ -81,9 +81,13 @@ function renderStudentDashboard(container, user) {
       const foundCourse = coursesList.find(c => c.id === parseInt(id) || c.title === record.title);
       const pdfPath = (foundCourse && foundCourse.pdf) ? foundCourse.pdf : (record.pdf || null);
       const materialLinkHtml = pdfPath
-        ? `<a href="${pdfPath}" target="_blank" class="btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">📖 Material (PDF)</a>`
+        ? `<a href="${esc(safeUrl(pdfPath))}" target="_blank" class="btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">📖 Material (PDF)</a>`
         : `<span class="btn-secondary" style="padding: 7px 14px; font-size: 0.82rem; opacity: 0.6; cursor: not-allowed; display: inline-flex; align-items: center; gap: 5px;" title="Nenhum material disponível para este curso">📕 Sem material</span>`;
-      const safeTitle = record.title.replace(/'/g, "\\'");
+      const titleText = esc(record.title);
+      // Título recebe JSON.stringify + esc() antes de entrar no onclick: o navegador
+      // decodifica as entidades HTML antes de interpretar o JS, então isso protege
+      // tanto contra quebra de atributo (aspas) quanto contra injeção de código.
+      const titleArg = esc(JSON.stringify(record.title));
       const isDone = record.progress === 100 && record.quizPassed !== false;
 
       // Card moderno do curso com barra de progresso visual
@@ -91,11 +95,11 @@ function renderStudentDashboard(container, user) {
         <div class="dash-student-course-item" data-status="${isDone ? 'completed' : 'in_progress'}" style="background: rgba(255,255,255,0.04); padding: 16px; border-radius: 12px; margin-bottom: 14px; border: 1px solid rgba(255,255,255,0.08); transition: transform .2s, border-color .2s;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
             <div>
-              <strong style="font-size: 1rem; color: var(--text);">${record.title}</strong>
+              <strong style="font-size: 1rem; color: var(--text);">${titleText}</strong>
               <div style="font-size: 0.78rem; opacity: 0.7; margin-top: 2px;">Carga Horária Estimada: 40h • Apostila Digital</div>
             </div>
             <span class="category-tag" style="background: ${isDone ? 'rgba(16,185,129,0.2)' : 'rgba(59,130,246,0.2)'}; color: ${isDone ? '#10B981' : '#60A5FA'}; font-weight: 700;">
-              ${record.progress}% Concluído
+              ${esc(record.progress)}% Concluído
             </span>
           </div>
 
@@ -105,12 +109,12 @@ function renderStudentDashboard(container, user) {
           </div>
 
           <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-            <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem;" onclick="watchCourse('${safeTitle}')">
+            <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem;" onclick="watchCourse(${titleArg})">
               🎓 Ir para Aula
             </button>
             ${materialLinkHtml}
             ${isDone ? `
-              <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem; background: #10B981;" onclick="gerarCertificadoDoPainel('${safeTitle}')">
+              <button class="btn-primary" style="padding: 7px 14px; font-size: 0.82rem; background: #10B981;" onclick="gerarCertificadoDoPainel(${titleArg})">
                 🏆 Emitir Certificado
               </button>
             ` : ''}
@@ -122,10 +126,10 @@ function renderStudentDashboard(container, user) {
         certificatesHtml += `
           <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
             <div>
-              <span style="font-weight: 700; font-size: 0.95rem; color: #10B981;">🏆 ${record.title}</span>
+              <span style="font-weight: 700; font-size: 0.95rem; color: #10B981;">🏆 ${titleText}</span>
               <div style="font-size: 0.78rem; opacity: 0.8; margin-top: 2px;">Concluído com aproveitamento máximo</div>
             </div>
-            <button class="btn-primary" style="padding: 6px 14px; font-size: 0.85rem;" onclick="gerarCertificadoDoPainel('${safeTitle}')">
+            <button class="btn-primary" style="padding: 6px 14px; font-size: 0.85rem;" onclick="gerarCertificadoDoPainel(${titleArg})">
               Visualizar Certificado
             </button>
           </div>
@@ -149,7 +153,7 @@ function renderStudentDashboard(container, user) {
       feedbackHtml += `
         <div style="background: ${isDone ? 'rgba(16, 185, 129, 0.08)' : 'rgba(245, 158, 11, 0.08)'}; border-left: 4px solid ${isDone ? '#10B981' : '#F59E0B'}; padding: 14px 18px; border-radius: 8px; margin-bottom: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-            <div style="font-weight: 700; color: ${isDone ? '#10B981' : '#F59E0B'};">📘 ${sub.courseTitle}</div>
+            <div style="font-weight: 700; color: ${isDone ? '#10B981' : '#F59E0B'};">📘 ${esc(sub.courseTitle)}</div>
             <span style="font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; background: rgba(255,255,255,0.1);">
               ${isDone ? '✅ Corrigido' : '⏳ Pendente'}
             </span>
@@ -158,7 +162,7 @@ function renderStudentDashboard(container, user) {
             <strong>Nota:</strong> ${sub.score} / ${sub.totalQuestions} acertos (${Math.round((sub.score / sub.totalQuestions) * 100)}%)
           </div>
           <div style="font-size: 0.85rem; margin-top: 6px; font-style: italic; opacity: 0.95;">
-            " ${sub.feedback || (isDone ? 'Atividade avaliada e aprovada pelo professor.' : 'Em processo de correção pela coordenação pedagógica.')} "
+            " ${esc(sub.feedback) || (isDone ? 'Atividade avaliada e aprovada pelo professor.' : 'Em processo de correção pela coordenação pedagógica.')} "
           </div>
         </div>
       `;
@@ -189,7 +193,7 @@ function renderStudentDashboard(container, user) {
       <!-- Resumo do Perfil -->
       <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
         <div>
-          <h3 style="margin-bottom: 4px;">Olá, ${user.name}! 👋</h3>
+          <h3 style="margin-bottom: 4px;">Olá, ${esc(user.name)}! 👋</h3>
           <p style="opacity: 0.8; font-size: 0.88rem;">Nível Atual: <strong>Nível ${userLevel}</strong> • XP Total: <strong>${userXp} / ${xpNeeded} XP</strong></p>
           <div style="width: 240px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin-top: 8px;">
             <div style="width: ${xpPercent}%; height: 100%; background: linear-gradient(90deg, #3B82F6, #10B981);"></div>
@@ -270,15 +274,15 @@ function renderTeacherDashboard(container, user) {
       // Cada linha da tabela com dados do aluno, curso, nota, status e botão de correção
       tableRows += `
         <tr style="border-bottom: 1px solid rgba(255,255,255,0.08); text-align: left;">
-          <td style="padding: 12px;"><strong>${sub.userName}</strong><br><small style="opacity: 0.7;">${sub.userEmail}</small></td>
-          <td style="padding: 12px;">${sub.courseTitle}</td>
+          <td style="padding: 12px;"><strong>${esc(sub.userName)}</strong><br><small style="opacity: 0.7;">${esc(sub.userEmail)}</small></td>
+          <td style="padding: 12px;">${esc(sub.courseTitle)}</td>
           <td style="padding: 12px; font-weight: 600;">${sub.score} / ${sub.totalQuestions} pts</td>
           <td style="padding: 12px;">${statusBadge}</td>
           <td style="padding: 12px; font-size: 0.85rem; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-            ${sub.feedback ? sub.feedback : '<span style="opacity:0.5;">Sem parecer</span>'}
+            ${sub.feedback ? esc(sub.feedback) : '<span style="opacity:0.5;">Sem parecer</span>'}
           </td>
           <td style="padding: 12px; text-align: right;">
-            <button class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="abrirModalCorrecao(${sub.id})">
+            <button class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;" onclick="abrirModalCorrecao(${Number(sub.id) || 0})">
               📝 Corrigir &amp; Dar Feedback
             </button>
           </td>
@@ -293,7 +297,7 @@ function renderTeacherDashboard(container, user) {
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 20px;">
         <div>
           <h2>👨‍🏫 Painel de Correção de Atividades do Professor</h2>
-          <p style="opacity: 0.8; font-size: 0.95rem; margin-top: 4px;">Bem-vindo(a), <strong>${user.name}</strong>! Avalie os questionários e envie pareceres aos seus alunos.</p>
+          <p style="opacity: 0.8; font-size: 0.95rem; margin-top: 4px;">Bem-vindo(a), <strong>${esc(user.name)}</strong>! Avalie os questionários e envie pareceres aos seus alunos.</p>
         </div>
       </div>
 
@@ -415,14 +419,14 @@ function abrirModalCorrecao(submissionId) {
         }
 
         // Adiciona indicador visual se o aluno escolheu esta opção
-        optionsList += `<div style="${style}">${opt} ${isUserChoice ? '👈 <em>(Marcado pelo Aluno)</em>' : ''}</div>`;
+        optionsList += `<div style="${style}">${esc(opt)} ${isUserChoice ? '👈 <em>(Marcado pelo Aluno)</em>' : ''}</div>`;
       });
 
       // Bloco de uma questão com resultado e lista de opções coloridas
       questionsContainer.innerHTML += `
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(0,0,0,0.08); padding: 15px; border-radius: 10px; margin-bottom: 12px;">
           <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 8px;">
-            <span>Questão ${idx + 1}: ${q.question}</span>
+            <span>Questão ${idx + 1}: ${esc(q.question)}</span>
             <span style="color: ${statusColor}; font-size: 0.85rem;">${statusIcon}</span>
           </div>
           ${optionsList}
