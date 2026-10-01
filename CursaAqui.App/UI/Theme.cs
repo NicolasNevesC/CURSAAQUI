@@ -54,6 +54,10 @@ public static class Theme
         grid.EnableHeadersVisualStyles = false;
         grid.GridColor = Color.FromArgb(241, 245, 249);
         grid.RowHeadersVisible = false;
+        // Grids são preenchidos via código: sem a linha "nova" em branco no final
+        // (ela não pode ser ocultada pelos filtros e gerava InvalidOperationException)
+        grid.AllowUserToAddRows = false;
+        grid.AllowUserToDeleteRows = false;
         grid.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         grid.MultiSelect = false;
         grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
