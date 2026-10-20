@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <script>
+  (function () {
+    const savedTheme = localStorage.getItem("theme") || "light";
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+  })();
+</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curso - Cursa Aqui</title>
+  <link rel="stylesheet" href="style.css?v=7.0">
+  <style>
+    /* ─── NAVEGADOR DE ETAPAS 1, 2, 3 ─── */
+    .stepper-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 950px;
+      margin: 24px auto 10px auto;
+      padding: 16px 24px;
+      border-radius: 16px;
+      background: var(--card);
+      border: 1px solid rgba(0,0,0,0.08);
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .dark .stepper-nav {
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      cursor: pointer;
+      opacity: 0.55;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .step-item.active {
+      opacity: 1;
+    }
+    .step-item.completed {
+      opacity: 0.95;
+    }
+    .step-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.06);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.1rem;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+    .dark .step-circle {
+      background: rgba(255,255,255,0.08);
+    }
+    .step-item.active .step-circle {
+      background: #3B82F6;
+      color: #fff;
+      border-color: #60A5FA;
+      box-shadow: 0 0 16px rgba(59,130,246,0.45);
+      transform: scale(1.06);
+    }
+    .step-item.completed .step-circle {
+      background: #10B981;
+      color: #fff;
+      border-color: #34D399;
+    }
+    .step-content {
+      display: flex;
+      flex-direction: column;
+    }
+    .step-badge-num {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+    }
+    .step-name {
+      font-weight: 700;
+      font-size: 0.94rem;
+      line-height: 1.2;
+    }
+    .step-subtext {
+      font-size: 0.76rem;
+      opacity: 0.75;
+    }
+    .step-connector {
+      width: 32px;
+      height: 2px;
+      background: rgba(0,0,0,0.12);
+      flex-shrink: 0;
+      transition: background 0.3s ease;
+    }
+    .dark .step-connector {
+      background: rgba(255,255,255,0.12);
+    }
+    .step-connector.completed {
+      background: #10B981;
+    }
+
+    /* ─── TEMPORIZADOR DE ESTUDO DO PDF ─── */
+    .study-timer-container {
+      background: rgba(59,130,246,0.06);
+      border: 1px dashed rgba(59,130,246,0.3);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .dark .study-timer-container {
+      background: rgba(59,130,246,0.1);
+      border-color: rgba(96,165,250,0.3);
+    }
+    .study-timer-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .dark .study-timer-bar {
+      background: rgba(255,255,255,0.1);
+    }
+    .study-timer-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #3B82F6, #10B981);
+      transition: width 1s linear;
+      border-radius: 6px;
+    }
+    .btn-unlock-pulse {
+      background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+      color: white;
+      font-weight: 700;
+      border: none;
+      box-shadow: 0 4px 14px rgba(16,185,129,0.35);
+      animation: pulseGreen 2s infinite;
+      cursor: pointer;
+    }
+    @keyframes pulseGreen {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+      70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* ─── ÁREA AMPLIADA DE EXERCÍCIOS ─── */
+    .wide-exercise-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 26px;
+      border: 1px solid rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      transition: border-color 0.2s ease;
+    }
+    .dark .wide-exercise-card {
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+    .wide-exercise-card:hover {
+      border-color: rgba(59,130,246,0.3);
+    }
+    .q-opt-btn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      text-align: left;
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      font-size: 0.94rem;
+      line-height: 1.45;
+      background: rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.1);
+      color: inherit;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .dark .q-opt-btn {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.1);
+    }
+    .q-opt-btn:hover:not(:disabled) {
+      background: rgba(59,130,246,0.1);
+      border-color: #3B82F6;
+      transform: translateX(4px);
+    }
+    .open-q-box {
+      background: linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(139,92,246,0.04) 100%);
+      border: 2px solid rgba(99,102,241,0.25);
+      border-radius: 16px;
+      padding: 26px;
+      margin-top: 30px;
+      margin-bottom: 24px;
+    }
+    .open-q-textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.15);
+      background: var(--card);
+      color: inherit;
+      font-family: inherit;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      resize: vertical;
+      box-sizing: border-box;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .open-q-textarea:focus {
+      outline: none;
+      border-color: #6366F1;
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+    }
+    .locked-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 40px 24px;
+      text-align: center;
+      border: 2px dashed rgba(0,0,0,0.15);
+      margin: 20px auto;
+      max-width: 800px;
+    }
+    .dark .locked-card {
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    /* ─── DICIONÁRIO & DICAS TÉCNICAS DA QUESTÃO (OPÇÃO 2) ─── */
+    .q-glossary-container {
+      margin-top: 14px;
+      margin-bottom: 18px;
+    }
+    .btn-glossary-toggle {
+      background: rgba(245, 158, 11, 0.1);
+      color: #D97706;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .dark .btn-glossary-toggle {
+      background: rgba(245, 158, 11, 0.15);
+      color: #FBBF24;
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+    .btn-glossary-toggle:hover {
+      background: rgba(245, 158, 11, 0.2);
+      transform: translateY(-1px);
+    }
+    .q-glossary-box {
+      background: rgba(245, 158, 11, 0.04);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: fadeInGlossary 0.25s ease forwards;
+    }
+    .dark .q-glossary-box {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+    @keyframes fadeInGlossary {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .glossary-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed rgba(245, 158, 11, 0.2);
+    }
+    .glossary-item:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .glossary-item-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #D97706;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dark .glossary-item-title {
+      color: #FBBF24;
+    }
+    .glossary-item-simple {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+    .glossary-item-technique {
+      font-size: 0.82rem;
+      line-height: 1.45;
+      color: #2563EB;
+      background: rgba(37, 99, 235, 0.08);
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+    .dark .glossary-item-technique {
+      color: #93C5FD;
+      background: rgba(59, 130, 246, 0.15);
+    }
+
+    @media (max-width: 768px) {
+      .stepper-nav {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+      }
+      .step-connector {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="navbar glass">
+    <div class="logo"><a href="index.html" style="text-decoration:none; color:inherit;">🎓 Cursa Aqui</a></div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <a href="aluno.html" class="btn-secondary" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem;">🎓 Painel do Aluno</a>
+      <a href="cursos.html" class="btn-primary" style="text-decoration: none; padding: 8px 14px; font-size: 0.85rem;">👈 Voltar aos Cursos</a>
+    </div>
+  </header>
+
+  <div id="toast-container"></div>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1 id="courseTitle">Carregando...</h1>
+      <p id="courseDescription">Curso premium com aulas modernas e material didático oficial.</p>
+      
+      <div style="margin: 15px 0 8px 0; display: flex; justify-content: space-between; font-size: 0.9rem; font-weight: 600;">
+        <span>Progresso Geral do Curso:</span>
+        <span id="courseProgressText">0%</span>
+      </div>
+      <div class="progress">
+        <div class="progress-bar" id="courseProgress" style="width: 0%;"></div>
+      </div>
+      <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <a id="materialStudyBtn" href="#" target="_blank" class="btn-primary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          📖 Acessar Apostila Oficial (PDF)
+        </a>
+        <a id="materialDownloadBtn" href="#" download class="btn-secondary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+          ⬇️ Baixar PDF
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-card glass">
+      <h3>Aulas & Módulos</h3>
+      <ul id="lessonList"></ul>
+    </div>
+  </section>
+
+  <!-- ═══ NAVEGADOR DE ETAPAS 1, 2, 3 ═══ -->
+  <nav class="stepper-nav" id="stepperNav">
+    <div class="step-item active" id="stepIndicator1" onclick="jumpToStep(1)">
+      <div class="step-circle" id="stepCircle1">1</div>
+      <div class="step-content">
+        <span class="step-badge-num">Etapa 1</span>
+        <span class="step-name">Estudo do Material</span>
+        <span class="step-subtext" id="stepSubtext1">Leitura da Apostila PDF</span>
+      </div>
+    </div>
+    <div class="step-connector" id="stepConnector1"></div>
+    <div class="step-item" id="stepIndicator2" onclick="jumpToStep(2)">
+      <div class="step-circle" id="stepCircle2">2</div>
+      <div class="step-content">
+        <span class="step-badge-num">Etapa 2</span>
+        <span class="step-name">Prática & Exercícios</span>
+        <span class="step-subtext" id="stepSubtext2">Objetivas + Questão Aberta</span>
+      </div>
+    </div>
+    <div class="step-connector" id="stepConnector2"></div>
+    <div class="step-item" id="stepIndicator3" onclick="jumpToStep(3)">
+      <div class="step-circle" id="stepCircle3">3</div>
+      <div class="step-content">
+        <span class="step-badge-num">Etapa 3</span>
+        <span class="step-name">Avaliação do Tutor</span>
+        <span class="step-subtext" id="stepSubtext3">Feedback & Certificado</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ ETAPA 1: ESTUDO DO MATERIAL OFICIAL ═══ -->
+  <section class="courses" id="step1Section" style="margin-top: 15px;">
+    <h2>1️⃣ Estudo do Material Oficial da Disciplina</h2>
+    <div class="glass" style="padding: 24px; border-radius: 14px; max-width: 950px; margin: 0 auto; text-align: left;">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px;">
+        <div style="flex: 1; min-width: 280px;">
+          <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(59,130,246,0.15); color: #3B82F6; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px;">
+            📄 Apostila Didática Oficial em PDF
+          </div>
+          <h3 id="materialCardTitle" style="font-size: 1.3rem; margin-bottom: 6px; color: var(--text);">Apostila Completa da Disciplina</h3>
+          <p id="materialCardInfo" style="opacity: 0.85; font-size: 0.92rem; line-height: 1.5; margin-bottom: 12px;">
+            Acesse o conteúdo acadêmico oficial estruturado para consulta e aprofundamento. A leitura atenta é obrigatória para desbloquear os exercícios e concede <strong>30% do progresso</strong>.
+          </p>
+          <div id="materialStatusBadge" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; padding: 6px 12px; border-radius: 20px; background: rgba(245, 158, 11, 0.15); color: #F59E0B;">
+            ⏳ Material pendente de leitura (+30% no progresso)
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; min-width: 230px;">
+          <a id="materialSectionBtn" href="#" target="_blank" class="btn-primary" onclick="startStudyCountdown()" style="text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 18px;">
+            📖 Abrir PDF em Nova Aba
+          </a>
+          <button id="toggleViewerBtn" class="btn-secondary" onclick="togglePdfViewer()" style="text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px;">
+            👁️ Visualizar PDF na Página
+          </button>
+        </div>
+      </div>
+
+      <!-- TEMPORIZADOR DE ESTUDO GUIADO -->
+      <div id="studyTimerBox" class="study-timer-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <span id="studyTimerTitle" style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+            ⏱️ Tempo de Estudo & Fixação Obrigatório: <strong id="studySecondsLabel">15 segundos</strong>
+          </span>
+          <span id="studyTimerBadge" style="font-size: 0.8rem; opacity: 0.85; font-weight: 600;">
+            Aguardando abertura da apostila
+          </span>
+        </div>
+        <div class="study-timer-bar">
+          <div id="studyTimerFill" class="study-timer-fill"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 4px;">
+          <small style="opacity: 0.8; font-size: 0.8rem;">
+            💡 <em>Dica: Abra ou baixe o PDF para iniciar o contador e liberar a Etapa 2 de exercícios.</em>
+          </small>
+          <button id="unlockExercisesBtn" class="btn-secondary" onclick="unlockExercises()" disabled style="opacity: 0.6; cursor: not-allowed; padding: 8px 18px; font-size: 0.88rem;">
+            🔒 Aguarde o término da leitura para desbloquear
+          </button>
+        </div>
+      </div>
+
+      <!-- Leitor de PDF Embutido na página -->
+      <div id="pdfViewerContainer" style="display: none; margin-top: 24px; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.15); background: var(--card);">
+        <div style="background: rgba(0,0,0,0.15); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08);">
+          <span id="pdfViewerHeaderTitle" style="font-size: 0.9rem; font-weight: 600;">📖 Leitor de PDF Integrado</span>
+          <button onclick="togglePdfViewer()" class="btn-secondary" style="padding: 5px 12px; font-size: 0.8rem;">✕ Fechar Leitor</button>
+        </div>
+        <iframe id="pdfIframe" src="" style="width: 100%; height: 650px; border: none; background: #ffffff;"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ ETAPA 2: CENTRAL AMPLA DE EXERCÍCIOS & PRÁTICA ═══ -->
+  <section class="courses" id="step2Section" style="margin-top: 40px;">
+    <h2>2️⃣ Prática & Exercícios do Curso</h2>
+    <div id="exercisesContainerWrapper">
+      <!-- Será renderizado dinamicamente: estado bloqueado ou lista de questões amplas + questão dissertativa -->
+      <div id="quizContainer"></div>
+      <div id="quizActions" style="margin-top: 24px;"></div>
+    </div>
+  </section>
+
+  <!-- ═══ ETAPA 3: AVALIAÇÃO DO TUTOR & CERTIFICAÇÃO ═══ -->
+  <section class="courses" id="step3Section" style="margin-top: 40px; display: none;">
+    <h2>3️⃣ Parecer do Professor & Certificação</h2>
+    <div id="step3Container" class="glass" style="padding: 24px; border-radius: 14px; max-width: 950px; margin: 0 auto; text-align: left;">
+      <!-- Preenchido via renderStep3() -->
+    </div>
+  </section>
+
+  <section class="courses" style="margin-top: 40px;">
+    <h2>Dúvidas com o Tutor</h2>
+    <div class="glass" style="padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; max-width: 600px;">
+      
+      <div id="teacherStudentSelectorContainer" style="display: none; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
+        <label for="chatStudentSelector" style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 6px;">
+          👨‍🏫 Responder chat do aluno:
+        </label>
+        <select id="chatStudentSelector" onchange="changeActiveStudent(this.value)" style="width: 100%; padding: 10px; border-radius: 6px; background: var(--card); color: inherit; border: 1px solid rgba(0,0,0,0.15); font-family: inherit;">
+          <option value="">Selecione um aluno para conversar...</option>
+        </select>
+      </div>
+
+      <div id="chatMessages" style="height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 8px;">
+        <!-- CITAÇÃO REMOVIDA AQUI -->
+        <div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
+          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do curso, envie aqui!
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 10px;">
+        <input type="text" id="chatInput" placeholder="Digite sua mensagem..." onkeypress="handleChatKey(event)" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.02); color: inherit;">
+        <button class="btn-primary" onclick="sendMessage()">Enviar</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="modal" id="certificateModal" style="display:none;">
+    <div class="modal-content" style="max-width: 500px; text-align: center;">
+      <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer;" onclick="closeCertificate()">&times;</span>
+      <h1>CERTIFICADO</h1>
+      <p style="margin: 15px 0;">Certificamos que</p>
+      <h2 id="certUser">Aluno</h2>
+      <p style="margin: 15px 0;">concluiu com sucesso o curso</p>
+      <h3 id="certCourse">Curso</h3>
+      <p id="certDate" style="margin: 15px 0; font-style: italic;"></p>
+      <div class="seal" style="font-size: 3rem; margin: 15px 0;">🏅</div>
+      <div class="signature" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
+        <p>Assinatura Oficial</p>
+      </div>
+      <div class="certificate-buttons" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
+        <button class="btn-primary" onclick="window.print()">Imprimir</button>
+        <button class="btn-secondary" onclick="closeCertificate()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="storage.js?v=1.0"></script>
+  <script src="utils.js?v=1.0"></script>
+  <script src="courses.js?v=7.0"></script>
+  <script src="auth.js?v=7.0"></script>
+  <script src="certificate.js?v=7.0"></script>
+  <script src="dashboard.js?v=7.0"></script>
+  <script src="app.js?v=7.0"></script>
+
+  <script>
+    let course = null;
+    const user = Storage.getLoggedUser();
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. O parâmetro da URL manda: um link direto para um curso específico
+      //    nunca deve ser ofuscado pelo último curso salvo no localStorage.
+      const params = new URLSearchParams(window.location.search);
+      const urlCourseName = params.get("name");
+      const urlCourseId = params.get("id");
+      const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+
+      if (urlCourseName || urlCourseId) {
+        if (urlCourseName) {
+          course = coursesList.find(c => c.title.toLowerCase() === decodeURIComponent(urlCourseName).toLowerCase());
+        }
+        if (!course && urlCourseId) {
+          course = coursesList.find(c => c.id === parseInt(urlCourseId));
+        }
+
+        if (!course) {
+          // O link apontava para um curso inexistente: avisa em vez de abrir
+          // silenciosamente o primeiro curso da lista.
+          alert("Curso não encontrado. Você será redirecionado ao catálogo.");
+          window.location.href = "cursos.html";
+          return;
+        }
+      } else {
+        // Sem parâmetro na URL: mantém o comportamento de retomar o último
+        // curso acessado (ex.: clique no card "Continuar Aula").
+        course = Storage.getSelectedCourse();
+      }
+
+      if (!course) {
+        window.location.href = "cursos.html";
+        return;
+      }
+
+      // 2. Sincroniza dados com o catálogo oficial courses.js (garantindo o arquivo PDF correto)
+      if (coursesList) {
+        const found = coursesList.find(c => c.id === course.id || c.title === course.title);
+        if (found) {
+          course.id = found.id;
+          course.title = found.title;
+          course.category = found.category;
+          course.teacher = found.teacher;
+          course.duration = found.duration;
+          course.rating = found.rating;
+          course.image = found.image;
+          course.pdf = found.pdf;
+          course.minLevel = found.minLevel || 1;
+          if (found.lessons) course.lessons = found.lessons;
+          if (found.quiz) course.quiz = found.quiz;
+          if (found.openQuestion) course.openQuestion = found.openQuestion;
+        }
+      }
+
+      // Verificação de Nível Mínimo do Curso
+      const minLevel = course.minLevel || 1;
+      const userLevel = user ? (user.level || 1) : 1;
+      const isTeacher = user && user.role === "teacher";
+      
+      if (!isTeacher && userLevel < minLevel) {
+        alert(`🔒 Este curso requer Nível ${minLevel}. Seu nível atual é ${userLevel}. Conclua as matérias dos níveis anteriores para desbloquear.`);
+        window.location.href = "cursos.html";
+        return;
+      }
+
+      // 3. Atualiza textos do curso e da área de material
+      document.getElementById("courseTitle").innerText = course.title;
+      if (document.getElementById("courseDescription")) {
+        document.getElementById("courseDescription").innerText = `Disciplina: ${course.category} | Docente: ${course.teacher} | Carga Horária: ${course.duration}`;
+      }
+      if (document.getElementById("materialCardTitle")) {
+        document.getElementById("materialCardTitle").innerText = `Apostila Oficial: ${course.title}`;
+      }
+      if (document.getElementById("materialCardInfo")) {
+        document.getElementById("materialCardInfo").innerHTML = `Material didático oficial em PDF para o curso de <strong>${esc(course.title)}</strong>, ministrado por <strong>${esc(course.teacher)}</strong>. A leitura é indispensável para a fixação do conteúdo e conclusão do curso (+30% no progresso).`;
+      }
+
+      // 4. Vincula os arquivos PDF específicos a todos os botões de material
+      //    (ou desabilita os botões quando o curso não possui apostila própria)
+      updateMaterialAvailabilityUI(course.pdf || null);
+
+      // 5. Carrega o histórico de progresso do usuário logado
+      if (user) {
+        const progressKey = `user_courses_progress_${user.email}`;
+        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+        if (records[course.id]) {
+          course.progress = records[course.id].progress || 0;
+          course.answers = records[course.id].answers || {};
+          course.openAnswer = records[course.id].openAnswer || "";
+          course.quizCompleted = records[course.id].quizCompleted || false;
+          course.quizScore = records[course.id].quizScore !== undefined ? records[course.id].quizScore : 0;
+          course.quizScorePercent = records[course.id].quizScorePercent !== undefined ? records[course.id].quizScorePercent : 0;
+          course.quizPassed = records[course.id].quizPassed !== undefined ? records[course.id].quizPassed : false;
+          course.studyCompleted = records[course.id].studyCompleted || (course.quizCompleted || false);
+          course.exercisesUnlocked = records[course.id].exercisesUnlocked || (course.quizCompleted || course.studyCompleted || false);
+          course.materialAccessed = records[course.id].materialAccessed || false;
+        }
+        
+        if (user.role === "teacher") {
+          buildStudentSelector();
+        }
+      }
+
+      if (!course.answers) course.answers = {};
+      if (course.openAnswer === undefined) course.openAnswer = "";
+
+      // Curso sem apostila cadastrada: não há material para ler, então libera
+      // a Etapa 2 diretamente em vez de travar o aluno esperando uma leitura impossível.
+      if (!course.pdf) {
+        course.studyCompleted = true;
+        course.exercisesUnlocked = true;
+        course.materialAccessed = true;
+      }
+
+      // Se o quiz já estiver marcado como feito, recalcula nota e validação de nota mínima (60%)
+      if (course.quizCompleted && course.quiz && course.quiz.length > 0) {
+        let calcScore = 0;
+        course.quiz.forEach((q, idx) => {
+          if (course.answers && course.answers[idx] === q.correct) calcScore++;
+        });
+        course.quizScore = calcScore;
+        course.quizScorePercent = Math.round((calcScore / course.quiz.length) * 100);
+        course.quizPassed = course.quizScorePercent >= 60;
+
+        // Se errou e estava com 100%, rebaixa o progresso imediatamente para travar certificado
+        if (!course.quizPassed && course.progress === 100) {
+          const weightMat = (course.materialAccessed || course.studyCompleted) ? 30 : 0;
+          const weightPartial = Math.round((course.quizScorePercent / 100) * 35);
+          course.progress = Math.min(weightMat + weightPartial, 65);
+        }
+      }
+
+      // Salva estado sincronizado
+      Storage.setSelectedCourse(course);
+
+      // 6. Renderiza a interface
+      renderLessons();
+      updateMaterialStatusUI();
+      updateStudyTimerUI();
+      renderQuiz();
+      renderStep3();
+      renderChatHistory();
+      updateProgressUI();
+      updateStepperUI();
+    });
+
+    // ─── GERENCIADOR DO NAVEGADOR DE ETAPAS (1, 2, 3) ───
+    function updateStepperUI() {
+      const s1 = document.getElementById("stepIndicator1");
+      const s2 = document.getElementById("stepIndicator2");
+      const s3 = document.getElementById("stepIndicator3");
+      const c1 = document.getElementById("stepConnector1");
+      const c2 = document.getElementById("stepConnector2");
+      if (!s1 || !s2 || !s3) return;
+
+      const isStep1Done = !!(course.studyCompleted || course.exercisesUnlocked || course.quizCompleted);
+      const isStep2Done = !!(course.quizCompleted);
+
+      // Step 1
+      s1.classList.toggle("completed", isStep1Done);
+      s1.classList.toggle("active", !isStep1Done);
+
+      // Connector 1
+      if (c1) c1.classList.toggle("completed", isStep1Done);
+
+      // Step 2
+      s2.classList.toggle("completed", isStep2Done);
+      s2.classList.toggle("active", isStep1Done && !isStep2Done);
+
+      // Connector 2
+      if (c2) c2.classList.toggle("completed", isStep2Done);
+
+      // Step 3
+      s3.classList.toggle("completed", isStep2Done && course.progress === 100 && course.quizPassed === true);
+      s3.classList.toggle("active", isStep2Done);
+    }
+
+    function jumpToStep(stepNum) {
+      if (stepNum === 1) {
+        const el = document.getElementById("step1Section");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (stepNum === 2) {
+        const el = document.getElementById("step2Section");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+        if (!course.exercisesUnlocked && !course.studyCompleted) {
+          showToast("🔒 Conclua a leitura da apostila na Etapa 1 para desbloquear!");
+        }
+      } else if (stepNum === 3) {
+        const el = document.getElementById("step3Section");
+        if (el) {
+          el.style.display = "block";
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+    }
+
+    // ─── TEMPORIZADOR DE LEITURA E DESBLOQUEIO DE EXERCÍCIOS ───
+    let studyTimerInterval = null;
+    let studySecondsRemaining = 15;
+    const TOTAL_STUDY_SECONDS = 15;
+
+    function startStudyCountdown() {
+      accessMaterial(false);
+
+      if (course.exercisesUnlocked || course.studyCompleted) {
+        updateStudyTimerUI();
+        return;
+      }
+
+      const timerFill = document.getElementById("studyTimerFill");
+      const secondsLabel = document.getElementById("studySecondsLabel");
+      const badge = document.getElementById("studyTimerBadge");
+      const btn = document.getElementById("unlockExercisesBtn");
+
+      if (studyTimerInterval) return; // já rodando
+
+      studySecondsRemaining = TOTAL_STUDY_SECONDS;
+      if (badge) {
+        badge.innerHTML = "📖 <span style='color:#3B82F6;'>Estudo em andamento... Mantenha a leitura ativa</span>";
+      }
+
+      studyTimerInterval = setInterval(() => {
+        studySecondsRemaining--;
+        const pct = Math.round(((TOTAL_STUDY_SECONDS - studySecondsRemaining) / TOTAL_STUDY_SECONDS) * 100);
+        if (timerFill) timerFill.style.width = `${pct}%`;
+        if (secondsLabel) secondsLabel.innerText = `${studySecondsRemaining} segundos restantes`;
+
+        if (studySecondsRemaining <= 0) {
+          clearInterval(studyTimerInterval);
+          studyTimerInterval = null;
+          course.studyCompleted = true;
+          course.exercisesUnlocked = true;
+          Storage.setSelectedCourse(course);
+          saveProgressToGlobal();
+          updateStudyTimerUI();
+          renderQuiz();
+          updateStepperUI();
+          showToast("🎉 Tempo de estudo cumprido! A Etapa 2 de Exercícios foi liberada.");
+        }
+      }, 1000);
+    }
+
+    function updateStudyTimerUI() {
+      const btn = document.getElementById("unlockExercisesBtn");
+      const timerFill = document.getElementById("studyTimerFill");
+      const secondsLabel = document.getElementById("studySecondsLabel");
+      const badge = document.getElementById("studyTimerBadge");
+      if (!btn) return;
+
+      if (course.exercisesUnlocked || course.studyCompleted) {
+        if (timerFill) timerFill.style.width = "100%";
+        if (secondsLabel) secondsLabel.innerText = "Concluído com sucesso!";
+        if (badge) badge.innerHTML = "✅ <span style='color:#10B981;'>Leitura validada • Exercícios Liberados</span>";
+
+        btn.disabled = false;
+        btn.style.opacity = "1";
+        btn.style.cursor = "pointer";
+        btn.className = "btn-primary btn-unlock-pulse";
+        btn.innerHTML = "🔓 Ir para Exercícios da Etapa 2 ➔";
+        btn.onclick = function() {
+          jumpToStep(2);
+        };
+      } else {
+        btn.disabled = true;
+        btn.style.opacity = "0.6";
+        btn.style.cursor = "not-allowed";
+        btn.className = "btn-secondary";
+        btn.innerHTML = "🔒 Conclua a leitura acima para desbloquear";
+      }
+    }
+
+    function unlockExercises() {
+      course.studyCompleted = true;
+      course.exercisesUnlocked = true;
+      Storage.setSelectedCourse(course);
+      saveProgressToGlobal();
+      updateStudyTimerUI();
+      renderQuiz();
+      updateStepperUI();
+      jumpToStep(2);
+      showToast("✨ Exercícios liberados com sucesso!");
+    }
+
+    function renderLessons() {
+      const list = document.getElementById("lessonList");
+      if (!list) return;
+      list.innerHTML = "";
+      if (course.lessons) {
+        course.lessons.forEach(lesson => {
+          list.innerHTML += `<li>🔹 ${esc(lesson)}</li>`;
+        });
+      }
+    }
+
+    function updateMaterialStatusUI() {
+      const badge = document.getElementById("materialStatusBadge");
+      if (!badge) return;
+
+      if (!course.pdf) {
+        badge.style.background = "rgba(148, 163, 184, 0.15)";
+        badge.style.color = "#64748B";
+        badge.innerHTML = "📕 Nenhum material disponível para este curso";
+        return;
+      }
+
+      if (course.materialAccessed || course.studyCompleted) {
+        badge.style.background = "rgba(16, 185, 129, 0.15)";
+        badge.style.color = "#10B981";
+        badge.innerHTML = "✅ Material oficial acessado (+30% no progresso computado)";
+      } else {
+        badge.style.background = "rgba(245, 158, 11, 0.15)";
+        badge.style.color = "#F59E0B";
+        badge.innerHTML = "⏳ Material pendente de leitura (+30% no progresso)";
+      }
+    }
+
+    function updateMaterialAvailabilityUI(pdfPath) {
+      const heroStudyBtn = document.getElementById("materialStudyBtn");
+      const heroDownloadBtn = document.getElementById("materialDownloadBtn");
+      const sectionMaterialBtn = document.getElementById("materialSectionBtn");
+      const toggleViewerBtn = document.getElementById("toggleViewerBtn");
+      const buttons = [heroStudyBtn, heroDownloadBtn, sectionMaterialBtn];
+
+      if (pdfPath) {
+        // safeUrl() bloqueia esquemas perigosos (ex.: javascript:) em um PDF
+        // vindo de um curso customizado (custom_courses).
+        const safePdfPath = safeUrl(pdfPath);
+        buttons.forEach(btn => {
+          if (!btn) return;
+          btn.style.pointerEvents = "";
+          btn.style.opacity = "";
+        });
+
+        if (heroStudyBtn) {
+          heroStudyBtn.setAttribute("href", safePdfPath);
+          heroStudyBtn.onclick = function() { startStudyCountdown(); };
+        }
+        if (heroDownloadBtn) {
+          heroDownloadBtn.setAttribute("href", safePdfPath);
+          const fileName = safePdfPath.split('/').pop() || `${course.title}.pdf`;
+          heroDownloadBtn.setAttribute("download", fileName);
+          heroDownloadBtn.onclick = function() { startStudyCountdown(); };
+        }
+        if (sectionMaterialBtn) sectionMaterialBtn.setAttribute("href", safePdfPath);
+        if (toggleViewerBtn) {
+          toggleViewerBtn.disabled = false;
+          toggleViewerBtn.style.opacity = "";
+          toggleViewerBtn.style.cursor = "pointer";
+        }
+      } else {
+        // Curso sem apostila própria: desabilita os botões em vez de abrir
+        // o material de outro curso.
+        buttons.forEach(btn => {
+          if (!btn) return;
+          btn.removeAttribute("href");
+          btn.onclick = function(e) { e.preventDefault(); };
+          btn.style.pointerEvents = "none";
+          btn.style.opacity = "0.5";
+          btn.innerHTML = "📕 Material indisponível";
+        });
+        if (toggleViewerBtn) {
+          toggleViewerBtn.disabled = true;
+          toggleViewerBtn.style.opacity = "0.5";
+          toggleViewerBtn.style.cursor = "not-allowed";
+        }
+      }
+    }
+
+    function togglePdfViewer() {
+      if (!course.pdf) {
+        showToast("📕 Nenhum material disponível para este curso.");
+        return;
+      }
+
+      const container = document.getElementById("pdfViewerContainer");
+      const iframe = document.getElementById("pdfIframe");
+      const headerTitle = document.getElementById("pdfViewerHeaderTitle");
+      if (!container || !iframe) return;
+
+      if (container.style.display === "none" || container.style.display === "") {
+        const pdfPath = course.pdf;
+        if (iframe.getAttribute("src") !== pdfPath) {
+          iframe.setAttribute("src", pdfPath);
+        }
+        if (headerTitle) {
+          headerTitle.innerText = `📖 Visualizando Apostila: ${course.title}`;
+        }
+        container.style.display = "block";
+        container.scrollIntoView({ behavior: "smooth", block: "start" });
+        startStudyCountdown();
+      } else {
+        container.style.display = "none";
+      }
+    }
+
+    function accessMaterial(showNotification = true) {
+      const wasAlreadyAccessed = course.materialAccessed;
+      course.materialAccessed = true;
+      Storage.setSelectedCourse(course);
+      saveProgressToGlobal();
+      calculateProgress();
+      updateMaterialStatusUI();
+      if (showNotification && !wasAlreadyAccessed) {
+        showToast("📖 Material de estudo acessado! +30% adicionado ao progresso.");
+      }
+    }
+
+    // ─── RENDERIZADOR AMPLIADO DE EXERCÍCIOS (OBJETIVAS + QUESTÃO ABERTA) ───
+    function renderQuiz() {
+      const container = document.getElementById("quizContainer");
+      const actions = document.getElementById("quizActions");
+      if (!container || !actions) return;
+
+      container.innerHTML = "";
+      actions.innerHTML = "";
+
+      // 1. Estado Bloqueado: Exibe card de proteção pedagógica
+      if (!course.exercisesUnlocked && !course.quizCompleted) {
+        container.innerHTML = `
+          <div class="locked-card glass">
+            <div style="font-size: 3.2rem; margin-bottom: 12px;">🔒</div>
+            <h3 style="font-size: 1.35rem; margin-bottom: 8px; color: var(--text);">Exercícios da Etapa 2 Bloqueados</h3>
+            <p style="opacity: 0.85; max-width: 580px; margin: 0 auto 20px auto; font-size: 0.95rem; line-height: 1.6;">
+              Para garantir uma aprendizagem sólida, a realização dos exercícios práticos exige a leitura da apostila oficial. Acesse ou baixe o material na <strong>Etapa 1</strong> e aguarde a validação do tempo de estudo.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-primary" onclick="jumpToStep(1); startStudyCountdown();">
+                📖 Ir para o Material de Estudo (Etapa 1)
+              </button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (!course.quiz || course.quiz.length === 0) {
+        container.innerHTML = "<p>Este curso não possui exercícios cadastrados.</p>";
+        return;
+      }
+
+      // 2. Banner de Progresso dos Exercícios
+      const totalAnswers = Object.keys(course.answers || {}).length;
+      const openAnswerWords = countWords(course.openAnswer || "");
+      const minWords = (course.openQuestion && course.openQuestion.minWords) ? course.openQuestion.minWords : 20;
+
+      container.innerHTML += `
+        <div class="glass" style="padding: 16px 22px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-left: 4px solid #3B82F6;">
+          <div>
+            <span style="font-weight: 700; font-size: 0.95rem; display: block; color: var(--text);">
+              📝 Painel de Respostas da Avaliação
+            </span>
+            <span style="font-size: 0.82rem; opacity: 0.8;">
+              Responda com calma às questões conceituais e elabore sua síntese no Estudo de Caso.
+            </span>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <span class="pill" style="font-size: 0.82rem; padding: 6px 12px; background: rgba(59,130,246,0.15); color: #3B82F6; font-weight: 700;">
+              Objetivas: ${totalAnswers} / ${course.quiz.length}
+            </span>
+            <span class="pill" style="font-size: 0.82rem; padding: 6px 12px; background: ${openAnswerWords >= minWords ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)'}; color: ${openAnswerWords >= minWords ? '#10B981' : '#F59E0B'}; font-weight: 700;">
+              Dissertativa: ${openAnswerWords >= minWords ? '✅ Preenchida' : '⏳ ' + openAnswerWords + '/' + minWords + ' palavras'}
+            </span>
+          </div>
+        </div>
+      `;
+
+      // 3. Questões de Múltipla Escolha
+      let correctAnswersCount = 0;
+      course.quiz.forEach((q, qIdx) => {
+        if (course.answers && course.answers[qIdx] === q.correct) correctAnswersCount++;
+        let optionsHtml = "";
+        q.options.forEach((opt, optIdx) => {
+          const isSelected = course.answers && course.answers[qIdx] === optIdx;
+          const isCorrect = q.correct === optIdx;
+          let customStyle = "";
+
+          if (course.quizCompleted) {
+            if (isCorrect) {
+              customStyle = "background: rgba(16, 185, 129, 0.2); color: #10B981; border: 2px solid #10B981; font-weight: 700;";
+            } else if (isSelected && !isCorrect) {
+              customStyle = "background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 2px solid #EF4444;";
+            }
+          } else if (isSelected) {
+            customStyle = "background: #3B82F6; color: white; border-color: #3B82F6; font-weight: 600;";
+          }
+
+          const disabled = course.quizCompleted ? "disabled" : "";
+          const badgeText = course.quizCompleted ? (isCorrect ? " ✅ (Gabarito Correto)" : (isSelected ? " ❌ (Sua Resposta)" : "")) : "";
+
+          optionsHtml += `
+            <button class="q-opt-btn" ${disabled} style="${customStyle}" onclick="selectAnswer(${qIdx}, ${optIdx}, this)">
+              ${esc(opt)}${badgeText}
+            </button>
+          `;
+        });
+
+        container.innerHTML += `
+          <div class="wide-exercise-card glass">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.82rem; font-weight: 700; color: var(--primary);">
+              <span>QUESTÃO ${qIdx + 1} DE ${course.quiz.length}</span>
+              ${course.quizCompleted ? (course.answers[qIdx] === q.correct ? '<span style="color:#10B981;">✅ Acertou</span>' : '<span style="color:#EF4444;">❌ Errou</span>') : ''}
+            </div>
+            <p style="font-size: 1.02rem; line-height: 1.6; margin-bottom: 12px; color: var(--text);">${esc(q.question)}</p>
+            ${getQuestionGlossaryHtml('mc_' + qIdx, q.question, q.options)}
+            <div style="margin-top: 14px;">${optionsHtml}</div>
+          </div>
+        `;
+      });
+
+      // 4. Bloco da Questão Dissertativa (Aberta)
+      const openQ = course.openQuestion || {
+        title: "Estudo de Caso Prático e Síntese de Aprendizagem",
+        prompt: "Com base no material e nas aulas, elabore uma síntese técnica explicando como aplicar os princípios essenciais desta disciplina em um projeto real, destacando os desafios práticos e boas práticas recomendadas.",
+        guidelines: "Desenvolva sua resposta fundamentando termos técnicos e conceitos estudados.",
+        minWords: 20
+      };
+
+      container.innerHTML += `
+        <div class="open-q-box glass">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(99,102,241,0.15); color: #6366F1; font-weight: 700; font-size: 0.8rem; padding: 4px 10px; border-radius: 6px;">
+              ✍️ DESAFIO PRÁTICO & DISSERTATIVO
+            </span>
+            <span style="font-size: 0.82rem; opacity: 0.85; font-weight: 600;" id="openQWordsBadge">
+              ${openAnswerWords} palavras digitadas
+            </span>
+          </div>
+          <h3 style="font-size: 1.25rem; margin-bottom: 10px; color: var(--text);">
+            ${esc(openQ.title)}
+          </h3>
+          <p style="font-size: 0.98rem; line-height: 1.65; margin-bottom: 12px; opacity: 0.95;">
+            ${esc(openQ.prompt)}
+          </p>
+          <div style="background: rgba(0,0,0,0.03); border-left: 3px solid #6366F1; padding: 12px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 0.88rem; opacity: 0.92; line-height: 1.5;">
+            <strong>💡 Diretriz de Avaliação do Professor:</strong> ${esc(openQ.guidelines)}
+          </div>
+          ${getQuestionGlossaryHtml('open_0', openQ.prompt + ' ' + (openQ.title || ''), openQ.keywords || [])}
+          <label for="openAnswerInput" style="font-weight: 700; font-size: 0.92rem; display: block; margin-top: 14px; margin-bottom: 8px;">
+            Sua Resposta Dissertativa:
+          </label>
+          <textarea id="openAnswerInput" class="open-q-textarea" placeholder="Redija aqui sua resposta argumentativa com clareza e suas próprias palavras..." oninput="handleOpenAnswerChange(this.value)" ${course.quizCompleted ? 'disabled' : ''}>${esc(course.openAnswer || "")}</textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 10px; font-size: 0.82rem;">
+            <span id="openWordHint" style="color: ${openAnswerWords >= minWords ? '#10B981' : '#F59E0B'}; font-weight: 600;">
+              ${openAnswerWords >= minWords ? '✅ Extensão recomendada atingida (' + openAnswerWords + ' palavras)' : '⚠️ Recomendado ao menos ' + minWords + ' palavras (' + openAnswerWords + ' digitadas)'}
+            </span>
+            <span style="opacity: 0.75;">
+              👨‍🏫 Esta resposta é enviada para correção do tutor com assistência de IA.
+            </span>
+          </div>
+        </div>
+      `;
+
+      // 5. Ações do Rodapé
+      if (!course.quizCompleted) {
+        actions.innerHTML = `
+          <div class="glass" style="padding: 20px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <strong style="display: block; font-size: 0.95rem; margin-bottom: 2px;">Pronto para submeter sua atividade?</strong>
+              <span style="font-size: 0.85rem; opacity: 0.85;">Certifique-se de responder todas as ${course.quiz.length} objetivas e a questão dissertativa.</span>
+            </div>
+            <button class="btn-primary" onclick="submitQuiz()" style="padding: 12px 24px; font-size: 0.95rem; font-weight: 700; box-shadow: 0 4px 14px rgba(59,130,246,0.35);">
+              🚀 Finalizar e Enviar para Avaliação (${course.quiz.length} Questões + Estudo de Caso)
+            </button>
+          </div>
+        `;
+      } else {
+        const scorePercent = Math.round((correctAnswersCount / course.quiz.length) * 100);
+        const isPassed = course.quizPassed !== undefined ? course.quizPassed : (scorePercent >= 60);
+
+        if (isPassed) {
+          actions.innerHTML = `
+            <div class="glass" style="padding: 22px; border-radius: 14px; border-left: 6px solid #10B981; margin-bottom: 15px; background: rgba(16,185,129,0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <div>
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 1.4rem;">🎉</span>
+                    <strong style="color: #10B981; font-size: 1.15rem;">Aprovado com Sucesso! (${scorePercent}%)</strong>
+                    <span class="pill" style="background: rgba(16,185,129,0.2); color: #10B981; font-size: 0.78rem; font-weight: 800; padding: 4px 10px;">APROVADO (≥60%)</span>
+                  </div>
+                  <p style="font-size: 0.92rem; opacity: 0.9; margin: 0;">Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}% de aproveitamento) e sua resposta dissertativa foi registrada. Requisitos acadêmicos concluídos com êxito!</p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn-secondary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 18px;">
+                    🔄 Refazer Avaliação
+                  </button>
+                  <button class="btn-primary" onclick="jumpToStep(3)" style="font-size: 0.85rem; padding: 10px 18px; background: #10B981; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+                    🏆 Emitir Certificado (Etapa 3) ➔
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          actions.innerHTML = `
+            <div class="glass" style="padding: 22px; border-radius: 14px; border-left: 6px solid #EF4444; margin-bottom: 15px; background: rgba(239,68,68,0.06);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                <div style="max-width: 650px;">
+                  <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                    <span style="font-size: 1.4rem;">⚠️</span>
+                    <strong style="color: #EF4444; font-size: 1.15rem;">Aproveitamento Insuficiente (${scorePercent}%)</strong>
+                    <span class="pill" style="background: rgba(239,68,68,0.2); color: #EF4444; font-size: 0.78rem; font-weight: 800; padding: 4px 10px;">REPROVADO (MÍNIMO 60%)</span>
+                  </div>
+                  <p style="font-size: 0.92rem; opacity: 0.9; margin: 0 0 6px 0;">
+                    Você acertou <strong>${correctAnswersCount} de ${course.quiz.length} questões objetivas</strong> (${scorePercent}%). Para ser aprovado e desbloquear o certificado oficial, a nota mínima exigida é de <strong>60% (${Math.ceil(course.quiz.length * 0.6)} acertos)</strong>.
+                  </p>
+                  <p style="font-size: 0.84rem; color: var(--muted); margin: 0;">
+                    💡 Consulte as opções em vermelho e o <em>Dicionário & Dicas</em> de cada questão para fixar os conceitos, ou revise a apostila antes de tentar novamente.
+                  </p>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button class="btn-secondary" onclick="jumpToStep(1)" style="font-size: 0.85rem; padding: 10px 18px;">
+                    📖 Revisar Apostila
+                  </button>
+                  <button class="btn-primary" onclick="resetQuiz()" style="font-size: 0.85rem; padding: 10px 20px; background: #EF4444; box-shadow: 0 4px 14px rgba(239,68,68,0.35);">
+                    🔄 Refazer Avaliação Agora
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function countWords(str) {
+      if (!str) return 0;
+      const clean = str.trim().replace(/\s+/g, ' ');
+      return clean.length === 0 ? 0 : clean.split(' ').length;
+    }
+
+    // ─── DICIONÁRIO DE TERMOS & DICAS EXPANSÍVEL (OPÇÃO 2) ───
+    function getQuestionGlossaryHtml(id, questionText, optionsList) {
+      const glossary = window.techTermsGlossary || {};
+      const fullText = (questionText + " " + (optionsList ? optionsList.join(" ") : "")).toLowerCase();
+      
+      const matchedKeys = Object.keys(glossary).filter(key => fullText.includes(key));
+      
+      if (matchedKeys.length === 0) {
+        return `
+          <div class="q-glossary-container">
+            <button type="button" class="btn-glossary-toggle" onclick="toggleQuestionGlossary('${id}')">
+              💡 Dica de Resolução & Interpretação <span id="glossaryArrow_${id}">▼</span>
+            </button>
+            <div id="glossaryBox_${id}" class="q-glossary-box" style="display:none;">
+              <div class="glossary-item">
+                <div class="glossary-item-title">🔍 Dica de Análise do Enunciado</div>
+                <div class="glossary-item-simple">Leia com atenção o comando final da questão. Descarte primeiro as alternativas que utilizam termos radicais e inflexíveis (como "sempre", "nunca", "exclusivamente") e conecte a alternativa correta às boas práticas recomendadas na apostila oficial.</div>
+                <div class="glossary-item-technique">💡 Técnica de Resolução: Busque a alternativa que prioriza segurança, valor de negócio ao cliente e boas práticas de arquitetura.</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      const itemsHtml = matchedKeys.map(key => {
+        const item = glossary[key];
+        return `
+          <div class="glossary-item">
+            <div class="glossary-item-title">📖 ${esc(item.term)}</div>
+            <div class="glossary-item-simple"><strong>O que significa:</strong> ${esc(item.simple)}</div>
+            <div class="glossary-item-technique">${esc(item.technique)}</div>
+          </div>
+        `;
+      }).join("");
+
+      return `
+        <div class="q-glossary-container">
+          <button type="button" class="btn-glossary-toggle" onclick="toggleQuestionGlossary('${id}')">
+            💡 Dicionário & Dicas desta Questão <span style="background:rgba(245,158,11,0.25); padding:2px 8px; border-radius:10px; font-size:0.75rem; font-weight:800;">${matchedKeys.length} termos identificados</span> <span id="glossaryArrow_${id}">▼</span>
+          </button>
+          <div id="glossaryBox_${id}" class="q-glossary-box" style="display:none;">
+            ${itemsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleQuestionGlossary(id) {
+      const box = document.getElementById("glossaryBox_" + id);
+      const arrow = document.getElementById("glossaryArrow_" + id);
+      if (!box) return;
+      if (box.style.display === "none" || box.style.display === "") {
+        box.style.display = "flex";
+        if (arrow) arrow.innerText = "▲";
+      } else {
+        box.style.display = "none";
+        if (arrow) arrow.innerText = "▼";
+      }
+    }
+
+    function handleOpenAnswerChange(val) {
+      if (course.quizCompleted) return;
+      course.openAnswer = val;
+      Storage.setSelectedCourse(course);
+
+      const wordCount = countWords(val);
+      const minWords = (course.openQuestion && course.openQuestion.minWords) ? course.openQuestion.minWords : 20;
+
+      const badge = document.getElementById("openQWordsBadge");
+      if (badge) badge.innerText = `${wordCount} palavras digitadas`;
+
+      const hint = document.getElementById("openWordHint");
+      if (hint) {
+        if (wordCount >= minWords) {
+          hint.style.color = "#10B981";
+          hint.innerHTML = `✅ Extensão recomendada atingida (${wordCount} palavras)`;
+        } else {
+          hint.style.color = "#F59E0B";
+          hint.innerHTML = `⚠️ Recomendado ao menos ${minWords} palavras (${wordCount} digitadas)`;
+        }
+      }
+    }
+
+    function selectAnswer(qIdx, optIdx, btn) {
+      if (course.quizCompleted) return;
+
+      course.answers[qIdx] = optIdx;
+      Storage.setSelectedCourse(course);
+      saveProgressToGlobal();
+
+      const parent = btn.parentElement;
+      const buttons = parent.querySelectorAll("button");
+      buttons.forEach(b => {
+        b.style.background = "";
+        b.style.color = "";
+        b.style.borderColor = "";
+      });
+      btn.style.background = "#3B82F6";
+      btn.style.color = "white";
+      btn.style.borderColor = "#3B82F6";
+
+      calculateProgress();
+    }
+
+    function submitQuiz() {
+      const totalQuestions = course.quiz ? course.quiz.length : 0;
+      const totalAnswers = Object.keys(course.answers || {}).length;
+
+      if (totalAnswers < totalQuestions) {
+        showToast(`Por favor, responda todas as ${totalQuestions} questões objetivas antes de enviar!`);
+        return;
+      }
+
+      const openWords = countWords(course.openAnswer || "");
+      if (openWords < 5) {
+        showToast("Por favor, preencha sua resposta na Questão Dissertativa antes de finalizar!");
+        const txtArea = document.getElementById("openAnswerInput");
+        if (txtArea) txtArea.focus();
+        return;
+      }
+
+      // Calcula pontuação e nota mínima (60%)
+      let score = 0;
+      if (course.quiz) {
+        course.quiz.forEach((q, idx) => {
+          if (course.answers[idx] === q.correct) score++;
+        });
+      }
+
+      const scorePercent = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+      const isPassed = scorePercent >= 60;
+
+      course.quizCompleted = true;
+      course.quizScore = score;
+      course.quizScorePercent = scorePercent;
+      course.quizPassed = isPassed;
+
+      Storage.setSelectedCourse(course);
+
+      if (user) {
+        const submissions = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
+        const existingIdx = submissions.findIndex(s => s.userEmail === user.email && s.courseId === course.id);
+
+        const newSub = {
+          id: existingIdx >= 0 ? submissions[existingIdx].id : Date.now(),
+          userName: user.name,
+          userEmail: user.email,
+          courseId: course.id,
+          courseTitle: course.title,
+          answers: course.answers,
+          openAnswer: course.openAnswer || "",
+          openQuestion: course.openQuestion || null,
+          quiz: course.quiz,
+          score: score,
+          scorePercent: scorePercent,
+          quizPassed: isPassed,
+          totalQuestions: totalQuestions,
+          status: "Pendente",
+          feedback: "",
+          submittedAt: new Date().toLocaleDateString('pt-BR')
+        };
+
+        if (existingIdx >= 0) {
+          submissions[existingIdx] = newSub;
+        } else {
+          submissions.push(newSub);
+        }
+        localStorage.setItem("teacher_activity_submissions", JSON.stringify(submissions));
+      }
+
+      calculateProgress();
+      renderQuiz();
+      renderStep3();
+      updateStepperUI();
+      jumpToStep(3);
+
+      if (isPassed) {
+        showToast(`🎉 Parabéns! Você atingiu ${scorePercent}% de aproveitamento e foi Aprovado!`);
+      } else {
+        showToast(`⚠️ Nota ${scorePercent}%. Mínimo exigido: 60%. Revise o material e refaça a prova!`);
+      }
+    }
+
+    function resetQuiz() {
+      course.quizCompleted = false;
+      course.quizPassed = false;
+      course.quizScore = 0;
+      course.quizScorePercent = 0;
+      course.answers = {};
+      Storage.setSelectedCourse(course);
+      calculateProgress();
+      renderQuiz();
+      renderStep3();
+      updateStepperUI();
+      jumpToStep(2);
+      showToast("Avaliação liberada para nova tentativa!");
+    }
+
+    // ─── ETAPA 3: PARECER DO PROFESSOR E CERTIFICADO ───
+    function renderStep3() {
+      const step3Sec = document.getElementById("step3Section");
+      const container = document.getElementById("step3Container");
+      if (!step3Sec || !container) return;
+
+      if (!course.quizCompleted) {
+        step3Sec.style.display = "none";
+        return;
+      }
+
+      step3Sec.style.display = "block";
+
+      // Busca submissão deste aluno
+      const subs = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
+      const mySub = user ? subs.find(s => s.userEmail === user.email && s.courseId === course.id) : null;
+      const hasFeedback = mySub && mySub.feedback && mySub.feedback.trim().length > 0;
+      const isGraded = mySub && mySub.status === "Corrigido";
+
+      let feedbackBox = "";
+      if (isGraded && hasFeedback) {
+        feedbackBox = `
+          <div style="background: rgba(16,185,129,0.08); border-left: 4px solid #10B981; border-radius: 10px; padding: 18px 22px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <strong style="color: #10B981; font-size: 1rem;">💬 Parecer Técnico do Professor:</strong>
+              <span style="font-size: 0.78rem; opacity: 0.7;">Data: ${esc(mySub.gradedAt || mySub.submittedAt)}</span>
+            </div>
+            <p style="font-size: 0.95rem; line-height: 1.6; font-style: italic; opacity: 0.95;">
+              "${esc(mySub.feedback)}"
+            </p>
+          </div>
+        `;
+      } else {
+        feedbackBox = `
+          <div style="background: rgba(245,158,11,0.08); border-left: 4px solid #F59E0B; border-radius: 10px; padding: 18px 22px; margin-bottom: 20px;">
+            <strong style="color: #F59E0B; font-size: 1rem; display: block; margin-bottom: 6px;">⏳ Atividade na Fila de Correção do Docente</strong>
+            <p style="font-size: 0.9rem; line-height: 1.5; opacity: 0.9;">
+              Sua avaliação objetiva e resposta dissertativa foram enviadas para a banca acadêmica. O professor responsável emitirá o parecer pedagógico em breve.
+            </p>
+          </div>
+        `;
+      }
+
+      const isPassed = course.quizPassed === true;
+      const scorePct = course.quizScorePercent !== undefined ? course.quizScorePercent : 0;
+      const scoreNum = course.quizScore !== undefined ? course.quizScore : 0;
+      const totalQ = course.quiz ? course.quiz.length : 10;
+
+      let certCard = "";
+      if (isPassed && course.progress === 100) {
+        certCard = `
+          <div style="background: var(--card); border: 1px solid rgba(16,185,129,0.3); border-radius: 14px; padding: 24px; text-align: center; margin-top: 20px; box-shadow: 0 8px 24px rgba(16,185,129,0.08);">
+            <div style="font-size: 3rem; margin-bottom: 8px;">🏅</div>
+            <h4 style="font-size: 1.25rem; margin-bottom: 6px; color: #10B981;">Parabéns! Requisitos Acadêmicos Concluídos</h4>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16,185,129,0.15); color: #10B981; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px;">
+              <span>Nota Obtida: ${scorePct}% (${scoreNum}/${totalQ} acertos)</span>
+              <span>•</span>
+              <span>Nota Mínima Exigida: 60%</span>
+            </div>
+            <p style="font-size: 0.92rem; opacity: 0.9; max-width: 520px; margin: 0 auto 16px auto;">
+              Você concluiu o material didático oficial e atingiu a pontuação mínima necessária na avaliação técnica. Seu certificado de conclusão está liberado para emissão e impressão.
+            </p>
+            <button class="btn-primary" onclick="generateCertificate(${esc(JSON.stringify(course.title))})" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; background: #10B981; box-shadow: 0 4px 14px rgba(16,185,129,0.35);">
+              🏆 Emitir e Imprimir Meu Certificado
+            </button>
+          </div>
+        `;
+      } else {
+        certCard = `
+          <div style="background: var(--card); border: 1px solid rgba(239,68,68,0.25); border-radius: 14px; padding: 24px; text-align: center; margin-top: 20px;">
+            <div style="font-size: 3rem; margin-bottom: 8px;">🔒</div>
+            <h4 style="font-size: 1.25rem; margin-bottom: 6px; color: #EF4444;">Certificado Bloqueado — Nota Mínima Não Atingida</h4>
+            <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(239,68,68,0.12); color: #EF4444; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px;">
+              <span>Sua Nota: ${scorePct}% (${scoreNum}/${totalQ} acertos)</span>
+              <span>•</span>
+              <span>Mínimo para Aprovação: 60%</span>
+            </div>
+            <p style="font-size: 0.92rem; opacity: 0.9; max-width: 520px; margin: 0 auto 16px auto;">
+              O certificado oficial de conclusão só é emitido para estudantes que atingem aproveitamento igual ou superior a <strong>60%</strong> na avaliação técnica.
+            </p>
+            <button class="btn-primary" onclick="resetQuiz()" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; background: #EF4444; box-shadow: 0 4px 14px rgba(239,68,68,0.35);">
+              🔄 Refazer Avaliação para Atingir a Nota
+            </button>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h3 style="font-size: 1.3rem; margin-bottom: 4px;">Status Acadêmico do Curso</h3>
+            <span style="font-size: 0.88rem; opacity: 0.85;">Aluno: <strong>${user ? esc(user.name) : 'Visitante'}</strong> · Disciplina: <strong>${esc(course.title)}</strong></span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span class="pill" style="font-size: 0.85rem; padding: 6px 14px; background: ${isPassed ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color: ${isPassed ? '#10B981' : '#EF4444'}; font-weight: 800;">
+              ${isPassed ? '✅ Aprovado na Prova (' + scorePct + '%)' : '❌ Reprovado na Prova (' + scorePct + '%)'}
+            </span>
+            <span class="pill" style="font-size: 0.85rem; padding: 6px 14px; background: ${isGraded ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)'}; color: ${isGraded ? '#10B981' : '#F59E0B'}; font-weight: 700;">
+              ${isGraded ? '✅ Parecer Emitido' : '⏳ Fila de Correção'}
+            </span>
+          </div>
+        </div>
+
+        ${feedbackBox}
+
+        ${certCard}
+      `;
+    }
+
+    function calculateProgress() {
+      let weightMaterial = (course.materialAccessed || course.studyCompleted) ? 30 : 0;
+      let weightQuiz = 0;
+
+      if (course.quizCompleted) {
+        if (course.quizPassed) {
+          weightQuiz = 70; // 30% material + 70% avaliação aprovada = 100%
+        } else {
+          // Se não atingiu a média mínima, pontuação proporcional até no máximo 35%, nunca 100%
+          const pct = course.quizScorePercent || 0;
+          weightQuiz = Math.round((pct / 100) * 35);
+        }
+      }
+
+      course.progress = course.quizPassed ? (weightMaterial + weightQuiz) : Math.min(weightMaterial + weightQuiz, 65);
+      
+      Storage.setSelectedCourse(course);
+      saveProgressToGlobal();
+      updateProgressUI();
+    }
+
+    function updateProgressUI() {
+      const progressBar = document.getElementById("courseProgress");
+      const progressText = document.getElementById("courseProgressText");
+      const val = course.progress || 0;
+      if (progressBar) {
+        progressBar.style.width = `${val}%`;
+      }
+      if (progressText) {
+        progressText.innerText = `${val}% Concluído`;
+      }
+    }
+
+    function saveProgressToGlobal() {
+      if (user && course) {
+        const progressKey = `user_courses_progress_${user.email}`;
+        const records = JSON.parse(localStorage.getItem(progressKey)) || {};
+        const jaConcluiuAntes = records[course.id] && records[course.id].progress === 100 && records[course.id].quizPassed;
+
+        records[course.id] = {
+          id: course.id,
+          title: course.title,
+          progress: course.progress || 0,
+          answers: course.answers || {},
+          openAnswer: course.openAnswer || "",
+          studyCompleted: course.studyCompleted || false,
+          exercisesUnlocked: course.exercisesUnlocked || false,
+          quizCompleted: course.quizCompleted || false,
+          quizPassed: course.quizPassed || false,
+          quizScore: course.quizScore !== undefined ? course.quizScore : 0,
+          quizScorePercent: course.quizScorePercent !== undefined ? course.quizScorePercent : 0,
+          materialAccessed: course.materialAccessed || false
+        };
+        localStorage.setItem(progressKey, JSON.stringify(records));
+
+        // Só ganha XP e sobe de nível se atingiu 100% E passou na avaliação!
+        if (course.progress === 100 && course.quizPassed && !jaConcluiuAntes) {
+          if (user.xp === undefined) user.xp = 0;
+          if (user.level === undefined) user.level = 1;
+
+          const xpGanho = 1000; 
+          user.xp += xpGanho;
+          
+          showToast(`🎉 Parabéns! Você ganhou +${xpGanho} XP por concluir o curso!`);
+
+          let subiuNivel = false;
+          let xpNecessario = user.level * 1000;
+          while (user.xp >= xpNecessario) {
+            user.xp -= xpNecessario;
+            user.level += 1;
+            subiuNivel = true;
+            xpNecessario = user.level * 1000;
+            showToast(`✨ SUBIU DE NÍVEL! Você agora está no Nível ${user.level}!`);
+          }
+
+          Storage.setLoggedUser(user);
+
+          if (subiuNivel) {
+            setTimeout(() => {
+              showLevelUpCelebration(user.level);
+            }, 800);
+          }
+        }
+      }
+    }
+
+    function showLevelUpCelebration(newLevel) {
+      let modal = document.getElementById("levelUpCelebrationModal");
+      if (!modal) {
+        modal = document.createElement("div");
+        modal.id = "levelUpCelebrationModal";
+        modal.className = "modal";
+        document.body.appendChild(modal);
+      }
+
+      const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
+      const unlockedCourses = coursesList.filter(c => (c.minLevel || 1) === newLevel);
+
+      let coursesUnlockedHTML = "";
+      if (unlockedCourses.length > 0) {
+        coursesUnlockedHTML = `
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 14px; margin: 15px 0; text-align: left;">
+            <p style="font-weight: 700; color: #10B981; font-size: 0.9rem; margin-bottom: 8px;">🔓 Novos Cursos Destrancados para Você:</p>
+            <ul style="padding-left: 18px; margin: 0; font-size: 0.85rem; line-height: 1.6;">
+              ${unlockedCourses.map(c => `<li><strong>${esc(c.title)}</strong> (${esc(c.category)})</li>`).join('')}
+            </ul>
+          </div>
+        `;
+      }
+
+      modal.innerHTML = `
+        <div class="modal-content lock-modal-card">
+          <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer; font-size:1.5rem;" onclick="document.getElementById('levelUpCelebrationModal').style.display='none'">&times;</span>
+          
+          <div class="padlock-anim-container">
+            <div class="padlock-wrapper unlocked" id="celebrationPadlock">
+              <div class="padlock-halo"></div>
+              <div class="padlock-sparkles">
+                <span class="sparkle s1">✨</span>
+                <span class="sparkle s2">⭐</span>
+                <span class="sparkle s3">✨</span>
+                <span class="sparkle s4">⭐</span>
+              </div>
+              <svg class="padlock-svg" viewBox="0 0 100 120">
+                <defs>
+                  <linearGradient id="shackleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#CBD5E1" />
+                    <stop offset="50%" stop-color="#94A3B8" />
+                    <stop offset="100%" stop-color="#64748B" />
+                  </linearGradient>
+                  <linearGradient id="bodyGradGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FBBF24" />
+                    <stop offset="50%" stop-color="#EAB308" />
+                    <stop offset="100%" stop-color="#B45309" />
+                  </linearGradient>
+                </defs>
+                <path class="padlock-shackle" d="M 32 55 V 30 A 18 18 0 0 1 68 30 V 55" fill="none" stroke="url(#shackleGrad)" stroke-width="12" stroke-linecap="round" />
+                <rect class="padlock-body" x="16" y="48" width="68" height="58" rx="14" fill="url(#bodyGradGold)" stroke="#92400E" stroke-width="2" />
+                <circle cx="50" cy="72" r="6" fill="#1E293B" />
+                <polygon points="47,73 53,73 55,87 45,87" fill="#1E293B" />
+              </svg>
+            </div>
+          </div>
+
+          <h2 style="font-size: 1.5rem; margin-bottom: 6px; color: #10B981;">🎉 SUBIU PARA O NÍVEL ${newLevel}!</h2>
+          <p style="font-size: 0.95rem; opacity: 0.9; margin-bottom: 12px;">O cadeado se abriu! Você atingiu uma nova patente de conhecimento na plataforma.</p>
+          
+          ${coursesUnlockedHTML}
+
+          <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+            <a href="cursos.html" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+              📚 Explorar Catálogo Destrancado
+            </a>
+            <button class="btn-secondary" onclick="document.getElementById('levelUpCelebrationModal').style.display='none'">
+              Continuar
+            </button>
+          </div>
+        </div>
+      `;
+
+      modal.style.display = "flex";
+    }
+
+    function submitReview() {
+      const stars = document.getElementById("reviewStars").value;
+      const feedbackText = document.getElementById("reviewText").value.trim();
+      
+      const reviewData = {
+        courseId: course.id,
+        user: user ? user.email : "anonimo",
+        rating: stars || "Não avaliado",
+        comment: feedbackText || "Sem comentários"
+      };
+
+      const globalReviews = JSON.parse(localStorage.getItem("course_reviews")) || [];
+      globalReviews.push(reviewData);
+      localStorage.setItem("course_reviews", JSON.stringify(globalReviews));
+
+      const reviewBox = document.getElementById("reviewBox");
+      if (reviewBox) {
+        reviewBox.innerHTML = `<p style="color: #10B981; font-weight: 600; text-align: center; margin: 5px 0;">❤️ Obrigado pelo seu feedback voluntário!</p>`;
+      }
+      showToast("Avaliação enviada com sucesso!");
+    }
+
+    function getChatStorageKey() {
+      if (!course) return "chat_global";
+      const activeUser = Storage.getLoggedUser();
+      
+      if (activeUser && activeUser.role === "student") {
+        return `chat_course_${course.id}_user_${activeUser.email}`;
+      } else {
+        const selectedStudent = localStorage.getItem("chat_active_student") || "student_simulation";
+        return `chat_course_${course.id}_user_${selectedStudent}`;
+      }
+    }
+
+    function buildStudentSelector() {
+      const containerSelector = document.getElementById("teacherStudentSelectorContainer");
+      const selector = document.getElementById("chatStudentSelector");
+      if (!containerSelector || !selector) return;
+
+      containerSelector.style.display = "block";
+      selector.innerHTML = '<option value="student_simulation">Simulação Geral (padrão)</option>';
+
+      const prefix = `chat_course_${course.id}_user_`;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) {
+          const studentEmail = key.replace(prefix, "");
+          if (studentEmail !== "student_simulation") {
+            const foundUser = Storage.findUserByEmail(studentEmail);
+            const studentName = foundUser ? foundUser.name : studentEmail;
+
+            selector.innerHTML += `<option value="${esc(studentEmail)}">${esc(studentName)} (${esc(studentEmail)})</option>`;
+          }
+        }
+      }
+
+      const active = localStorage.getItem("chat_active_student") || "student_simulation";
+      selector.value = active;
+    }
+
+    function changeActiveStudent(studentEmail) {
+      localStorage.setItem("chat_active_student", studentEmail);
+      renderChatHistory();
+    }
+
+    function renderChatHistory() {
+      const container = document.getElementById("chatMessages");
+      if (!container) return;
+      
+      const activeUser = Storage.getLoggedUser();
+      container.innerHTML = "";
+
+      container.innerHTML = `
+        <div style="background: rgba(255,255,255,0.15); padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; border: 1px solid rgba(255,255,255,0.05);">
+          Olá! Se tiver qualquer dúvida sobre o material ou os tópicos do curso, envie aqui!
+        </div>
+      `;
+
+      if (!activeUser) return;
+
+      const storageKey = getChatStorageKey();
+      const chatLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      chatLogs.forEach(msg => {
+        const isMe = msg.senderEmail === activeUser.email;
+        const bubble = document.createElement("div");
+        
+        if (isMe) {
+          bubble.style.cssText = "background: #3B82F6; color: white; padding: 10px 14px; border-radius: 12px 12px 0px 12px; align-self: flex-end; max-width: 85%; line-height: 1.4; word-break: break-word; margin-top: 5px;";
+        } else {
+          bubble.style.cssText = "background: rgba(16, 185, 129, 0.2); color: inherit; padding: 10px 14px; border-radius: 12px 12px 12px 0px; align-self: flex-start; max-width: 85%; line-height: 1.4; word-break: break-word; margin-top: 5px; border: 1px solid rgba(16, 185, 129, 0.3);";
+        }
+        
+        // Monta a bolha com createElement/textContent (nunca innerHTML) para
+        // impedir que o nome ou o texto da mensagem executem HTML/JS.
+        const strong = document.createElement("strong");
+        strong.textContent = msg.senderName + ":";
+        bubble.appendChild(strong);
+        bubble.appendChild(document.createTextNode(" " + msg.text));
+        container.appendChild(bubble);
+      });
+      container.scrollTop = container.scrollHeight;
+      updateProgressUI();
+    }
+
+    function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const messageText = input.value.trim();
+      if (!messageText) return;
+
+      const activeUser = Storage.getLoggedUser();
+      if (!activeUser) {
+        showToast("Você precisa entrar na sua conta para usar o chat.");
+        return;
+      }
+
+      const storageKey = getChatStorageKey();
+      const chatLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+      const newMessage = {
+        senderName: activeUser.role === "teacher" ? "👨‍🏫 Prof. " + activeUser.name : activeUser.name,
+        senderEmail: activeUser.email,
+        text: messageText,
+        timestamp: new Date().getTime()
+      };
+
+      chatLogs.push(newMessage);
+      localStorage.setItem(storageKey, JSON.stringify(chatLogs));
+      
+      input.value = "";
+      renderChatHistory();
+
+      if (activeUser.role === "student") {
+        setTimeout(() => {
+          const currentLogs = JSON.parse(localStorage.getItem(storageKey)) || [];
+          const lastMsg = currentLogs[currentLogs.length - 1];
+          if (lastMsg && lastMsg.senderEmail === activeUser.email) {
+            const botMessage = {
+              senderName: "🤖 Notificação do Sistema",
+              senderEmail: "system_bot",
+              text: "Sua dúvida foi enviada! O professor foi notificado e responderá diretamente neste painel em breve.",
+              timestamp: new Date().getTime()
+            };
+            currentLogs.push(botMessage);
+            localStorage.setItem(storageKey, JSON.stringify(currentLogs));
+            renderChatHistory();
+          }
+        }, 2000);
+      } else {
+        showToast("Resposta do professor registrada!");
+      }
+    }
+  </script>
+</body>
+</html>
