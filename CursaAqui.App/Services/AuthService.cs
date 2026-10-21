@@ -6,23 +6,22 @@ namespace CursaAqui.App.Services;
 /// ============================================================================
 /// PADRÃO DE PROJETO: SINGLETON & SERVIÇO DE AUTENTICAÇÃO E SESSÃO
 /// ============================================================================
-/// Responsável por:
-/// 1. Gerenciar a sessão do usuário interno logado (Administrador ou Secretaria)
-/// 2. Validar credenciais (e-mail institucional e senha)
-/// 3. Aplicar o princípio de menor privilégio (RBAC - Role-Based Access Control)
-/// 4. Consultar a matriz de permissões dinâmicas configuradas pelo Administrador
+/// Agora a autenticação é feita pela CursaAqui-API (JWT):
+/// 1. O login envia e-mail e senha para a API, que devolve o token e o perfil
+/// 2. O token fica no ApiClient e é enviado em todas as chamadas seguintes
+/// 3. As permissões dinâmicas (matriz do Administrador) vêm de /api/auth/permissoes
 /// ============================================================================
 /// </summary>
 public class AuthService
 {
-    // Instância única global (Singleton)
     private static AuthService? _instance;
     public static AuthService Instance => _instance ??= new AuthService();
 
     // Guarda o objeto polimórfico do usuário logado (pode ser Administrador ou Secretaria)
     public UsuarioInterno? UsuarioLogado { get; private set; }
 
-    // Propriedades auxiliares de verificação de estado
+    private Dictionary<string, bool> _permissoes = new();
+
     public bool EstaAutenticado => UsuarioLogado != null;
     public bool EhAdministrador => UsuarioLogado is Administrador;
     public bool EhSecretaria => UsuarioLogado is Secretaria;
@@ -33,70 +32,60 @@ public class AuthService
     {
     }
 
-    /// <summary>
-    /// Realiza a autenticação do usuário interno buscando no repositório.
-    /// </summary>
-    public (bool Sucesso, string Mensagem) Login(string email, string senha)
+    /// <summary>Autentica na API. Só Administrador e Secretaria podem usar o aplicativo desktop.</summary>
+    public async Task<(bool Sucesso, string Mensagem)> LoginAsync(string email, string senha)
     {
         if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(senha))
             return (false, "Informe o e-mail institucional e a senha.");
 
-        var repo = DataRepository.Instance;
-        var usuario = repo.UsuariosInternos.FirstOrDefault(u => 
-            u.Email.Equals(email.Trim(), StringComparison.OrdinalIgnoreCase));
+        var r = await ApiClient.Instance.PostAsync<AuthRespostaDto>("api/auth/login",
+            new { email = email.Trim(), senha = senha.Trim() });
 
+        if (!r.Sucesso || r.Dados == null)
+            return (false, r.Erro);
+
+        var usuario = ApiMapper.ToUsuario(r.Dados.Usuario);
         if (usuario == null)
-            return (false, "Usuário interno não encontrado. Verifique as credenciais.");
+            return (false, "Este aplicativo é exclusivo da equipe interna (Administração e Secretaria).\nAlunos e professores devem usar o portal web.");
 
-        if (!usuario.Ativo)
-            return (false, "Este usuário interno está inativo. Contate a administração.");
-
-        if (usuario.Senha != senha.Trim())
-            return (false, "Senha incorreta. Tente novamente.");
-
-        // Define a sessão ativa
+        ApiClient.Instance.DefinirToken(r.Dados.Token);
         UsuarioLogado = usuario;
 
-        // Se for administrador, atualiza timestamp de último acesso gerencial
-        if (usuario is Administrador admin)
+        var erroPermissoes = await CarregarPermissoesAsync();
+        if (erroPermissoes != null)
         {
-            admin.UltimoAcessoGerencial = DateTime.Now;
-            repo.Salvar();
+            Logout();
+            return (false, erroPermissoes);
         }
 
         OnUsuarioAlterado?.Invoke();
         return (true, $"Bem-vindo(a), {usuario.Nome}!");
     }
 
-    /// <summary>
-    /// Encerra a sessão atual com segurança.
-    /// </summary>
+    /// <summary>Busca a matriz de permissões do perfil logado (chave da funcionalidade -> permitido).</summary>
+    public async Task<string?> CarregarPermissoesAsync()
+    {
+        var r = await ApiClient.Instance.GetAsync<Dictionary<string, bool>>("api/auth/permissoes");
+        if (!r.Sucesso) return r.Erro;
+        _permissoes = r.Dados ?? new Dictionary<string, bool>();
+        return null;
+    }
+
+    /// <summary>Encerra a sessão: descarta o token e os dados em memória.</summary>
     public void Logout()
     {
         UsuarioLogado = null;
+        _permissoes = new Dictionary<string, bool>();
+        ApiClient.Instance.DefinirToken(null);
+        DataRepository.Instance.Limpar();
         OnUsuarioAlterado?.Invoke();
     }
 
-    /// <summary>
-    /// Valida se o usuário autenticado pode acessar a funcionalidade solicitada.
-    /// Consulta tanto o perfil base quanto a matriz de permissões configurável.
-    /// </summary>
+    /// <summary>Valida se o usuário autenticado pode acessar a funcionalidade (matriz definida pelo Administrador).</summary>
     public bool TemPermissao(string chaveFuncionalidade)
     {
         if (UsuarioLogado == null) return false;
-
-        var repo = DataRepository.Instance;
-        var perm = repo.Permissoes.FirstOrDefault(p => p.ChaveFuncionalidade == chaveFuncionalidade);
-
-        if (UsuarioLogado is Administrador)
-        {
-            return perm?.PermitidoAdmin ?? true;
-        }
-        else if (UsuarioLogado is Secretaria)
-        {
-            return perm?.PermitidoSecretaria ?? false;
-        }
-
-        return false;
+        if (_permissoes.TryGetValue(chaveFuncionalidade, out var permitido)) return permitido;
+        return UsuarioLogado is Administrador; // chave desconhecida: só o Administrador passa
     }
 }

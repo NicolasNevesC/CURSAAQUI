@@ -285,7 +285,7 @@ public class FormNovaMatricula : Form
         Controls.Add(panel);
     }
 
-    private void Confirmar(object? sender, EventArgs e)
+    private async void Confirmar(object? sender, EventArgs e)
     {
         if (_cbAluno.SelectedItem is not Aluno aluno || _cbCurso.SelectedItem is not Curso curso)
         {
@@ -295,7 +295,7 @@ public class FormNovaMatricula : Form
 
         var repo = DataRepository.Instance;
 
-        // Verifica se aluno já está matriculado no curso
+        // Verifica se aluno já está matriculado no curso (a API também confere, mas avisamos antes)
         bool jaMatriculado = repo.Matriculas.Any(m => m.AlunoId == aluno.Id && m.CursoId == curso.Id && m.Status == StatusMatricula.Ativa);
         if (jaMatriculado)
         {
@@ -303,37 +303,42 @@ public class FormNovaMatricula : Form
             return;
         }
 
-        // Verifica vagas
+        // Verifica vagas (cursos sem limite retornam vagas infinitas)
         if (curso.VagasDisponiveis <= 0)
         {
             MessageBox.Show($"O curso '{curso.Titulo}' não possui vagas disponíveis no momento.", "Vagas Esgotadas", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
-        int novoId = (repo.Matriculas.MaxBy(m => m.Id)?.Id ?? 0) + 1;
-        var novaMatricula = new Matricula
+        var btn = sender as Button;
+        if (btn != null) btn.Enabled = false;
+        try
         {
-            Id = novoId,
-            AlunoId = aluno.Id,
-            AlunoNome = aluno.Nome,
-            AlunoCpf = aluno.Cpf,
-            CursoId = curso.Id,
-            CursoNome = curso.Titulo,
-            DataMatricula = DateTime.Now,
-            Status = StatusMatricula.Ativa,
-            NotaFinal = 0.0,
-            ProgressoPercentual = 0,
-            PeriodoLetivo = _txtPeriodo.Text.Trim(),
-            Observacoes = _txtObs.Text.Trim()
-        };
+            var periodo = _txtPeriodo.Text.Trim();
+            var r = await ApiClient.Instance.PostAsync<MatriculaApiDto>("api/matriculas",
+                new { alunoId = aluno.Id, cursoId = curso.Id, periodoLetivo = string.IsNullOrWhiteSpace(periodo) ? null : periodo });
 
-        curso.VagasOcupadas++;
-        repo.Matriculas.Add(novaMatricula);
-        repo.Salvar();
+            if (!r.Sucesso || r.Dados == null)
+            {
+                MessageBox.Show(r.Erro, "Não foi possível matricular", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-        MessageBox.Show($"Matrícula nº {novaMatricula.Id} efetuada com sucesso para o aluno {aluno.Nome}!", "Matrícula Realizada", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        DialogResult = DialogResult.OK;
-        Close();
+            // A criação da matrícula na API não recebe observações: enviamos logo em seguida
+            var obs = _txtObs.Text.Trim();
+            if (obs.Length > 0)
+                await ApiClient.Instance.PatchAsync<Vazio>($"api/matriculas/{r.Dados.Id}", new { observacoes = obs });
+
+            await repo.RecarregarAsync(Recurso.Matriculas | Recurso.Cursos);
+
+            MessageBox.Show($"Matrícula nº {r.Dados.Id} efetuada com sucesso para o aluno {aluno.Nome}!", "Matrícula Realizada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+        finally
+        {
+            if (btn != null && !btn.IsDisposed) btn.Enabled = true;
+        }
     }
 }
 
@@ -384,21 +389,41 @@ public class FormAlterarStatusMatricula : Form
         Controls.Add(panel);
     }
 
-    private void Salvar(object? sender, EventArgs e)
+    private async void Salvar(object? sender, EventArgs e)
     {
-        if (_cbNovoStatus.SelectedItem is StatusMatricula novoStatus)
+        if (_cbNovoStatus.SelectedItem is not StatusMatricula novoStatus) return;
+
+        // O histórico de alterações continua sendo anotado no campo de observações da matrícula
+        string? observacoes = null;
+        if (!string.IsNullOrWhiteSpace(_txtMotivo.Text))
         {
-            var antigoStatus = _matricula.Status;
-            _matricula.Status = novoStatus;
-            if (!string.IsNullOrWhiteSpace(_txtMotivo.Text))
+            observacoes = (_matricula.Observacoes ?? "") +
+                $" [{DateTime.Now:dd/MM HH:mm} Situação alterada de {_matricula.Status} para {novoStatus}: {_txtMotivo.Text.Trim()}]";
+            if (observacoes.Length > 500) observacoes = observacoes[^500..]; // limite do campo no banco
+            observacoes = observacoes.TrimStart();
+        }
+
+        var btn = sender as Button;
+        if (btn != null) btn.Enabled = false;
+        try
+        {
+            var r = await ApiClient.Instance.PatchAsync<Vazio>($"api/matriculas/{_matricula.Id}/status",
+                new { status = novoStatus, observacoes });
+
+            if (!r.Sucesso)
             {
-                _matricula.Observacoes += $" [{DateTime.Now:dd/MM HH:mm} Situação alterada de {antigoStatus} para {novoStatus}: {_txtMotivo.Text.Trim()}]";
+                MessageBox.Show(r.Erro, "Não foi possível alterar a situação", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
 
-            DataRepository.Instance.Salvar();
+            await DataRepository.Instance.RecarregarAsync(Recurso.Matriculas | Recurso.Cursos);
             MessageBox.Show("Situação da matrícula atualizada com sucesso!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
             DialogResult = DialogResult.OK;
             Close();
+        }
+        finally
+        {
+            if (btn != null && !btn.IsDisposed) btn.Enabled = true;
         }
     }
 }
@@ -441,17 +466,22 @@ public class FormLancarNota : Form
 
         var btnSalvar = new Button { Text = "Salvar Lançamento", Width = 320, Height = 38, Margin = new Padding(0, 16, 0, 0) };
         Theme.ApplyModernButton(btnSalvar, Theme.Success, Color.White);
-        btnSalvar.Click += (s, e) =>
+        btnSalvar.Click += async (s, e) =>
         {
-            _matricula.NotaFinal = (double)_numNota.Value;
-            _matricula.ProgressoPercentual = (int)_numProgresso.Value;
+            btnSalvar.Enabled = false;
 
-            if (_matricula.ProgressoPercentual >= 100 && _matricula.NotaFinal >= DataRepository.Instance.Parametros.MediaAprovacaoMinima)
+            // A API aplica a mesma regra de antes: 100% + média mínima = matrícula Concluída
+            var r = await ApiClient.Instance.PatchAsync<Vazio>($"api/matriculas/{_matricula.Id}",
+                new { notaFinal = _numNota.Value, progressoPercentual = (int)_numProgresso.Value });
+
+            if (!r.Sucesso)
             {
-                _matricula.Status = StatusMatricula.Concluida;
+                MessageBox.Show(r.Erro, "Não foi possível lançar o desempenho", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                btnSalvar.Enabled = true;
+                return;
             }
 
-            DataRepository.Instance.Salvar();
+            await DataRepository.Instance.RecarregarAsync(Recurso.Matriculas | Recurso.Cursos);
             DialogResult = DialogResult.OK;
             Close();
         };

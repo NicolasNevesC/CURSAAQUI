@@ -158,7 +158,7 @@ public class UcGerenciarUsuarios : UserControl
         }
     }
 
-    private void BtnStatus_Click(object? sender, EventArgs e)
+    private async void BtnStatus_Click(object? sender, EventArgs e)
     {
         if (_grid.SelectedRows.Count == 0)
         {
@@ -168,19 +168,25 @@ public class UcGerenciarUsuarios : UserControl
 
         int id = Convert.ToInt32(_grid.SelectedRows[0].Cells["Id"].Value);
         var usuario = DataRepository.Instance.UsuariosInternos.FirstOrDefault(u => u.Id == id);
-        if (usuario != null)
-        {
-            if (usuario.Id == AuthService.Instance.UsuarioLogado?.Id)
-            {
-                MessageBox.Show("Não é permitido inativar o próprio usuário logado.", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+        if (usuario == null) return;
 
-            usuario.Ativo = !usuario.Ativo;
-            DataRepository.Instance.Salvar();
-            CarregarUsuarios();
-            MessageBox.Show($"Usuário '{usuario.Nome}' agora está {(usuario.Ativo ? "Ativo" : "Inativo")}.", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        if (usuario.Id == AuthService.Instance.UsuarioLogado?.Id)
+        {
+            MessageBox.Show("Não é permitido inativar o próprio usuário logado.", "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
         }
+
+        bool novoEstado = !usuario.Ativo;
+        var r = await ApiClient.Instance.PatchAsync<Vazio>($"api/usuarios/{id}/ativo", new { ativo = novoEstado });
+        if (!r.Sucesso)
+        {
+            MessageBox.Show(r.Erro, "Não foi possível alterar o usuário", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        await DataRepository.Instance.RecarregarAsync(Recurso.Usuarios);
+        CarregarUsuarios();
+        MessageBox.Show($"Usuário '{usuario.Nome}' agora está {(novoEstado ? "Ativo" : "Inativo")}.", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 }
 
@@ -256,7 +262,7 @@ public class FormCriarUsuario : Form
         Controls.Add(panel);
     }
 
-    private void Salvar(object? sender, EventArgs e)
+    private async void Salvar(object? sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_txtNome.Text) || string.IsNullOrWhiteSpace(_txtEmail.Text) || string.IsNullOrWhiteSpace(_txtSenha.Text))
         {
@@ -264,42 +270,40 @@ public class FormCriarUsuario : Form
             return;
         }
 
-        var repo = DataRepository.Instance;
-        int novoId = (repo.UsuariosInternos.MaxBy(u => u.Id)?.Id ?? 0) + 1;
-
-        if (_cbPerfil.SelectedIndex == 0) // Administrador
+        var btn = sender as Button;
+        if (btn != null) btn.Enabled = false;
+        try
         {
-            var admin = new Administrador
-            {
-                Id = novoId,
-                Nome = _txtNome.Text.Trim(),
-                Email = _txtEmail.Text.Trim(),
-                Senha = _txtSenha.Text.Trim(),
-                Cpf = _txtCpf.Text.Trim(),
-                NivelAutoridade = string.IsNullOrWhiteSpace(_txtEspecializacao.Text) ? "Geral" : _txtEspecializacao.Text.Trim(),
-                Ativo = true,
-                DataCadastro = DateTime.Now
-            };
-            repo.UsuariosInternos.Add(admin);
-        }
-        else // Secretaria
-        {
-            var sec = new Secretaria
-            {
-                Id = novoId,
-                Nome = _txtNome.Text.Trim(),
-                Email = _txtEmail.Text.Trim(),
-                Senha = _txtSenha.Text.Trim(),
-                Cpf = _txtCpf.Text.Trim(),
-                SetorAtendimento = string.IsNullOrWhiteSpace(_txtEspecializacao.Text) ? "Secretaria Geral" : _txtEspecializacao.Text.Trim(),
-                Ativo = true,
-                DataCadastro = DateTime.Now
-            };
-            repo.UsuariosInternos.Add(sec);
-        }
+            bool admin = _cbPerfil.SelectedIndex == 0;
+            var espec = _txtEspecializacao.Text.Trim();
 
-        repo.Salvar();
-        DialogResult = DialogResult.OK;
-        Close();
+            // A senha segue em texto só até a API, que a guarda criptografada (hash)
+            var corpo = new
+            {
+                perfil = admin ? "Administrador" : "Secretaria",
+                nome = _txtNome.Text.Trim(),
+                email = _txtEmail.Text.Trim(),
+                senha = _txtSenha.Text,
+                cpf = ApiMapper.NullSeVazio(_txtCpf.Text),
+                telefone = (string?)null,
+                nivelAutoridade = admin ? (string.IsNullOrWhiteSpace(espec) ? "Geral" : espec) : null,
+                setorAtendimento = !admin ? (string.IsNullOrWhiteSpace(espec) ? "Secretaria Geral" : espec) : null
+            };
+
+            var r = await ApiClient.Instance.PostAsync<Vazio>("api/usuarios", corpo);
+            if (!r.Sucesso)
+            {
+                MessageBox.Show(r.Erro, "Não foi possível criar o usuário", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            await DataRepository.Instance.RecarregarAsync(Recurso.Usuarios);
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+        finally
+        {
+            if (btn != null && !btn.IsDisposed) btn.Enabled = true;
+        }
     }
 }

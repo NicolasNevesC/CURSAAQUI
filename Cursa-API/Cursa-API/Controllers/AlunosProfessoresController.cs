@@ -35,7 +35,7 @@ public class AlunosController(CursaAquiDbContext db) : ApiBase
             q = q.Where(a => a.Nome.Contains(b) || a.Email.Contains(b) || (d != "" && a.Cpf != null && a.Cpf.Contains(d)));
         }
         var lista = await q.OrderBy(a => a.Nome)
-            .Select(a => new AlunoResumoDto(a.Id, a.Nome, a.Email, a.Cpf, a.Telefone, a.Ativo, a.Xp, a.Nivel, a.DataCadastro))
+            .Select(a => new AlunoResumoDto(a.Id, a.Nome, a.Email, a.Cpf, a.Telefone, a.Ativo, a.Xp, a.Nivel, a.DataCadastro, a.DataNascimento, a.Endereco))
             .ToListAsync();
         return Ok(lista);
     }

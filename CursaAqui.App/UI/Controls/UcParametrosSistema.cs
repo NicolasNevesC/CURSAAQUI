@@ -144,7 +144,7 @@ public class UcParametrosSistema : UserControl
         _lblUltimaModificacao.Text = $"Última alteração: {p.UltimaAtualizacao:dd/MM/yyyy HH:mm} por {p.AtualizadoPor}";
     }
 
-    private void SalvarParametros(object? sender, EventArgs e)
+    private async void SalvarParametros(object? sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_txtNomeInst.Text) || string.IsNullOrWhiteSpace(_txtPeriodo.Text))
         {
@@ -152,22 +152,39 @@ public class UcParametrosSistema : UserControl
             return;
         }
 
-        var p = DataRepository.Instance.Parametros;
-        p.NomeInstituicao = _txtNomeInst.Text.Trim();
-        p.PeriodoLetivoAtual = _txtPeriodo.Text.Trim();
-        p.MediaAprovacaoMinima = (double)_numNotaMinima.Value;
-        p.CargaHorariaMaximaAluno = (int)_numCargaMax.Value;
-        p.VagasPadraoPorCurso = (int)_numVagasPadrao.Value;
-        p.PermitirNovasMatriculas = _chkPermitirNovas.Checked;
-        p.EmailInstitucional = _txtEmail.Text.Trim();
-        p.TelefoneInstitucional = _txtTelefone.Text.Trim();
-        p.EnderecoCampus = _txtEndereco.Text.Trim();
-        p.UltimaAtualizacao = DateTime.Now;
-        p.AtualizadoPor = AuthService.Instance.UsuarioLogado?.Email ?? "administrador";
+        var btn = sender as Button;
+        if (btn != null) btn.Enabled = false;
+        try
+        {
+            // Quem alterou e quando é registrado pela própria API (usuário do token)
+            var corpo = new
+            {
+                nomeInstituicao = _txtNomeInst.Text.Trim(),
+                periodoLetivoAtual = _txtPeriodo.Text.Trim(),
+                mediaAprovacaoMinima = _numNotaMinima.Value,
+                cargaHorariaMaximaAluno = (int)_numCargaMax.Value,
+                vagasPadraoPorCurso = (int)_numVagasPadrao.Value,
+                permitirNovasMatriculas = _chkPermitirNovas.Checked,
+                emailInstitucional = _txtEmail.Text.Trim(),
+                telefoneInstitucional = _txtTelefone.Text.Trim(),
+                enderecoCampus = _txtEndereco.Text.Trim()
+            };
 
-        DataRepository.Instance.Salvar();
-        CarregarParametros();
+            var r = await ApiClient.Instance.PutAsync<Vazio>("api/parametros", corpo);
+            if (!r.Sucesso)
+            {
+                MessageBox.Show(r.Erro, "Não foi possível salvar os parâmetros", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-        MessageBox.Show("Parâmetros do sistema atualizados com sucesso e vigentes para toda a instituição!", "Parâmetros Salvos", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            await DataRepository.Instance.RecarregarAsync(Recurso.Parametros);
+            CarregarParametros();
+
+            MessageBox.Show("Parâmetros do sistema atualizados com sucesso e vigentes para toda a instituição!", "Parâmetros Salvos", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        finally
+        {
+            if (btn != null && !btn.IsDisposed) btn.Enabled = true;
+        }
     }
 }

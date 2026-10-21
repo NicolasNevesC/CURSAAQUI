@@ -159,9 +159,10 @@ public class UcGerenciarPermissoes : UserControl
         }
     }
 
-    private void SalvarPermissoes(object? sender, EventArgs e)
+    private async void SalvarPermissoes(object? sender, EventArgs e)
     {
         var repo = DataRepository.Instance;
+        var itens = new List<object>();
 
         foreach (DataGridViewRow row in _grid.Rows)
         {
@@ -173,35 +174,48 @@ public class UcGerenciarPermissoes : UserControl
 
             var item = repo.Permissoes.FirstOrDefault(p => p.ChaveFuncionalidade == chave);
             if (item != null)
-            {
-                item.PermitidoAdmin = adminPerm;
-                item.PermitidoSecretaria = secPerm;
-            }
+                itens.Add(new { id = item.Id, permitidoAdmin = adminPerm, permitidoSecretaria = secPerm });
         }
 
-        repo.Salvar();
-        MessageBox.Show("Permissões salvas e aplicadas com sucesso a todos os perfis!", "Permissões Atualizadas", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        if (await EnviarAsync(itens))
+            MessageBox.Show("Permissões salvas e aplicadas com sucesso a todos os perfis!", "Permissões Atualizadas", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
-    private void RestaurarPadrao(object? sender, EventArgs e)
+    // Envia a matriz inteira de uma vez (PUT /api/permissoes) e recarrega o que a API gravou
+    private async Task<bool> EnviarAsync(List<object> itens)
     {
-        if (MessageBox.Show("Deseja restaurar as permissões padrão do CursaAqui?", "Confirmação", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+        var r = await ApiClient.Instance.PutAsync<Vazio>("api/permissoes", itens);
+        if (!r.Sucesso)
         {
-            var repo = DataRepository.Instance;
-            foreach (var p in repo.Permissoes)
-            {
-                p.PermitidoAdmin = true;
-                p.PermitidoSecretaria = p.ChaveFuncionalidade switch
-                {
-                    "GerenciarMatriculas" => true,
-                    "ConsultarCadastro" => true,
-                    "RegistrarAtendimentos" => true,
-                    "GerarRelatoriosAdministrativos" => true,
-                    _ => false
-                };
-            }
-            repo.Salvar();
-            CarregarPermissoes();
+            MessageBox.Show(r.Erro, "Não foi possível salvar as permissões", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            CarregarPermissoes(); // desfaz na tela o que a API recusou
+            return false;
         }
+
+        await DataRepository.Instance.RecarregarAsync(Recurso.Permissoes);
+        CarregarPermissoes();
+        return true;
+    }
+
+    private async void RestaurarPadrao(object? sender, EventArgs e)
+    {
+        if (MessageBox.Show("Deseja restaurar as permissões padrão do CursaAqui?", "Confirmação", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            return;
+
+        var itens = new List<object>();
+        foreach (var p in DataRepository.Instance.Permissoes)
+        {
+            bool secretaria = p.ChaveFuncionalidade switch
+            {
+                "GerenciarMatriculas" => true,
+                "ConsultarCadastro" => true,
+                "RegistrarAtendimentos" => true,
+                "GerarRelatoriosAdministrativos" => true,
+                _ => false
+            };
+            itens.Add(new { id = p.Id, permitidoAdmin = true, permitidoSecretaria = secretaria });
+        }
+
+        await EnviarAsync(itens);
     }
 }

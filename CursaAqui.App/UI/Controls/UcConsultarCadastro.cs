@@ -202,7 +202,7 @@ public class UcConsultarCadastro : UserControl
         _lblCpf.Text = $"CPF: {aluno.Cpf}";
         _lblEmail.Text = $"E-mail: {aluno.Email}";
         _lblTelefone.Text = $"Telefone: {aluno.Telefone}";
-        _lblDataNasc.Text = $"Nascimento: {aluno.DataNascimento:dd/MM/yyyy}";
+        _lblDataNasc.Text = $"Nascimento: {(aluno.DataNascimento == default ? "-" : aluno.DataNascimento.ToString("dd/MM/yyyy"))}";
         _lblEndereco.Text = $"Endereço: {aluno.Endereco}";
         _lblDataCadastro.Text = $"Cadastrado no Sistema em: {aluno.DataCadastro:dd/MM/yyyy HH:mm}";
         _lblStatus.Text = aluno.Ativo ? "Situação Cadastral: REGULAR (ATIVO)" : "Situação Cadastral: SUSPENSO / INATIVO";
@@ -256,7 +256,7 @@ public class UcConsultarCadastro : UserControl
         sb.AppendLine($"CPF:           {_alunoSelecionado.Cpf}");
         sb.AppendLine($"E-mail:        {_alunoSelecionado.Email}");
         sb.AppendLine($"Telefone:      {_alunoSelecionado.Telefone}");
-        sb.AppendLine($"Nascimento:    {_alunoSelecionado.DataNascimento:dd/MM/yyyy}");
+        sb.AppendLine($"Nascimento:    {(_alunoSelecionado.DataNascimento == default ? "-" : _alunoSelecionado.DataNascimento.ToString("dd/MM/yyyy"))}");
         sb.AppendLine($"Endereço:      {_alunoSelecionado.Endereco}");
         sb.AppendLine($"Situação:      {(_alunoSelecionado.Ativo ? "Regular" : "Inativo")}");
         sb.AppendLine($"XP Acumulado:  {_alunoSelecionado.Xp} XP (Nível {_alunoSelecionado.Nivel})");

@@ -169,24 +169,24 @@ public class FormMain : Form
 
         if (auth.EhAdministrador)
         {
-            AdicionarItemMenu("👥 Gerenciar Usuários", () => NavegarPara(new UcGerenciarUsuarios(), "Gerenciamento de Usuários Internos"), true);
-            AdicionarItemMenu("🔑 Gerenciar Permissões", () => NavegarPara(new UcGerenciarPermissoes(), "Matriz de Permissões de Acesso"), auth.TemPermissao("GerenciarPermissoes"));
-            AdicionarItemMenu("📚 Gerenciar Cursos", () => NavegarPara(new UcGerenciarCursos(), "Catálogo e Parâmetros de Cursos"), auth.TemPermissao("GerenciarCursos"));
-            AdicionarItemMenu("📊 Relatórios Gerenciais", () => NavegarPara(new UcVisualizarRelatorios(), "Relatórios Gerenciais e Indicadores"), auth.TemPermissao("VisualizarRelatorios"));
-            AdicionarItemMenu("⚙️ Parâmetros do Sistema", () => NavegarPara(new UcParametrosSistema(), "Configuração Geral do Sistema"), auth.TemPermissao("ConfigurarParametros"));
+            AdicionarItemMenu("👥 Gerenciar Usuários", () => NavegarPara(() => new UcGerenciarUsuarios(), "Gerenciamento de Usuários Internos"), true);
+            AdicionarItemMenu("🔑 Gerenciar Permissões", () => NavegarPara(() => new UcGerenciarPermissoes(), "Matriz de Permissões de Acesso"), auth.TemPermissao("GerenciarPermissoes"));
+            AdicionarItemMenu("📚 Gerenciar Cursos", () => NavegarPara(() => new UcGerenciarCursos(), "Catálogo e Parâmetros de Cursos"), auth.TemPermissao("GerenciarCursos"));
+            AdicionarItemMenu("📊 Relatórios Gerenciais", () => NavegarPara(() => new UcVisualizarRelatorios(), "Relatórios Gerenciais e Indicadores"), auth.TemPermissao("VisualizarRelatorios"));
+            AdicionarItemMenu("⚙️ Parâmetros do Sistema", () => NavegarPara(() => new UcParametrosSistema(), "Configuração Geral do Sistema"), auth.TemPermissao("ConfigurarParametros"));
 
             // Abre a primeira tela
-            NavegarPara(new UcGerenciarCursos(), "Catálogo e Parâmetros de Cursos");
+            NavegarPara(() => new UcGerenciarCursos(), "Catálogo e Parâmetros de Cursos");
         }
         else if (auth.EhSecretaria)
         {
-            AdicionarItemMenu("📝 Gerenciar Matrículas", () => NavegarPara(new UcGerenciarMatriculas(), "Gerenciamento do Ciclo de Matrículas"), auth.TemPermissao("GerenciarMatriculas"));
-            AdicionarItemMenu("🔍 Consultar Cadastro", () => NavegarPara(new UcConsultarCadastro(), "Consulta Cadastral e Histórico de Alunos"), auth.TemPermissao("ConsultarCadastro"));
-            AdicionarItemMenu("🎧 Registrar Atendimentos", () => NavegarPara(new UcRegistrarAtendimentos(), "Registro e Tratamento de Atendimentos"), auth.TemPermissao("RegistrarAtendimentos"));
-            AdicionarItemMenu("📑 Relatórios Administrativos", () => NavegarPara(new UcRelatoriosAdministrativos(), "Emissão de Relatórios da Secretaria"), auth.TemPermissao("GerarRelatoriosAdministrativos"));
+            AdicionarItemMenu("📝 Gerenciar Matrículas", () => NavegarPara(() => new UcGerenciarMatriculas(), "Gerenciamento do Ciclo de Matrículas"), auth.TemPermissao("GerenciarMatriculas"));
+            AdicionarItemMenu("🔍 Consultar Cadastro", () => NavegarPara(() => new UcConsultarCadastro(), "Consulta Cadastral e Histórico de Alunos"), auth.TemPermissao("ConsultarCadastro"));
+            AdicionarItemMenu("🎧 Registrar Atendimentos", () => NavegarPara(() => new UcRegistrarAtendimentos(), "Registro e Tratamento de Atendimentos"), auth.TemPermissao("RegistrarAtendimentos"));
+            AdicionarItemMenu("📑 Relatórios Administrativos", () => NavegarPara(() => new UcRelatoriosAdministrativos(), "Emissão de Relatórios da Secretaria"), auth.TemPermissao("GerarRelatoriosAdministrativos"));
 
             // Abre a primeira tela da secretaria
-            NavegarPara(new UcGerenciarMatriculas(), "Gerenciamento do Ciclo de Matrículas");
+            NavegarPara(() => new UcGerenciarMatriculas(), "Gerenciamento do Ciclo de Matrículas");
         }
     }
 
@@ -230,8 +230,31 @@ public class FormMain : Form
         _menuContainer.Controls.Add(btn);
     }
 
-    private void NavegarPara(UserControl novoControl, string titulo)
+    private bool _navegando;
+
+    // Antes de abrir cada tela, atualiza os dados na API (evita mostrar informação velha de outro computador)
+    private async void NavegarPara(Func<UserControl> criarControl, string titulo)
     {
+        if (_navegando) return;
+        _navegando = true;
+        UseWaitCursor = true;
+        string? erro;
+        try
+        {
+            erro = await DataRepository.Instance.RecarregarSeAntigoAsync(TimeSpan.FromSeconds(3));
+        }
+        finally
+        {
+            UseWaitCursor = false;
+            _navegando = false;
+        }
+
+        if (IsDisposed) return;
+        if (erro != null)
+            MessageBox.Show($"Não foi possível atualizar os dados com a API. A tela mostrará as últimas informações carregadas.\n\n{erro}",
+                "Falha de comunicação", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+        var novoControl = criarControl();
         _lblTituloSecao.Text = titulo;
         _lblPeriodo.Text = $"Ano Letivo: {DataRepository.Instance.Parametros.PeriodoLetivoAtual} | {DateTime.Now:dd/MM/yyyy}";
 

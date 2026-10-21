@@ -8,6 +8,7 @@ public class FormLogin : Form
 {
     private readonly TextBox _txtEmail = new() { Width = 360, Font = Theme.FontBody };
     private readonly TextBox _txtSenha = new() { Width = 360, Font = Theme.FontBody, UseSystemPasswordChar = true };
+    private bool _entrando;
     private readonly Label _lblMensagem = new() { ForeColor = Theme.Danger, Font = Theme.FontSmall, AutoSize = true, Width = 360 };
 
     public FormLogin()
@@ -92,7 +93,7 @@ public class FormLogin : Form
             AutoSize = true
         };
         _txtSenha.Location = new Point(20, 194);
-        _txtSenha.Text = "123";
+        _txtSenha.Text = "Trocar@123";
         _txtSenha.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) TentarLogin(); };
 
         _lblMensagem.Location = new Point(20, 226);
@@ -132,7 +133,7 @@ public class FormLogin : Form
         btnFastAdmin.Click += (s, e) =>
         {
             _txtEmail.Text = "admin@cursaaqui.com";
-            _txtSenha.Text = "123";
+            _txtSenha.Text = "Trocar@123";
             TentarLogin();
         };
 
@@ -149,7 +150,7 @@ public class FormLogin : Form
         btnFastSec.Click += (s, e) =>
         {
             _txtEmail.Text = "secretaria@cursaaqui.com";
-            _txtSenha.Text = "123";
+            _txtSenha.Text = "Trocar@123";
             TentarLogin();
         };
 
@@ -179,16 +180,41 @@ public class FormLogin : Form
         Controls.Add(mainContainer);
     }
 
-    private void TentarLogin()
+    private async void TentarLogin()
     {
-        _lblMensagem.Text = "";
-        var resultado = AuthService.Instance.Login(_txtEmail.Text, _txtSenha.Text);
-        if (!resultado.Sucesso)
+        if (_entrando) return;
+        _entrando = true;
+        UseWaitCursor = true;
+        _lblMensagem.ForeColor = Theme.TextMuted;
+        _lblMensagem.Text = "Conectando à API...";
+
+        try
         {
-            _lblMensagem.Text = resultado.Mensagem;
-            return;
+            var resultado = await AuthService.Instance.LoginAsync(_txtEmail.Text, _txtSenha.Text);
+            if (!resultado.Sucesso)
+            {
+                _lblMensagem.ForeColor = Theme.Danger;
+                _lblMensagem.Text = resultado.Mensagem;
+                return;
+            }
+
+            // Carrega alunos, cursos, matrículas etc. da API antes de abrir o sistema
+            var erro = await DataRepository.Instance.RecarregarAsync();
+            if (erro != null)
+            {
+                AuthService.Instance.Logout();
+                _lblMensagem.ForeColor = Theme.Danger;
+                _lblMensagem.Text = "Não foi possível carregar os dados: " + erro;
+                return;
+            }
+        }
+        finally
+        {
+            _entrando = false;
+            UseWaitCursor = false;
         }
 
+        _lblMensagem.Text = "";
         Hide();
         var main = new FormMain();
         main.FormClosed += (s, e) => Close();

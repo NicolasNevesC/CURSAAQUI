@@ -211,8 +211,8 @@ public class FormNovoAtendimento : Form
         MinimizeBox = false;
         BackColor = Color.White;
 
-        int proximoNumero = DataRepository.Instance.Atendimentos.Count + 1;
-        _txtProtocolo.Text = $"ATEND-2026-{proximoNumero:D3}";
+        // O protocolo (ATEND-ano-sequencial) é gerado pela API ao gravar, para nunca repetir entre atendentes
+        _txtProtocolo.Text = "(gerado automaticamente ao gravar)";
 
         foreach (var t in Enum.GetValues<TipoSolicitante>())
         {
@@ -257,40 +257,50 @@ public class FormNovoAtendimento : Form
         Controls.Add(panel);
     }
 
-    private void Salvar(object? sender, EventArgs e)
+    private async void Salvar(object? sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(_txtSolicitante.Text) || string.IsNullOrWhiteSpace(_txtAssunto.Text))
+        if (string.IsNullOrWhiteSpace(_txtSolicitante.Text) || string.IsNullOrWhiteSpace(_txtAssunto.Text) || string.IsNullOrWhiteSpace(_txtDescricao.Text))
         {
-            MessageBox.Show("Informe o solicitante e o assunto.", "Campos obrigatórios", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show("Informe o solicitante, o assunto e a descrição.", "Campos obrigatórios", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
-        var repo = DataRepository.Instance;
-        int novoId = (repo.Atendimentos.MaxBy(a => a.Id)?.Id ?? 0) + 1;
-        var atendente = AuthService.Instance.UsuarioLogado;
-
-        var atend = new Atendimento
+        var btn = sender as Button;
+        if (btn != null) btn.Enabled = false;
+        try
         {
-            Id = novoId,
-            Protocolo = _txtProtocolo.Text,
-            SolicitanteNome = _txtSolicitante.Text.Trim(),
-            TipoSolicitante = (TipoSolicitante)_cbTipo.SelectedItem!,
-            Contato = _txtContato.Text.Trim(),
-            Assunto = _txtAssunto.Text.Trim(),
-            Descricao = _txtDescricao.Text.Trim(),
-            Providencia = _txtProvidencia.Text.Trim(),
-            DataAbertura = DateTime.Now,
-            AtendenteId = atendente?.Id ?? 0,
-            AtendenteNome = atendente?.Nome ?? "Secretaria",
-            Status = string.IsNullOrWhiteSpace(_txtProvidencia.Text) ? StatusAtendimento.Aberto : StatusAtendimento.EmAndamento
-        };
+            var providencia = _txtProvidencia.Text.Trim();
+            var r = await ApiClient.Instance.PostAsync<AtendimentoApiDto>("api/atendimentos", new
+            {
+                tipoSolicitante = (TipoSolicitante)_cbTipo.SelectedItem!,
+                solicitanteNome = _txtSolicitante.Text.Trim(),
+                contato = _txtContato.Text.Trim(),
+                alunoId = (int?)null,
+                assunto = _txtAssunto.Text.Trim(),
+                descricao = _txtDescricao.Text.Trim(),
+                providencia = providencia.Length == 0 ? null : providencia
+            });
 
-        repo.Atendimentos.Add(atend);
-        repo.Salvar();
+            if (!r.Sucesso || r.Dados == null)
+            {
+                MessageBox.Show(r.Erro, "Não foi possível registrar o atendimento", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
-        MessageBox.Show($"Atendimento registrado com sucesso sob o protocolo {_txtProtocolo.Text}!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        DialogResult = DialogResult.OK;
-        Close();
+            // Mesmo comportamento de antes: com providência informada, o atendimento já nasce "Em Andamento"
+            if (providencia.Length > 0)
+                await ApiClient.Instance.PatchAsync<Vazio>($"api/atendimentos/{r.Dados.Id}/status", new { status = StatusAtendimento.EmAndamento });
+
+            await DataRepository.Instance.RecarregarAsync(Recurso.Atendimentos);
+
+            MessageBox.Show($"Atendimento registrado com sucesso sob o protocolo {r.Dados.Protocolo}!", "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+        finally
+        {
+            if (btn != null && !btn.IsDisposed) btn.Enabled = true;
+        }
     }
 }
 
@@ -350,19 +360,32 @@ public class FormDetalhesAtendimento : Form
         Controls.Add(panel);
     }
 
-    private void Salvar(object? sender, EventArgs e)
+    private async void Salvar(object? sender, EventArgs e)
     {
-        _atendimento.Status = (StatusAtendimento)_cbStatus.SelectedItem!;
-        _atendimento.Providencia = _txtProvidencia.Text.Trim();
+        var novoStatus = (StatusAtendimento)_cbStatus.SelectedItem!;
 
-        if (_atendimento.Status == StatusAtendimento.Concluido && _atendimento.DataFechamento == null)
+        var btn = sender as Button;
+        if (btn != null) btn.Enabled = false;
+        try
         {
-            _atendimento.DataFechamento = DateTime.Now;
-        }
+            // A API preenche a data de fechamento sozinha ao concluir ou cancelar
+            var r = await ApiClient.Instance.PatchAsync<Vazio>($"api/atendimentos/{_atendimento.Id}/status",
+                new { status = novoStatus, providencia = _txtProvidencia.Text.Trim() });
 
-        DataRepository.Instance.Salvar();
-        MessageBox.Show("Atendimento atualizado com sucesso!", "Atualizado", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        DialogResult = DialogResult.OK;
-        Close();
+            if (!r.Sucesso)
+            {
+                MessageBox.Show(r.Erro, "Não foi possível atualizar o atendimento", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            await DataRepository.Instance.RecarregarAsync(Recurso.Atendimentos);
+            MessageBox.Show("Atendimento atualizado com sucesso!", "Atualizado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+        finally
+        {
+            if (btn != null && !btn.IsDisposed) btn.Enabled = true;
+        }
     }
 }

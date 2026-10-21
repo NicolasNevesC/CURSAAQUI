@@ -2,6 +2,7 @@ namespace CursaAqui.App.Models;
 
 public class PermissaoSistema
 {
+    public int Id { get; set; }
     public string ChaveFuncionalidade { get; set; } = string.Empty;
     public string NomeExibicao { get; set; } = string.Empty;
     public string Modulo { get; set; } = string.Empty;

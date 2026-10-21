@@ -124,7 +124,9 @@ public class UcGerenciarCursos : UserControl
 
         foreach (var c in lista)
         {
-            var vagasStr = $"{c.VagasTotais} / {c.VagasOcupadas} ({c.VagasDisponiveis} disp.)";
+            var vagasStr = c.SemLimiteDeVagas
+                ? $"Sem limite ({c.VagasOcupadas} matric.)"
+                : $"{c.VagasTotais} / {c.VagasOcupadas} ({c.VagasDisponiveis} disp.)";
             var statusStr = c.Ativo ? "Ativo" : "Inativo";
 
             int rowIndex = _grid.Rows.Add(c.Id, c.Codigo, c.Titulo, c.Categoria, $"{c.CargaHoraria}h", c.ProfessorResponsavel, vagasStr, statusStr);
@@ -185,7 +187,7 @@ public class UcGerenciarCursos : UserControl
         }
     }
 
-    private void BtnToggleStatus_Click(object? sender, EventArgs e)
+    private async void BtnToggleStatus_Click(object? sender, EventArgs e)
     {
         if (_grid.SelectedRows.Count == 0)
         {
@@ -195,13 +197,19 @@ public class UcGerenciarCursos : UserControl
 
         int id = Convert.ToInt32(_grid.SelectedRows[0].Cells["Id"].Value);
         var curso = DataRepository.Instance.Cursos.FirstOrDefault(c => c.Id == id);
-        if (curso != null)
+        if (curso == null) return;
+
+        bool novoEstado = !curso.Ativo;
+        var r = await ApiClient.Instance.PatchAsync<Vazio>($"api/cursos/{id}/ativo", new { ativo = novoEstado });
+        if (!r.Sucesso)
         {
-            curso.Ativo = !curso.Ativo;
-            DataRepository.Instance.Salvar();
-            CarregarCursos();
-            MessageBox.Show($"O curso '{curso.Titulo}' foi {(curso.Ativo ? "ativado" : "inativado")} com sucesso!", "Status Atualizado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(r.Erro, "Não foi possível alterar o curso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
         }
+
+        await DataRepository.Instance.RecarregarAsync(Recurso.Cursos);
+        CarregarCursos();
+        MessageBox.Show($"O curso '{curso.Titulo}' foi {(novoEstado ? "ativado" : "inativado")} com sucesso!", "Status Atualizado", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 }
 
@@ -212,8 +220,8 @@ public class FormEditarCurso : Form
     private readonly TextBox _txtTitulo = new() { Width = 340, Font = Theme.FontBody };
     private readonly TextBox _txtCategoria = new() { Width = 340, Font = Theme.FontBody };
     private readonly NumericUpDown _numCarga = new() { Width = 340, Minimum = 10, Maximum = 400, Value = 40, Font = Theme.FontBody };
-    private readonly TextBox _txtProfessor = new() { Width = 340, Font = Theme.FontBody };
-    private readonly NumericUpDown _numVagas = new() { Width = 340, Minimum = 5, Maximum = 500, Value = 50, Font = Theme.FontBody };
+    private readonly ComboBox _cbProfessor = new() { Width = 340, DropDownStyle = ComboBoxStyle.DropDownList, Font = Theme.FontBody };
+    private readonly NumericUpDown _numVagas = new() { Width = 340, Minimum = 0, Maximum = 500, Value = 50, Font = Theme.FontBody };
     private readonly TextBox _txtDescricao = new() { Width = 340, Height = 60, Multiline = true, Font = Theme.FontBody };
 
     public FormEditarCurso(Curso? curso)
@@ -248,9 +256,9 @@ public class FormEditarCurso : Form
         panel.Controls.Add(_numCarga);
 
         panel.Controls.Add(new Label { Text = "Professor / Coordenador Responsável:", Font = Theme.FontBodyBold, ForeColor = Theme.TextDark, AutoSize = true, Margin = new Padding(0, 8, 0, 0) });
-        panel.Controls.Add(_txtProfessor);
+        panel.Controls.Add(_cbProfessor);
 
-        panel.Controls.Add(new Label { Text = "Vagas Totais:", Font = Theme.FontBodyBold, ForeColor = Theme.TextDark, AutoSize = true, Margin = new Padding(0, 8, 0, 0) });
+        panel.Controls.Add(new Label { Text = "Vagas Totais (0 = sem limite):", Font = Theme.FontBodyBold, ForeColor = Theme.TextDark, AutoSize = true, Margin = new Padding(0, 8, 0, 0) });
         panel.Controls.Add(_numVagas);
 
         panel.Controls.Add(new Label { Text = "Descrição / Ementa Resumida:", Font = Theme.FontBodyBold, ForeColor = Theme.TextDark, AutoSize = true, Margin = new Padding(0, 8, 0, 0) });
@@ -263,25 +271,34 @@ public class FormEditarCurso : Form
 
         Controls.Add(panel);
 
+        // Professores vêm da API: o curso guarda o professor pelo Id, não por texto livre
+        _cbProfessor.Items.Add(new ProfessorResumo { Id = 0, Nome = "(Sem professor definido)" });
+        foreach (var prof in DataRepository.Instance.Professores)
+            _cbProfessor.Items.Add(prof);
+        _cbProfessor.SelectedIndex = 0;
+        if (_cursoExistente?.ProfessorId != null)
+        {
+            var atual = DataRepository.Instance.Professores.FirstOrDefault(x => x.Id == _cursoExistente.ProfessorId);
+            if (atual != null) _cbProfessor.SelectedItem = atual;
+        }
+
         if (_cursoExistente != null)
         {
             _txtCodigo.Text = _cursoExistente.Codigo;
             _txtTitulo.Text = _cursoExistente.Titulo;
             _txtCategoria.Text = _cursoExistente.Categoria;
-            _numCarga.Value = _cursoExistente.CargaHoraria;
-            _txtProfessor.Text = _cursoExistente.ProfessorResponsavel;
-            _numVagas.Value = _cursoExistente.VagasTotais;
+            _numCarga.Value = Math.Clamp(_cursoExistente.CargaHoraria, (int)_numCarga.Minimum, (int)_numCarga.Maximum);
+            _numVagas.Value = Math.Clamp(_cursoExistente.VagasTotais, (int)_numVagas.Minimum, (int)_numVagas.Maximum);
             _txtDescricao.Text = _cursoExistente.Descricao;
         }
         else
         {
-            _txtCodigo.Text = $"CRS-{(DataRepository.Instance.Cursos.Count + 1):D2}";
-            _txtProfessor.Text = "Coordenação Geral";
+            _txtCodigo.Text = $"CRS-{(DataRepository.Instance.Cursos.Count + 1):D2}"; // a API recusa código repetido
             _txtCategoria.Text = "Tecnologia da Informação";
         }
     }
 
-    private void Salvar(object? sender, EventArgs e)
+    private async void Salvar(object? sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(_txtTitulo.Text) || string.IsNullOrWhiteSpace(_txtCodigo.Text))
         {
@@ -289,40 +306,47 @@ public class FormEditarCurso : Form
             return;
         }
 
-        var repo = DataRepository.Instance;
-
-        if (_cursoExistente == null)
+        var btn = sender as Button;
+        if (btn != null) btn.Enabled = false;
+        try
         {
-            int novoId = (repo.Cursos.MaxBy(c => c.Id)?.Id ?? 0) + 1;
-            var novoCurso = new Curso
+            var professor = _cbProfessor.SelectedItem as ProfessorResumo;
+            int? professorId = professor != null && professor.Id > 0 ? professor.Id : null;
+            int vagas = (int)_numVagas.Value;
+
+            // O PUT da API substitui o curso inteiro: por isso devolvemos também Área, Nível e Imagem que o desktop não edita
+            var corpo = new
             {
-                Id = novoId,
-                Codigo = _txtCodigo.Text.Trim(),
-                Titulo = _txtTitulo.Text.Trim(),
-                Categoria = _txtCategoria.Text.Trim(),
-                CargaHoraria = (int)_numCarga.Value,
-                ProfessorResponsavel = _txtProfessor.Text.Trim(),
-                VagasTotais = (int)_numVagas.Value,
-                VagasOcupadas = 0,
-                Descricao = _txtDescricao.Text.Trim(),
-                Ativo = true,
-                Avaliacao = 5.0
+                codigo = _txtCodigo.Text.Trim(),
+                titulo = _txtTitulo.Text.Trim(),
+                categoria = _txtCategoria.Text.Trim(),
+                area = ApiMapper.NullSeVazio(_cursoExistente?.Area),
+                descricao = _txtDescricao.Text.Trim(),
+                cargaHoraria = (int)_numCarga.Value,
+                nivelMinimo = _cursoExistente?.NivelMinimo ?? 1,
+                imagemUrl = ApiMapper.NullSeVazio(_cursoExistente?.ImagemUrl),
+                professorId,
+                vagasTotais = vagas == 0 ? (int?)null : vagas,
+                ativo = _cursoExistente?.Ativo ?? true
             };
-            repo.Cursos.Add(novoCurso);
-        }
-        else
-        {
-            _cursoExistente.Codigo = _txtCodigo.Text.Trim();
-            _cursoExistente.Titulo = _txtTitulo.Text.Trim();
-            _cursoExistente.Categoria = _txtCategoria.Text.Trim();
-            _cursoExistente.CargaHoraria = (int)_numCarga.Value;
-            _cursoExistente.ProfessorResponsavel = _txtProfessor.Text.Trim();
-            _cursoExistente.VagasTotais = (int)_numVagas.Value;
-            _cursoExistente.Descricao = _txtDescricao.Text.Trim();
-        }
 
-        repo.Salvar();
-        DialogResult = DialogResult.OK;
-        Close();
+            var r = _cursoExistente == null
+                ? await ApiClient.Instance.PostAsync<Vazio>("api/cursos", corpo)
+                : await ApiClient.Instance.PutAsync<Vazio>($"api/cursos/{_cursoExistente.Id}", corpo);
+
+            if (!r.Sucesso)
+            {
+                MessageBox.Show(r.Erro, "Não foi possível salvar o curso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            await DataRepository.Instance.RecarregarAsync(Recurso.Cursos);
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+        finally
+        {
+            if (btn != null && !btn.IsDisposed) btn.Enabled = true;
+        }
     }
 }

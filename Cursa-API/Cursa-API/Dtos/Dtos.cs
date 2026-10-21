@@ -41,7 +41,7 @@ public record ParametrosPublicosDto(string NomeInstituicao, string PeriodoLetivo
 
 // ============ ALUNOS / PROFESSORES ============
 public record AlunoResumoDto(int Id, string Nome, string Email, string? Cpf, string? Telefone, bool Ativo, int Xp,
-    int Nivel, DateTime DataCadastro);
+    int Nivel, DateTime DataCadastro, DateTime? DataNascimento, string? Endereco);
 public record HistoricoItemDto(int MatriculaId, int CursoId, string CursoTitulo, string PeriodoLetivo,
     StatusMatricula Status, decimal? NotaFinal, int ProgressoPercentual, DateTime DataMatricula);
 public record AlunoFichaDto(UsuarioDto Aluno, List<HistoricoItemDto> Historico);
