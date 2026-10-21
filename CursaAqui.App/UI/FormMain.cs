@@ -170,6 +170,8 @@ public class FormMain : Form
         if (auth.EhAdministrador)
         {
             AdicionarItemMenu("👥 Gerenciar Usuários", () => NavegarPara(() => new UcGerenciarUsuarios(), "Gerenciamento de Usuários Internos"), true);
+            AdicionarItemMenu("🎓 Cadastro de Alunos", () => NavegarPara(() => new UcConsultarCadastro(), "Consulta e Cadastro de Alunos"), auth.TemPermissao("ConsultarCadastro"));
+            AdicionarItemMenu("📝 Gerenciar Matrículas", () => NavegarPara(() => new UcGerenciarMatriculas(), "Gerenciamento do Ciclo de Matrículas"), auth.TemPermissao("GerenciarMatriculas"));
             AdicionarItemMenu("🔑 Gerenciar Permissões", () => NavegarPara(() => new UcGerenciarPermissoes(), "Matriz de Permissões de Acesso"), auth.TemPermissao("GerenciarPermissoes"));
             AdicionarItemMenu("📚 Gerenciar Cursos", () => NavegarPara(() => new UcGerenciarCursos(), "Catálogo e Parâmetros de Cursos"), auth.TemPermissao("GerenciarCursos"));
             AdicionarItemMenu("📊 Relatórios Gerenciais", () => NavegarPara(() => new UcVisualizarRelatorios(), "Relatórios Gerenciais e Indicadores"), auth.TemPermissao("VisualizarRelatorios"));

@@ -39,7 +39,7 @@ public class AuthService
             return (false, "Informe o e-mail institucional e a senha.");
 
         var r = await ApiClient.Instance.PostAsync<AuthRespostaDto>("api/auth/login",
-            new { email = email.Trim(), senha = senha.Trim() });
+            new { email = email.Trim(), senha });
 
         if (!r.Sucesso || r.Dados == null)
             return (false, r.Erro);

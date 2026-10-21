@@ -23,7 +23,8 @@ public class AlunosController(CursaAquiDbContext db) : ApiBase
         return q;
     }
 
-    [HttpGet, Authorize(Roles = "Administrador,Secretaria,Professor"), Permissao("ConsultarCadastro")]
+    [HttpGet, Authorize(Roles = "Administrador,Secretaria,Professor"),
+    Permissao("GERENCIAR_USUARIOS")]
     public async Task<IActionResult> Listar([FromQuery] string? busca, [FromQuery] bool? ativo)
     {
         var q = Escopo();

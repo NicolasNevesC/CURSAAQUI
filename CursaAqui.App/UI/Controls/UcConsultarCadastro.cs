@@ -55,7 +55,19 @@ public class UcConsultarCadastro : UserControl
             AutoSize = true,
             Location = new Point(0, 35)
         };
-        headerPanel.Controls.AddRange(new Control[] { lblTitulo, lblSub });
+        var btnNovoAluno = new Button
+        {
+            Text = "Cadastrar aluno",
+            Width = 150,
+            Height = 34,
+            Anchor = AnchorStyles.Top | AnchorStyles.Right,
+            Location = new Point(Math.Max(0, headerPanel.ClientSize.Width - 160), 10)
+        };
+        Theme.ApplyModernButton(btnNovoAluno, Theme.Primary, Color.White);
+        btnNovoAluno.Click += async (s, e) => await CadastrarAlunoAsync();
+        headerPanel.Resize += (s, e) => btnNovoAluno.Location = new Point(Math.Max(0, headerPanel.ClientSize.Width - btnNovoAluno.Width), 8);
+        btnNovoAluno.Visible = AuthService.Instance.TemPermissao("GerenciarMatriculas");
+        headerPanel.Controls.AddRange(new Control[] { lblTitulo, lblSub, btnNovoAluno });
 
         // 2. Conteúdo dividido: Lista de busca à esquerda, Ficha Cadastral à direita
         var split = new SplitContainer
@@ -129,6 +141,38 @@ public class UcConsultarCadastro : UserControl
         Controls.Add(mainPanel);
 
         CarregarAlunos();
+    }
+
+    private async Task CadastrarAlunoAsync()
+    {
+        using var modal = new FormCadastrarAluno();
+        if (modal.ShowDialog(this) != DialogResult.OK) return;
+
+        var dados = modal.Dados;
+        var resposta = await ApiClient.Instance.PostAsync<AlunoApiDto>("api/alunos", dados);
+        if (!resposta.Sucesso)
+        {
+            MessageBox.Show(resposta.Erro, "Não foi possível cadastrar o aluno", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var erro = await DataRepository.Instance.RecarregarAsync(Recurso.Alunos | Recurso.Matriculas);
+        if (erro != null)
+        {
+            MessageBox.Show("O aluno foi cadastrado, mas a lista não pôde ser atualizada. Atualize a tela.\\n\\n" + erro,
+                "Cadastro concluído com atualização pendente", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        _txtBusca.Clear();
+        CarregarAlunos();
+        var criado = DataRepository.Instance.Alunos.FirstOrDefault(a => a.Id == resposta.Dados?.Id);
+        if (criado != null)
+        {
+            var index = _lstAlunos.Items.IndexOf(_lstAlunos.Items.Cast<object>().FirstOrDefault(x => x is Aluno a && a.Id == criado.Id));
+            if (index >= 0) _lstAlunos.SelectedIndex = index;
+        }
+        MessageBox.Show("Aluno cadastrado com sucesso.", "Cadastro concluído", MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     private void ConfigurarGridCursos()
@@ -293,5 +337,90 @@ public class UcConsultarCadastro : UserControl
             File.WriteAllText(saveDialog.FileName, sb.ToString(), Encoding.UTF8);
             MessageBox.Show("Ficha cadastral exportada com sucesso!", "Exportação Concluída", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+    }
+}
+
+
+internal sealed class FormCadastrarAluno : Form
+{
+    private readonly TextBox _nome = new() { Width = 320 };
+    private readonly TextBox _email = new() { Width = 320 };
+    private readonly TextBox _senha = new() { Width = 320, UseSystemPasswordChar = true };
+    private readonly TextBox _cpf = new() { Width = 320 };
+    private readonly TextBox _telefone = new() { Width = 320 };
+    private readonly DateTimePicker _nascimento = new() { Width = 320, Format = DateTimePickerFormat.Custom, CustomFormat = "dd/MM/yyyy", ShowCheckBox = true, Checked = false };
+    private readonly TextBox _endereco = new() { Width = 320 };
+
+    public object Dados => new
+    {
+        nome = _nome.Text.Trim(),
+        email = _email.Text.Trim(),
+        senha = _senha.Text,
+        cpf = string.IsNullOrWhiteSpace(_cpf.Text) ? null : _cpf.Text.Trim(),
+        telefone = string.IsNullOrWhiteSpace(_telefone.Text) ? null : _telefone.Text.Trim(),
+        dataNascimento = _nascimento.Checked ? _nascimento.Value.Date : (DateTime?)null,
+        endereco = string.IsNullOrWhiteSpace(_endereco.Text) ? null : _endereco.Text.Trim()
+    };
+
+    public FormCadastrarAluno()
+    {
+        Text = "Cadastrar aluno";
+        ClientSize = new Size(390, 560);
+        StartPosition = FormStartPosition.CenterParent;
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        MaximizeBox = false;
+        MinimizeBox = false;
+        BackColor = Color.White;
+
+        var layout = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoScroll = true,
+            Padding = new Padding(22),
+            ColumnCount = 1,
+            RowCount = 15
+        };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+        void AddField(string label, Control control)
+        {
+            layout.Controls.Add(new Label { Text = label, AutoSize = true, Font = Theme.FontBodyBold, ForeColor = Theme.TextDark, Margin = new Padding(0, 8, 0, 3) });
+            control.Font = Theme.FontBody;
+            control.Dock = DockStyle.Top;
+            layout.Controls.Add(control);
+        }
+
+        AddField("Nome completo *", _nome);
+        AddField("E-mail *", _email);
+        AddField("Senha inicial *", _senha);
+        AddField("CPF", _cpf);
+        AddField("Telefone", _telefone);
+        AddField("Data de nascimento", _nascimento);
+        AddField("Endereço", _endereco);
+
+        var btnSalvar = new Button { Text = "Salvar cadastro", Height = 38, Dock = DockStyle.Top, Margin = new Padding(0, 18, 0, 0) };
+        Theme.ApplyModernButton(btnSalvar, Theme.Primary, Color.White);
+        btnSalvar.Click += (s, e) =>
+        {
+            if (string.IsNullOrWhiteSpace(_nome.Text) || string.IsNullOrWhiteSpace(_email.Text) || string.IsNullOrWhiteSpace(_senha.Text))
+            {
+                MessageBox.Show("Nome, e-mail e senha são obrigatórios.", "Validação", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (_senha.Text.Length < 8)
+            {
+                MessageBox.Show("A senha inicial deve ter pelo menos 8 caracteres.", "Validação", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            if (!System.Text.RegularExpressions.Regex.IsMatch(_email.Text.Trim(), @"^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
+            {
+                MessageBox.Show("Informe um e-mail válido.", "Validação", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+            DialogResult = DialogResult.OK;
+            Close();
+        };
+        layout.Controls.Add(btnSalvar);
+        Controls.Add(layout);
     }
 }

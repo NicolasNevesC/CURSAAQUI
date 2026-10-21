@@ -82,7 +82,7 @@ public class FormLogin : Form
             AutoSize = true
         };
         _txtEmail.Location = new Point(20, 132);
-        _txtEmail.Text = "admin@cursaaqui.com";
+        // Credenciais não são preenchidas automaticamente.
 
         var lblSenha = new Label
         {
@@ -93,7 +93,7 @@ public class FormLogin : Form
             AutoSize = true
         };
         _txtSenha.Location = new Point(20, 194);
-        _txtSenha.Text = "Trocar@123";
+
         _txtSenha.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) TentarLogin(); };
 
         _lblMensagem.Location = new Point(20, 226);
@@ -132,8 +132,8 @@ public class FormLogin : Form
         btnFastAdmin.Font = Theme.FontBodyBold;
         btnFastAdmin.Click += (s, e) =>
         {
-            _txtEmail.Text = "admin@cursaaqui.com";
-            _txtSenha.Text = "Trocar@123";
+            // Credenciais não são preenchidas automaticamente.
+    
             TentarLogin();
         };
 
@@ -150,7 +150,7 @@ public class FormLogin : Form
         btnFastSec.Click += (s, e) =>
         {
             _txtEmail.Text = "secretaria@cursaaqui.com";
-            _txtSenha.Text = "Trocar@123";
+    
             TentarLogin();
         };
 
