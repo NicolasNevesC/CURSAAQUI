@@ -26,12 +26,25 @@ public abstract class ApiBase : ControllerBase
         User.IsInRole("Administrador") || (User.IsInRole("Professor") && c.ProfessorId == UserId);
 }
 
+/// <summary>Matriz padrão (a mesma do seed): vale quando a linha da funcionalidade não existe no banco.</summary>
+public static class PermissoesPadrao
+{
+    public static readonly HashSet<string> Secretaria = new()
+    {
+        "GerenciarMatriculas", "ConsultarCadastro", "RegistrarAtendimentos", "GerarRelatoriosAdministrativos"
+    };
+
+    public static bool Padrao(bool admin, string chave) => admin || Secretaria.Contains(chave);
+}
+
 /// <summary>
 /// Matriz dinâmica do desktop. Vale para Administrador e Secretaria; Professor e Aluno passam direto
 /// (o acesso deles é controlado só por [Authorize(Roles = "...")]). Use junto com [Authorize].
+/// Aceita mais de uma chave: basta o perfil ter UMA delas liberada. Usado nas listagens de leitura que
+/// várias telas do desktop compartilham (ex.: lista de matrículas serve a Matrícula, ao Cadastro e aos Relatórios).
 /// </summary>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-public class PermissaoAttribute(string chave) : Attribute, IAsyncAuthorizationFilter
+public class PermissaoAttribute(params string[] chaves) : Attribute, IAsyncAuthorizationFilter
 {
     public async Task OnAuthorizationAsync(AuthorizationFilterContext ctx)
     {
@@ -43,8 +56,14 @@ public class PermissaoAttribute(string chave) : Attribute, IAsyncAuthorizationFi
         if (!admin && !sec) return;
 
         var db = ctx.HttpContext.RequestServices.GetRequiredService<CursaAquiDbContext>();
-        var p = await db.PermissoesSistema.AsNoTracking().FirstOrDefaultAsync(x => x.ChaveFuncionalidade == chave);
-        bool ok = admin ? (p?.PermitidoAdmin ?? true) : (p?.PermitidoSecretaria ?? false);
+        var encontradas = await db.PermissoesSistema.AsNoTracking()
+            .Where(x => chaves.Contains(x.ChaveFuncionalidade)).ToListAsync();
+        bool ok = chaves.Any(chave =>
+        {
+            var p = encontradas.FirstOrDefault(x => x.ChaveFuncionalidade == chave);
+            if (p == null) return PermissoesPadrao.Padrao(admin, chave);
+            return admin ? p.PermitidoAdmin : p.PermitidoSecretaria;
+        });
         if (!ok)
             ctx.Result = new ObjectResult(new { erro = "Seu perfil não tem permissão para esta funcionalidade." }) { StatusCode = 403 };
     }

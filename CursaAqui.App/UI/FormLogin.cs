@@ -82,7 +82,7 @@ public class FormLogin : Form
             AutoSize = true
         };
         _txtEmail.Location = new Point(20, 132);
-        // Credenciais não são preenchidas automaticamente.
+        _txtEmail.Text = "admin@cursaaqui.com";
 
         var lblSenha = new Label
         {
@@ -93,7 +93,7 @@ public class FormLogin : Form
             AutoSize = true
         };
         _txtSenha.Location = new Point(20, 194);
-
+        _txtSenha.Text = "Trocar@123";
         _txtSenha.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) TentarLogin(); };
 
         _lblMensagem.Location = new Point(20, 226);
@@ -109,71 +109,13 @@ public class FormLogin : Form
         Theme.ApplyModernButton(btnEntrar, Theme.Primary, Color.White);
         btnEntrar.Click += (s, e) => TentarLogin();
 
-        // 4. Divisor estilizado
-        var lblDivisor = new Label
-        {
-            Text = "─── ACESSO RÁPIDO PARA TESTES ───",
-            Font = Theme.FontSmall,
-            ForeColor = Theme.TextMuted,
-            Location = new Point(70, 310),
-            AutoSize = true
-        };
-
-        // 5. Botões de Acesso Rápido Organizados e Bem Posicionados
-        var btnFastAdmin = new Button
-        {
-            Text = "👑  Entrar como Administrador\n(admin@cursaaqui.com)",
-            Location = new Point(20, 340),
-            Width = 360,
-            Height = 52,
-            TextAlign = ContentAlignment.MiddleCenter
-        };
-        Theme.ApplyModernButton(btnFastAdmin, Color.FromArgb(238, 242, 255), Theme.Primary);
-        btnFastAdmin.Font = Theme.FontBodyBold;
-        btnFastAdmin.Click += (s, e) =>
-        {
-            // Credenciais não são preenchidas automaticamente.
-    
-            TentarLogin();
-        };
-
-        var btnFastSec = new Button
-        {
-            Text = "📝  Entrar como Secretaria\n(secretaria@cursaaqui.com)",
-            Location = new Point(20, 402),
-            Width = 360,
-            Height = 52,
-            TextAlign = ContentAlignment.MiddleCenter
-        };
-        Theme.ApplyModernButton(btnFastSec, Color.FromArgb(241, 245, 249), Theme.Secondary);
-        btnFastSec.Font = Theme.FontBodyBold;
-        btnFastSec.Click += (s, e) =>
-        {
-            _txtEmail.Text = "secretaria@cursaaqui.com";
-    
-            TentarLogin();
-        };
-
-        var lblAjuda = new Label
-        {
-            Text = "Dica: Clique em um dos perfis acima para alternar facilmente.",
-            Font = Theme.FontSmall,
-            ForeColor = Theme.TextMuted,
-            Location = new Point(32, 475),
-            AutoSize = true
-        };
-
         card.Controls.AddRange(new Control[]
         {
             lblLogo, lblSub, lblDesc,
             lblEmail, _txtEmail,
             lblSenha, _txtSenha,
             _lblMensagem,
-            btnEntrar,
-            lblDivisor,
-            btnFastAdmin,
-            btnFastSec,
-            lblAjuda
+            btnEntrar
         });
 
         mainContainer.Controls.Add(card);

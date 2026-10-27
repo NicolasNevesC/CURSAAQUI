@@ -8,13 +8,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CursaAqui_API.Controllers;
 
-[Route("api/atendimentos"), Authorize(Roles = "Administrador,Secretaria"), Permissao("RegistrarAtendimentos")]
+[Route("api/atendimentos"), Authorize(Roles = "Administrador,Secretaria")]
 public class AtendimentosController(CursaAquiDbContext db) : ApiBase
 {
     private Task<AtendimentoDto?> DtoAsync(int id) =>
         db.Atendimentos.AsNoTracking().Where(a => a.Id == id).Select(Consultas.AtendimentoProj).FirstOrDefaultAsync();
 
-    [HttpGet]
+    /// <summary>Lista usada por Registrar Atendimentos e pelo Relatório de Atendimentos do desktop.</summary>
+    [HttpGet, Permissao("RegistrarAtendimentos", "GerarRelatoriosAdministrativos")]
     public async Task<IActionResult> Listar([FromQuery] StatusAtendimento? status, [FromQuery] TipoSolicitante? tipo,
         [FromQuery] string? busca, [FromQuery] DateTime? de, [FromQuery] DateTime? ate)
     {
@@ -31,7 +32,7 @@ public class AtendimentosController(CursaAquiDbContext db) : ApiBase
         return Ok(await q.OrderByDescending(a => a.DataAbertura).Select(Consultas.AtendimentoProj).ToListAsync());
     }
 
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:int}"), Permissao("RegistrarAtendimentos", "GerarRelatoriosAdministrativos")]
     public async Task<IActionResult> Obter(int id)
     {
         var a = await DtoAsync(id);
@@ -49,7 +50,7 @@ public class AtendimentosController(CursaAquiDbContext db) : ApiBase
         return $"{prefixo}{n:D3}";
     }
 
-    [HttpPost]
+    [HttpPost, Permissao("RegistrarAtendimentos")]
     public async Task<IActionResult> Criar(AtendimentoCreateRequest req)
     {
         if (string.IsNullOrWhiteSpace(req.Assunto)) return Erro(400, "Informe o assunto.");
@@ -86,7 +87,7 @@ public class AtendimentosController(CursaAquiDbContext db) : ApiBase
         return Erro(409, "Não foi possível gerar o protocolo. Tente novamente.");
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:int}"), Permissao("RegistrarAtendimentos")]
     public async Task<IActionResult> Atualizar(int id, AtendimentoUpdateRequest req)
     {
         var a = await db.Atendimentos.FirstOrDefaultAsync(x => x.Id == id);
@@ -113,7 +114,7 @@ public class AtendimentosController(CursaAquiDbContext db) : ApiBase
         return Ok(await DtoAsync(id));
     }
 
-    [HttpPatch("{id:int}/status")]
+    [HttpPatch("{id:int}/status"), Permissao("RegistrarAtendimentos")]
     public async Task<IActionResult> AlterarStatus(int id, AtendimentoStatusRequest req)
     {
         var a = await db.Atendimentos.FirstOrDefaultAsync(x => x.Id == id);

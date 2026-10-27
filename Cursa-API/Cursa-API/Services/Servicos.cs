@@ -90,6 +90,15 @@ public static class Regras
 
 public class MatriculaService(CursaAquiDbContext db)
 {
+    /// <summary>Retorna a mensagem de erro se o curso não tem mais vaga (null = há vaga ou o curso não tem limite).</summary>
+    public async Task<string?> ValidarVagaAsync(int cursoId, Curso? curso = null)
+    {
+        curso ??= await db.Cursos.AsNoTracking().FirstOrDefaultAsync(c => c.Id == cursoId);
+        if (curso?.VagasTotais == null) return null;
+        int ocupadas = await db.Matriculas.CountAsync(m => m.CursoId == cursoId && StatusOcupamVaga.Contains(m.Status));
+        return ocupadas >= curso.VagasTotais ? "Não há vagas disponíveis neste curso." : null;
+    }
+
     // Vagas ocupadas = matrículas Ativa, Renovada e Trancada (trancada ainda guarda a vaga)
     public static readonly StatusMatricula[] StatusOcupamVaga =
         { StatusMatricula.Ativa, StatusMatricula.Renovada, StatusMatricula.Trancada };
@@ -98,7 +107,8 @@ public class MatriculaService(CursaAquiDbContext db)
     /// Cria (ou devolve a existente) a matrícula de um aluno. Mesmas travas do desktop:
     /// matrículas liberadas, curso ativo, vaga disponível e sem duplicidade; mais o nível mínimo do site.
     /// </summary>
-    public async Task<ResultadoMatricula> IniciarAsync(int alunoId, int cursoId, string? periodo, bool ignorarNivel)
+    public async Task<ResultadoMatricula> IniciarAsync(int alunoId, int cursoId, string? periodo, bool ignorarNivel,
+        bool validarCargaHoraria = false)
     {
         var aluno = await db.Alunos.FirstOrDefaultAsync(a => a.Id == alunoId);
         if (aluno == null) return new(null, false, 404, "Aluno não encontrado.");
@@ -118,14 +128,28 @@ public class MatriculaService(CursaAquiDbContext db)
                 ? new(null, false, 409, "Matrícula cancelada neste período. Procure a Secretaria.")
                 : new(existente, false, 200, null);
 
+        // Duplicidade: aluno que já tem este curso em andamento (Ativa/Renovada/Trancada) em outro período não matricula de novo
+        var emAberto = await db.Matriculas.FirstOrDefaultAsync(m =>
+            m.AlunoId == alunoId && m.CursoId == cursoId && StatusOcupamVaga.Contains(m.Status));
+        if (emAberto != null) return new(emAberto, false, 200, null);
+
         if (!par.PermitirNovasMatriculas) return new(null, false, 409, "As novas matrículas estão suspensas no momento.");
         if (!ignorarNivel && aluno.Nivel < curso.NivelMinimo)
             return new(null, false, 403, $"Curso bloqueado: é preciso alcançar o nível {curso.NivelMinimo}.");
 
-        if (curso.VagasTotais != null)
+        var erroVaga = await ValidarVagaAsync(cursoId, curso);
+        if (erroVaga != null) return new(null, false, 409, erroVaga);
+
+        // Parâmetro "carga horária máxima simultânea por aluno" (Configurar Parâmetros do Sistema).
+        // Conta os cursos em andamento (Ativa/Renovada); trancados e concluídos não pesam.
+        if (validarCargaHoraria)
         {
-            int ocupadas = await db.Matriculas.CountAsync(m => m.CursoId == cursoId && StatusOcupamVaga.Contains(m.Status));
-            if (ocupadas >= curso.VagasTotais) return new(null, false, 409, "Não há vagas disponíveis neste curso.");
+            int emAndamento = await db.Matriculas
+                .Where(m => m.AlunoId == alunoId && (m.Status == StatusMatricula.Ativa || m.Status == StatusMatricula.Renovada))
+                .SumAsync(m => (int?)m.Curso.CargaHoraria) ?? 0;
+            if (emAndamento + curso.CargaHoraria > par.CargaHorariaMaximaAluno)
+                return new(null, false, 409,
+                    $"Carga horária máxima simultânea excedida: o aluno já cursa {emAndamento}h e este curso soma {curso.CargaHoraria}h (limite de {par.CargaHorariaMaximaAluno}h).");
         }
 
         var nova = new Matricula { AlunoId = alunoId, CursoId = cursoId, PeriodoLetivo = periodo, Status = StatusMatricula.Ativa };

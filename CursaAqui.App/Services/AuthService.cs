@@ -39,7 +39,7 @@ public class AuthService
             return (false, "Informe o e-mail institucional e a senha.");
 
         var r = await ApiClient.Instance.PostAsync<AuthRespostaDto>("api/auth/login",
-            new { email = email.Trim(), senha });
+            new { email = email.Trim(), senha = senha.Trim() });
 
         if (!r.Sucesso || r.Dados == null)
             return (false, r.Erro);
@@ -86,6 +86,6 @@ public class AuthService
     {
         if (UsuarioLogado == null) return false;
         if (_permissoes.TryGetValue(chaveFuncionalidade, out var permitido)) return permitido;
-        return UsuarioLogado is Administrador; // chave desconhecida: só o Administrador passa
+        return UsuarioLogado.PodeExecutar(chaveFuncionalidade); // sem regra da API: usa o padrão do perfil
     }
 }

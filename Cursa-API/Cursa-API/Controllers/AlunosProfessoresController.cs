@@ -23,8 +23,8 @@ public class AlunosController(CursaAquiDbContext db) : ApiBase
         return q;
     }
 
-    [HttpGet, Authorize(Roles = "Administrador,Secretaria,Professor"),
-    Permissao("GERENCIAR_USUARIOS")]
+    /// <summary>Lista usada por Consultar Cadastro, Gerenciar Matrículas e pelos relatórios do desktop.</summary>
+    [HttpGet, Authorize(Roles = "Administrador,Secretaria,Professor"), Permissao("ConsultarCadastro", "GerenciarMatriculas", "VisualizarRelatorios", "GerarRelatoriosAdministrativos")]
     public async Task<IActionResult> Listar([FromQuery] string? busca, [FromQuery] bool? ativo)
     {
         var q = Escopo();

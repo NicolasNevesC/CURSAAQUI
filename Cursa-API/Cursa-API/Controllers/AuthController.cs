@@ -73,7 +73,15 @@ public class AuthController(CursaAquiDbContext db, TokenService tokens) : ApiBas
         if (!EhStaff) return Ok(new Dictionary<string, bool>());
         bool admin = User.IsInRole("Administrador");
         var lista = await db.PermissoesSistema.AsNoTracking().ToListAsync();
-        return Ok(lista.ToDictionary(p => p.ChaveFuncionalidade, p => admin ? p.PermitidoAdmin : p.PermitidoSecretaria));
+        var mapa = lista.ToDictionary(p => p.ChaveFuncionalidade, p => admin ? p.PermitidoAdmin : p.PermitidoSecretaria);
+
+        // Funcionalidade sem linha na tabela (banco antigo/incompleto): usa a matriz padrão em vez de esconder o menu
+        foreach (var chave in new[] { "GerenciarUsuarios", "GerenciarPermissoes", "GerenciarCursos", "VisualizarRelatorios",
+                     "ConfigurarParametros", "GerenciarMatriculas", "ConsultarCadastro", "RegistrarAtendimentos",
+                     "GerarRelatoriosAdministrativos" })
+            mapa.TryAdd(chave, PermissoesPadrao.Padrao(admin, chave));
+
+        return Ok(mapa);
     }
 
     [HttpPut("senha"), Authorize]

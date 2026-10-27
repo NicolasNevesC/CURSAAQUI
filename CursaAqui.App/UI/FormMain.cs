@@ -165,20 +165,19 @@ public class FormMain : Form
     private void MontarMenuPorPerfil()
     {
         _menuContainer.Controls.Clear();
+        _primeiraAcao = null;
         var auth = AuthService.Instance;
 
         if (auth.EhAdministrador)
         {
-            AdicionarItemMenu("👥 Gerenciar Usuários", () => NavegarPara(() => new UcGerenciarUsuarios(), "Gerenciamento de Usuários Internos"), true);
-            AdicionarItemMenu("🎓 Cadastro de Alunos", () => NavegarPara(() => new UcConsultarCadastro(), "Consulta e Cadastro de Alunos"), auth.TemPermissao("ConsultarCadastro"));
-            AdicionarItemMenu("📝 Gerenciar Matrículas", () => NavegarPara(() => new UcGerenciarMatriculas(), "Gerenciamento do Ciclo de Matrículas"), auth.TemPermissao("GerenciarMatriculas"));
+            AdicionarItemMenu("👥 Gerenciar Usuários", () => NavegarPara(() => new UcGerenciarUsuarios(), "Gerenciamento de Usuários Internos"), auth.TemPermissao("GerenciarUsuarios"));
             AdicionarItemMenu("🔑 Gerenciar Permissões", () => NavegarPara(() => new UcGerenciarPermissoes(), "Matriz de Permissões de Acesso"), auth.TemPermissao("GerenciarPermissoes"));
             AdicionarItemMenu("📚 Gerenciar Cursos", () => NavegarPara(() => new UcGerenciarCursos(), "Catálogo e Parâmetros de Cursos"), auth.TemPermissao("GerenciarCursos"));
             AdicionarItemMenu("📊 Relatórios Gerenciais", () => NavegarPara(() => new UcVisualizarRelatorios(), "Relatórios Gerenciais e Indicadores"), auth.TemPermissao("VisualizarRelatorios"));
             AdicionarItemMenu("⚙️ Parâmetros do Sistema", () => NavegarPara(() => new UcParametrosSistema(), "Configuração Geral do Sistema"), auth.TemPermissao("ConfigurarParametros"));
 
-            // Abre a primeira tela
-            NavegarPara(() => new UcGerenciarCursos(), "Catálogo e Parâmetros de Cursos");
+            // Abre a primeira tela que o perfil tem permissão de usar
+            _primeiraAcao?.Invoke();
         }
         else if (auth.EhSecretaria)
         {
@@ -187,14 +186,17 @@ public class FormMain : Form
             AdicionarItemMenu("🎧 Registrar Atendimentos", () => NavegarPara(() => new UcRegistrarAtendimentos(), "Registro e Tratamento de Atendimentos"), auth.TemPermissao("RegistrarAtendimentos"));
             AdicionarItemMenu("📑 Relatórios Administrativos", () => NavegarPara(() => new UcRelatoriosAdministrativos(), "Emissão de Relatórios da Secretaria"), auth.TemPermissao("GerarRelatoriosAdministrativos"));
 
-            // Abre a primeira tela da secretaria
-            NavegarPara(() => new UcGerenciarMatriculas(), "Gerenciamento do Ciclo de Matrículas");
+            // Abre a primeira tela que o perfil tem permissão de usar
+            _primeiraAcao?.Invoke();
         }
     }
+
+    private Action? _primeiraAcao;
 
     private void AdicionarItemMenu(string titulo, Action acao, bool habilitado)
     {
         if (!habilitado) return;
+        _primeiraAcao ??= acao;
 
         var btn = new Button
         {

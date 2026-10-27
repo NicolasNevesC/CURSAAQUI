@@ -96,14 +96,17 @@ A arquitetura respeita estritamente o diagrama de classes e especialização:
 
 ## 🔑 Credenciais Pré-cadastradas para Demonstração
 
-Para facilitar a navegação e homologação, a tela de login inclui botões de **Acesso Rápido**:
+Para facilitar a navegação e homologação, a tela de login inclui botões de **Acesso Rápido**.
+
+> \* Os usuários são criados pela **API** (`Seed:Habilitado = true` e `Seed:SenhaPadrao` no `appsettings`). A senha da tabela só funciona se `Seed:SenhaPadrao` for `Trocar@123`; o Desktop exige que a API esteja em execução (`api.config.json`).
+
 
 | Perfil | Nome | E-mail | Senha |
 | :--- | :--- | :--- | :--- |
-| **Administrador** | Carlos Eduardo Menezes | `admin@cursaaqui.com` | `123` |
-| **Administrador** | Mariana Castro | `mariana.admin@cursaaqui.com` | `123` |
-| **Secretaria** | Fernanda Oliveira | `secretaria@cursaaqui.com` | `123` |
-| **Secretaria** | Lucas Ribeiro | `lucas.sec@cursaaqui.com` | `123` |
+| **Administrador** | Carlos Eduardo Menezes | `admin@cursaaqui.com` | `Trocar@123` * |
+| **Administrador** | Mariana Souza Ribeiro | `mariana.admin@cursaaqui.com` | `Trocar@123` * |
+| **Secretaria** | Fernanda Lima Barbosa | `secretaria@cursaaqui.com` | `Trocar@123` * |
+| **Secretaria** | Lucas Andrade Ferreira | `lucas.sec@cursaaqui.com` | `Trocar@123` * |
 
 ---
 

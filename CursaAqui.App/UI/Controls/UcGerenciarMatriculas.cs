@@ -225,6 +225,8 @@ public class FormNovaMatricula : Form
     private readonly TextBox _txtPeriodo = new() { Width = 340, Font = Theme.FontBody };
     private readonly TextBox _txtObs = new() { Width = 340, Height = 60, Multiline = true, Font = Theme.FontBody };
 
+    private bool _matriculasFechadas;
+
     public FormNovaMatricula()
     {
         Text = "Realizar Nova Matrícula";
@@ -241,6 +243,7 @@ public class FormNovaMatricula : Form
         if (!repo.Parametros.PermitirNovasMatriculas)
         {
             MessageBox.Show("As novas matrículas estão temporariamente bloqueadas nas configurações do sistema pelo Administrador.", "Matrículas Fechadas", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            _matriculasFechadas = true;
         }
 
         foreach (var a in repo.Alunos.Where(al => al.Ativo))
@@ -280,6 +283,7 @@ public class FormNovaMatricula : Form
         var btnConfirmar = new Button { Text = "Efetivar Matrícula", Width = 340, Height = 40, Margin = new Padding(0, 18, 0, 0) };
         Theme.ApplyModernButton(btnConfirmar, Theme.Primary, Color.White);
         btnConfirmar.Click += Confirmar;
+        btnConfirmar.Enabled = !_matriculasFechadas; // trava global definida em Parâmetros do Sistema
         panel.Controls.Add(btnConfirmar);
 
         Controls.Add(panel);
@@ -295,11 +299,12 @@ public class FormNovaMatricula : Form
 
         var repo = DataRepository.Instance;
 
-        // Verifica se aluno já está matriculado no curso (a API também confere, mas avisamos antes)
-        bool jaMatriculado = repo.Matriculas.Any(m => m.AlunoId == aluno.Id && m.CursoId == curso.Id && m.Status == StatusMatricula.Ativa);
+        // Duplicidade: curso já em andamento (Ativa, Renovada ou Trancada) - a API confere as mesmas regras
+        var emAberto = new[] { StatusMatricula.Ativa, StatusMatricula.Renovada, StatusMatricula.Trancada };
+        bool jaMatriculado = repo.Matriculas.Any(m => m.AlunoId == aluno.Id && m.CursoId == curso.Id && emAberto.Contains(m.Status));
         if (jaMatriculado)
         {
-            MessageBox.Show($"O aluno {aluno.Nome} já possui matrícula ATIVA no curso '{curso.Titulo}'.", "Duplicidade de Matrícula", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show($"O aluno {aluno.Nome} já possui matrícula em andamento (ativa, renovada ou trancada) no curso '{curso.Titulo}'.", "Duplicidade de Matrícula", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
