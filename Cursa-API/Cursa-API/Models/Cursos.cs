@@ -86,6 +86,7 @@ public class AvaliacaoCurso
     public int Nota { get; set; } // 1..5
     public string? Comentario { get; set; }
     public DateTime Data { get; set; } = DateTime.UtcNow;
+    public DateTime? DataAtualizacao { get; set; }
 }
 
 /// <summary>

@@ -49,37 +49,6 @@ namespace Cursa_API.Migrations
                     b.ToTable("Alternativas");
                 });
 
-            modelBuilder.Entity("CursaAqui_API.Models.AnotacaoCurso", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AlunoId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("AtualizadoEm")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("CursoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Texto")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CursoId");
-
-                    b.HasIndex("AlunoId", "CursoId")
-                        .IsUnique();
-
-                    b.ToTable("AnotacoesCurso");
-                });
-
             modelBuilder.Entity("CursaAqui_API.Models.Atendimento", b =>
                 {
                     b.Property<int>("Id")
@@ -166,6 +135,9 @@ namespace Cursa_API.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Data")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataAtualizacao")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Nota")
@@ -513,35 +485,6 @@ namespace Cursa_API.Migrations
                     b.HasIndex("CursoId", "AlunoId", "DataEnvio");
 
                     b.ToTable("MensagensChat");
-                });
-
-            modelBuilder.Entity("CursaAqui_API.Models.MetaEstudo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AlunoId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Concluida")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("DataCriacao")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Texto")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AlunoId");
-
-                    b.ToTable("MetasEstudo");
                 });
 
             modelBuilder.Entity("CursaAqui_API.Models.ParametrosSistema", b =>
@@ -1089,25 +1032,6 @@ namespace Cursa_API.Migrations
                     b.Navigation("Questao");
                 });
 
-            modelBuilder.Entity("CursaAqui_API.Models.AnotacaoCurso", b =>
-                {
-                    b.HasOne("CursaAqui_API.Models.Aluno", "Aluno")
-                        .WithMany("Anotacoes")
-                        .HasForeignKey("AlunoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CursaAqui_API.Models.Curso", "Curso")
-                        .WithMany()
-                        .HasForeignKey("CursoId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Aluno");
-
-                    b.Navigation("Curso");
-                });
-
             modelBuilder.Entity("CursaAqui_API.Models.Atendimento", b =>
                 {
                     b.HasOne("CursaAqui_API.Models.Aluno", "Aluno")
@@ -1281,17 +1205,6 @@ namespace Cursa_API.Migrations
                     b.Navigation("Remetente");
                 });
 
-            modelBuilder.Entity("CursaAqui_API.Models.MetaEstudo", b =>
-                {
-                    b.HasOne("CursaAqui_API.Models.Aluno", "Aluno")
-                        .WithMany("Metas")
-                        .HasForeignKey("AlunoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Aluno");
-                });
-
             modelBuilder.Entity("CursaAqui_API.Models.ParametrosSistema", b =>
                 {
                     b.HasOne("CursaAqui_API.Models.Usuario", "AtualizadoPor")
@@ -1454,15 +1367,11 @@ namespace Cursa_API.Migrations
 
             modelBuilder.Entity("CursaAqui_API.Models.Aluno", b =>
                 {
-                    b.Navigation("Anotacoes");
-
                     b.Navigation("Avaliacoes");
 
                     b.Navigation("Certificados");
 
                     b.Navigation("Matriculas");
-
-                    b.Navigation("Metas");
 
                     b.Navigation("Tentativas");
                 });

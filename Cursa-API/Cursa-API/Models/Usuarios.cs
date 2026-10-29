@@ -74,7 +74,5 @@ public class Aluno : Usuario
     public ICollection<Matricula> Matriculas { get; set; } = new List<Matricula>();
     public ICollection<Tentativa> Tentativas { get; set; } = new List<Tentativa>();
     public ICollection<Certificado> Certificados { get; set; } = new List<Certificado>();
-    public ICollection<MetaEstudo> Metas { get; set; } = new List<MetaEstudo>();
-    public ICollection<AnotacaoCurso> Anotacoes { get; set; } = new List<AnotacaoCurso>();
     public ICollection<AvaliacaoCurso> Avaliacoes { get; set; } = new List<AvaliacaoCurso>();
 }

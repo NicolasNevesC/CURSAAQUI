@@ -31,8 +31,6 @@ public class CursaAquiDbContext : DbContext
     // Acadêmico
     public DbSet<Matricula> Matriculas => Set<Matricula>();
     public DbSet<Certificado> Certificados => Set<Certificado>();
-    public DbSet<MetaEstudo> MetasEstudo => Set<MetaEstudo>();
-    public DbSet<AnotacaoCurso> AnotacoesCurso => Set<AnotacaoCurso>();
     public DbSet<MensagemChat> MensagensChat => Set<MensagemChat>();
 
     // Operacional / sistema
@@ -171,20 +169,6 @@ public class CursaAquiDbContext : DbContext
             e.Property(c => c.CodigoValidacao).HasMaxLength(40).IsRequired();
             e.HasIndex(c => c.CodigoValidacao).IsUnique();
             e.HasIndex(c => c.MatriculaId).IsUnique();
-        });
-
-        mb.Entity<MetaEstudo>(e =>
-        {
-            e.Property(m => m.Texto).HasMaxLength(300).IsRequired();
-            e.HasOne(m => m.Aluno).WithMany(a => a.Metas)
-                .HasForeignKey(m => m.AlunoId).OnDelete(DeleteBehavior.Cascade);
-        });
-
-        mb.Entity<AnotacaoCurso>(e =>
-        {
-            e.HasIndex(a => new { a.AlunoId, a.CursoId }).IsUnique(); // 1 caderno por aluno/curso
-            e.HasOne(a => a.Aluno).WithMany(al => al.Anotacoes)
-                .HasForeignKey(a => a.AlunoId).OnDelete(DeleteBehavior.Cascade);
         });
 
         mb.Entity<MensagemChat>(e =>

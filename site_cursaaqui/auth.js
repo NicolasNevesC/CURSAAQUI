@@ -1,9 +1,8 @@
 // ============================================================
-// auth.js - Gerenciador de Autenticação e Modais
-// Responsável por: login, logout, cadastro, controle de modal
+// auth.js - Gerenciador de Autenticação, Rotas e Sessões
+// Responsável por: login, logout, cadastro, controle de rotas
 // e inicialização de dados de demonstração no localStorage.
 // ============================================================
-
 
 // ─────────────────────────────────────────────────────────────
 // IIFE (função auto-executável) que roda logo ao carregar a página.
@@ -11,25 +10,21 @@
 // existam no localStorage, além de popular envios de exemplo.
 // ─────────────────────────────────────────────────────────────
 (function inicializarDadosProfessor() {
-
-  // Lê a lista de usuários salva; se não existir, começa com array vazio
   const users = Storage.getUsers();
-  let updated = false; // flag: indica se precisamos salvar de volta
+  let updated = false;
 
-  // Se a conta do professor demo não existe, cria ela
   if (!users.some(u => u.email === "ricardo@cursaaqui.com")) {
     users.push({
       name: "Prof. Ricardo Silva",
       email: "ricardo@cursaaqui.com",
       password: "123456",
-      role: "teacher", // professor tem acesso ao painel de correção
+      role: "teacher",
       xp: 1500,
       level: 5
     });
     updated = true;
   }
 
-  // Se a conta do aluno demo não existe, cria ela
   if (!users.some(u => u.email === "aluno@cursaaqui.com")) {
     users.push({
       name: "Matheus Narvaes",
@@ -42,12 +37,10 @@
     updated = true;
   }
 
-  // Só grava se algo foi adicionado (evita writes desnecessários)
   if (updated) {
     Storage.setUsers(users);
   }
 
-  // Inicializa progresso de demonstração para o aluno demo caso não exista
   const demoStudentProgressKey = "user_courses_progress_aluno@cursaaqui.com";
   if (!localStorage.getItem(demoStudentProgressKey)) {
     const demoProgress = {
@@ -70,8 +63,6 @@
     localStorage.setItem(demoStudentProgressKey, JSON.stringify(demoProgress));
   }
 
-  // ─── Envios de atividades de demonstração ───────────────────
-  // Popula apenas se não houver nenhum envio salvo ainda
   const submissions = JSON.parse(localStorage.getItem("teacher_activity_submissions")) || [];
   if (submissions.length === 0) {
     const demoSubmissions = [
@@ -84,7 +75,7 @@
         answers: { 0: 2, 1: 1, 2: 1, 3: 2, 4: 1, 5: 1, 6: 3, 7: 2, 8: 2, 9: 0 },
         score: 10,
         totalQuestions: 10,
-        status: "Pendente",   // aguardando correção do professor
+        status: "Pendente",
         feedback: "",
         submittedAt: "30/08/2026 14:20"
       },
@@ -110,7 +101,7 @@
         answers: { 0: 1 },
         score: 1,
         totalQuestions: 1,
-        status: "Corrigido",  // já avaliado pelo professor
+        status: "Corrigido",
         feedback: "Excelente compreensão da arquitetura ASP.NET e Entity Framework! Parabéns.",
         submittedAt: "29/08/2026 18:10"
       }
@@ -119,51 +110,118 @@
   }
 })();
 
+// ─────────────────────────────────────────────────────────────
+// redirectByRole(user)
+// Redireciona o usuário para o painel correspondente ao seu perfil.
+// ─────────────────────────────────────────────────────────────
+function redirectByRole(user) {
+  if (!user) return;
+  if (user.role === "teacher" || user.role === "Professor") {
+    window.location.href = "professor.html";
+  } else if (user.role === "student" || user.role === "Aluno") {
+    window.location.href = "aluno.html";
+  } else {
+    window.location.href = "aluno.html";
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// isSessionValid(user)
+// Valida se o usuário tem sessão ativa e se o token não expirou.
+// ─────────────────────────────────────────────────────────────
+function isSessionValid(user) {
+  if (!user || !user.email) return false;
+  if (user.tokenExpiresAt && new Date(user.tokenExpiresAt).getTime() < Date.now()) {
+    Storage.clearLoggedUser();
+    return false;
+  }
+  return true;
+}
+
+// ─────────────────────────────────────────────────────────────
+// protectStudentPage()
+// Protege a tela aluno.html.
+// - Sem sessão válida -> redireciona para index.html
+// - Professor tentando acessar -> redireciona para professor.html
+// ─────────────────────────────────────────────────────────────
+function protectStudentPage() {
+  const user = Storage.getLoggedUser();
+  if (!user || !isSessionValid(user)) {
+    Storage.clearLoggedUser();
+    window.location.replace("index.html?auth=required");
+    return null;
+  }
+  if (user.role === "teacher" || user.role === "Professor") {
+    window.location.replace("professor.html");
+    return null;
+  }
+  return user;
+}
+
+// ─────────────────────────────────────────────────────────────
+// protectTeacherPage()
+// Protege a tela professor.html.
+// - Sem sessão válida -> redireciona para index.html
+// - Aluno tentando acessar -> redireciona para aluno.html
+// ─────────────────────────────────────────────────────────────
+function protectTeacherPage() {
+  const user = Storage.getLoggedUser();
+  if (!user || !isSessionValid(user)) {
+    Storage.clearLoggedUser();
+    window.location.replace("index.html?auth=required");
+    return null;
+  }
+  if (user.role === "student" || user.role === "Aluno") {
+    window.location.replace("aluno.html");
+    return null;
+  }
+  return user;
+}
+
+// ─────────────────────────────────────────────────────────────
+// redirectIfAlreadyAuthenticated()
+// Chamado na página inicial (index.html) para encaminhar usuários já
+// autenticados ao painel do seu perfil, evitando loops no logout.
+// ─────────────────────────────────────────────────────────────
+function redirectIfAlreadyAuthenticated() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("action") === "logout") {
+    Storage.clearLoggedUser();
+    return;
+  }
+  const user = Storage.getLoggedUser();
+  if (user && isSessionValid(user)) {
+    redirectByRole(user);
+  }
+}
 
 // ─────────────────────────────────────────────────────────────
 // loginAsRole(email, password)
 // Login rápido via botões de demonstração na tela de login.
-// Busca o usuário direto no localStorage, sem depender dos
-// campos do formulário HTML.
 // ─────────────────────────────────────────────────────────────
 function loginAsRole(email, password) {
   const users = Storage.getUsers();
-
-  // Procura um usuário que tenha exatamente esse e-mail E senha
   const user = users.find(u => u.email === email && u.password === password);
 
   if (user) {
-    // Salva o usuário logado para persistir a sessão
     Storage.setLoggedUser(user);
 
-    // Fecha o modal de autenticação se estiver aberto
     if (typeof closeAuthModal === "function") closeAuthModal();
-
-    // Professor vai direto para o painel exclusivo dele
-    if (user.role === "teacher") {
-      window.location.href = "professor.html";
-      return;
-    }
-
-    // Aluno: notifica, atualiza a UI e recarrega cursos/dashboard
     if (typeof showToast === "function") showToast("Login realizado com sucesso!");
-    if (typeof updateAuthUI === "function") updateAuthUI();
-    if (typeof renderCourses === "function") renderCourses();
-    if (typeof loadDashboard === "function") loadDashboard();
+
+    // Redireciona conforme perfil esperado
+    redirectByRole(user);
   } else {
-    // Credencial não encontrada no localStorage
     if (typeof showToast === "function") showToast("Erro ao fazer login rápido. Tente manualmente.");
   }
 }
 
-
 // ─────────────────────────────────────────────────────────────
 // openAuthModal() / closeAuthModal()
-// Exibe ou oculta o modal de login/cadastro centralizado na tela.
 // ─────────────────────────────────────────────────────────────
 function openAuthModal(){
   const modal = document.getElementById("authModal");
-  if (modal) modal.style.display = "flex"; // "flex" para funcionar com centralização via CSS
+  if (modal) modal.style.display = "flex";
 }
 
 function closeAuthModal(){
@@ -171,89 +229,82 @@ function closeAuthModal(){
   if (modal) modal.style.display = "none";
 }
 
-
 // ─────────────────────────────────────────────────────────────
 // showLogin() / showRegister()
-// Alterna entre o formulário de login e o de cadastro dentro
-// do mesmo modal de autenticação (só um fica visível por vez).
 // ─────────────────────────────────────────────────────────────
 function showLogin(){
-  document.getElementById("loginForm").style.display = "block";
-  document.getElementById("registerForm").style.display = "none";
+  const l = document.getElementById("loginForm");
+  const r = document.getElementById("registerForm");
+  if (l) l.style.display = "block";
+  if (r) r.style.display = "none";
 }
 
 function showRegister(){
-  document.getElementById("loginForm").style.display = "none";
-  document.getElementById("registerForm").style.display = "block";
+  const l = document.getElementById("loginForm");
+  const r = document.getElementById("registerForm");
+  if (l) l.style.display = "none";
+  if (r) r.style.display = "block";
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // register()
-// Lê os campos do formulário de cadastro, valida os dados e
-// salva o novo usuário no localStorage.
-// Impede cadastro com e-mail duplicado.
 // ─────────────────────────────────────────────────────────────
 function register(){
-  // Lê e limpa espaços extras dos campos do formulário
-  const name     = document.getElementById("registerName").value.trim();
-  const email    = document.getElementById("registerEmail").value.trim();
-  const password = document.getElementById("registerPassword").value;
-  const role     = document.getElementById("registerRole").value; // 'student' ou 'teacher'
+  const nameEl     = document.getElementById("registerName");
+  const emailEl    = document.getElementById("registerEmail");
+  const passwordEl = document.getElementById("registerPassword");
+  const roleEl     = document.getElementById("registerRole");
 
-  // Valida: todos os campos são obrigatórios
-  if(!name || !email || !password) {
+  if (!nameEl || !emailEl || !passwordEl) return;
+
+  const name     = nameEl.value.trim();
+  const email    = emailEl.value.trim();
+  const password = passwordEl.value;
+  const role     = roleEl ? roleEl.value : "student";
+
+  if (!name || !email || !password) {
     if (typeof showToast === "function") showToast("Preencha todos os campos!");
     return;
   }
 
   const users = Storage.getUsers();
-
-  // Verifica se o e-mail já está em uso por outra conta
-  if(users.some(u => u.email === email)) {
+  if (users.some(u => u.email === email)) {
     if (typeof showToast === "function") showToast("Este e-mail já está cadastrado.");
     return;
   }
 
-  // Cria o objeto do novo usuário e insere na lista
   Storage.upsertUser({
     name,
     email,
     password,
-    role, // Será salvo implicitamente como 'student' pelo campo oculto do HTML
-    xp: 0,     // começa sem experiência
-    level: 1   // começa no nível 1
+    role: role || "student",
+    xp: 0,
+    level: 1
   });
 
   if (typeof showToast === "function") showToast("Conta criada com sucesso!");
-  showLogin(); // após cadastro, volta para a tela de login
+  showLogin();
 }
-
 
 // ─────────────────────────────────────────────────────────────
 // login()
-// Lê e-mail e senha dos inputs do formulário, autentica o
-// usuário e direciona conforme o perfil:
-//   - professor → professor.html
-//   - aluno → permanece na página com UI atualizada
+// Lê dados do formulário, valida e redireciona:
+//   - Aluno -> aluno.html
+//   - Professor -> professor.html
 // ─────────────────────────────────────────────────────────────
 function login(){
   const emailInput    = document.getElementById("loginEmail");
   const passwordInput = document.getElementById("loginPassword");
 
-  // Sai silenciosamente se os elementos não existirem na página atual
   if (!emailInput || !passwordInput) return;
 
   const email    = emailInput.value.trim();
   const password = passwordInput.value;
 
   const users = Storage.getUsers();
-
-  // Busca o usuário com e-mail E senha correspondentes
   const user = users.find(u => u.email === email && u.password === password);
 
-  if(user){
-    // Persiste a sessão do usuário autenticado no localStorage
+  if (user) {
     Storage.setLoggedUser(user);
 
     if (typeof showToast === "function") {
@@ -261,58 +312,32 @@ function login(){
     }
     
     closeAuthModal();
-    
-    // Redirecionar professor para painel exclusivo e encerrar função
-    if (user.role === "teacher") {
-      window.location.href = "professor.html";
-      return;
-    }
 
-    // Aluno: atualiza os componentes visuais sem redirecionar
-    if (typeof updateAuthUI === "function") {
-      updateAuthUI();
-    }
-
-    if (typeof renderCourses === "function") {
-      renderCourses();
-    }
-
-    if (typeof loadDashboard === "function") {
-      loadDashboard();
-    }
-
+    // Redireciona conforme o perfil
+    redirectByRole(user);
   } else {
-    // Nenhum usuário encontrado com essas credenciais
     if (typeof showToast === "function") {
       showToast("Usuário ou senha incorretos.");
     }
   }
 }
 
-
 // ─────────────────────────────────────────────────────────────
 // toggleUserMenu()
-// Abre ou fecha o dropdown de perfil do usuário logado
-// (menu com XP, cursos iniciados, certificados e logout).
 // ─────────────────────────────────────────────────────────────
 function toggleUserMenu() {
   const menu = document.getElementById("user-menu");
   if (!menu) return;
-
-  // Se estiver visível, oculta; se estiver oculto, mostra
   menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
 }
 
-
 // ─────────────────────────────────────────────────────────────
 // logout()
-// Encerra a sessão do usuário removendo os dados do localStorage
-// e recarregando a página na URL atual (sem hash/parâmetros).
+// Encerra a sessão e redireciona de forma limpa para index.html
 // ─────────────────────────────────────────────────────────────
 function logout() {
-  Storage.clearLoggedUser(); // remove a sessão salva
+  Storage.clearLoggedUser();
 
-  // Volta a UI para o estado de "não logado"
   if (typeof updateAuthUI === "function") {
     updateAuthUI();
   }
@@ -321,6 +346,5 @@ function logout() {
     showToast("Sessão encerrada!");
   }
   
-  // Recarrega a mesma página sem parâmetros de rota
-  window.location.href = window.location.pathname;
+  window.location.href = "index.html?action=logout";
 }

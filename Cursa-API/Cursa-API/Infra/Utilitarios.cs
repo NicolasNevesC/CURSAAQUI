@@ -104,6 +104,14 @@ public static class Texto
         s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
          .Replace("&lt;br&gt;", "<br>").Replace("&lt;br/&gt;", "<br>").Replace("&lt;br /&gt;", "<br>");
 
+    public static string AnonimizarNome(string nome)
+    {
+        if (string.IsNullOrWhiteSpace(nome)) return "Aluno(a)";
+        var partes = nome.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (partes.Length == 1) return partes[0];
+        return $"{partes[0]} {partes[1][0]}.";
+    }
+
     public static int Palavras(string s) =>
         s.Split(new[] { ' ', '\n', '\r', '\t' }, StringSplitOptions.RemoveEmptyEntries).Length;
 

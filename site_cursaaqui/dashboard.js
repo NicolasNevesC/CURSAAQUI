@@ -182,7 +182,7 @@ function renderStudentDashboard(container, user) {
           <span style="background: rgba(255,255,255,0.2); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 14px; text-transform: uppercase; letter-spacing: .05em;">NOVA ÁREA DO ALUNO</span>
           <h3 style="color: #fff; font-size: 1.35rem; font-weight: 900; margin: 6px 0 4px 0;">Painel 100% Interativo do Aluno</h3>
           <p style="color: rgba(255,255,255,0.85); font-size: 0.88rem; max-width: 540px;">
-            Acesse seu cronograma, metas de estudo, bloco de anotações pessoal, simulador de questões com ganho de XP e galeria de diplomas.
+            Acesse seu cronograma de estudos, materiais didáticos, simulador de questões e galeria de diplomas.
           </p>
         </div>
         <a href="aluno.html" class="btn-primary" style="background: #fff; color: #1E3A8A; font-weight: 800; padding: 12px 22px; font-size: 0.92rem; border-radius: 10px; text-decoration: none; box-shadow: 0 4px 14px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
@@ -201,7 +201,7 @@ function renderStudentDashboard(container, user) {
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
           <a href="aluno.html" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; text-decoration: none;">
-            🎯 Gerenciar Metas &amp; Notas
+            🎓 Painel do Aluno
           </a>
           <a href="cursos.html" class="btn-secondary" style="padding: 8px 16px; font-size: 0.85rem; text-decoration: none;">
             + Explorar Matérias

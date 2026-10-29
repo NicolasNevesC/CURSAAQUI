@@ -76,7 +76,9 @@ public class UploadMaterialForm
     public int? DisciplinaId { get; set; }
 }
 
-public record AvaliacaoCursoDto(int Id, int AlunoId, string AlunoNome, int Nota, string? Comentario, DateTime Data);
+public record AvaliacaoCursoDto(int Id, int AlunoId, string AlunoNome, int Nota, string? Comentario, DateTime Data, DateTime? DataAtualizacao = null);
+public record AvaliacaoPublicaDto(int Id, string AlunoNome, int Nota, string? Comentario, DateTime Data, DateTime? DataAtualizacao);
+public record AvaliacaoResumoDto(decimal Media, int Quantidade);
 public record AvaliacaoCursoRequest(int Nota, string? Comentario);
 public record TermoDto(string Chave, string Termo, string Explicacao, string? Tecnica);
 
@@ -130,11 +132,6 @@ public record DashboardCursoDto(int CursoId, string Titulo, int Progresso, Statu
 public record DashboardAlunoDto(string Nome, int Xp, int Nivel, int XpProximoNivel, int CursosEmAndamento,
     int CursosConcluidos, int Certificados, int MetasPendentes, int TentativasPendentes,
     List<DashboardCursoDto> Cursos, List<ConquistaDto> Conquistas);
-public record MetaDto(int Id, string Texto, bool Concluida, DateTime DataCriacao);
-public record MetaRequest(string Texto);
-public record MetaUpdateRequest(string? Texto, bool? Concluida);
-public record AnotacaoDto(int CursoId, string Texto, DateTime? AtualizadoEm);
-public record AnotacaoRequest(string Texto);
 
 // ============ CHAT ============
 public record MensagemDto(int Id, int CursoId, int AlunoId, int? RemetenteId, string RemetenteNome,

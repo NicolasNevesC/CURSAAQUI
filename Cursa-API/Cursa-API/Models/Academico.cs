@@ -51,29 +51,6 @@ public class Certificado
     public int CargaHoraria { get; set; } // cópia do curso no momento da emissão
 }
 
-/// <summary>Site: localStorage "student_goals_{email}" ({id, text, completed}).</summary>
-public class MetaEstudo
-{
-    public int Id { get; set; }
-    public int AlunoId { get; set; }
-    public Aluno Aluno { get; set; } = null!;
-    public string Texto { get; set; } = string.Empty;
-    public bool Concluida { get; set; }
-    public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
-}
-
-/// <summary>Site: localStorage "student_notes_{email}_{courseId}" (caderno do aluno).</summary>
-public class AnotacaoCurso
-{
-    public int Id { get; set; }
-    public int AlunoId { get; set; }
-    public Aluno Aluno { get; set; } = null!;
-    public int CursoId { get; set; }
-    public Curso Curso { get; set; } = null!;
-    public string Texto { get; set; } = string.Empty;
-    public DateTime AtualizadoEm { get; set; } = DateTime.UtcNow;
-}
-
 /// <summary>
 /// Site: localStorage "chat_course_{id}_user_{email}" (dúvidas aluno ↔ professor por curso).
 /// AlunoId identifica a CONVERSA (um fio por aluno e curso); RemetenteId é quem escreveu.

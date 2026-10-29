@@ -637,56 +637,6 @@ body {
   border-color: var(--primary);
 }
 
-/* ─── METAS & PLANNER ─── */
-.goal-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 10px;
-  transition: all .2s;
-}
-.goal-item:hover {
-  background: var(--card-hover);
-}
-.goal-item.completed {
-  opacity: 0.6;
-  text-decoration: line-through;
-}
-.goal-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--success);
-  cursor: pointer;
-}
-.goal-text {
-  flex: 1;
-  font-size: 0.88rem;
-  font-weight: 500;
-}
-.goal-xp {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #10B981;
-  background: rgba(16, 185, 129, 0.12);
-  padding: 3px 8px;
-  border-radius: 12px;
-}
-.goal-del-btn {
-  background: none;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 4px;
-  font-size: 0.9rem;
-}
-.goal-del-btn:hover {
-  color: var(--danger);
-}
-
 /* ─── FLASHCARDS / TREINO ─── */
 .quiz-box {
   background: var(--card2);
@@ -865,24 +815,141 @@ body {
   opacity: 1;
 }
 
+/* ─── BOTOES DE CONTROLE DO MENU MOBILE ─── */
+.sb-toggle-btn {
+  display: none;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 1.25rem;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.sb-toggle-btn:hover {
+  background: var(--card-hover);
+  border-color: var(--primary);
+}
+.sb-close-btn {
+  display: none;
+  position: absolute;
+  top: 18px;
+  right: 14px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s;
+}
+.sb-close-btn:hover {
+  background: var(--danger);
+  color: #fff;
+}
+.sb-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+}
+.sb-backdrop.show {
+  display: block;
+}
+
 /* ─── RESPONSIVE ─── */
 @media (max-width: 1024px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .two-col { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
-  .sb { width: 68px; }
-  .sb-logo-text, .sb-label, .sb-item span:not(.sb-icon), .sb-badge, .sb-user-info, .sb-xp-bar-wrap { display: none; }
-  .topbar { padding: 12px 16px; }
-  .scroll-area { padding: 16px; }
-  .stats-grid { grid-template-columns: 1fr; }
+  .sb-toggle-btn { display: inline-flex; }
+  .sb-close-btn { display: flex; }
+  .sb {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 270px !important;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    z-index: 1000;
+  }
+  .sb.sb-open {
+    transform: translateX(0);
+    box-shadow: 10px 0 35px rgba(0,0,0,0.5);
+  }
+  .sb-logo-text, .sb-label, .sb-item span:not(.sb-icon), .sb-badge, .sb-user-info, .sb-xp-bar-wrap {
+    display: block !important;
+  }
+  .sb-item {
+    display: flex !important;
+  }
+  .sb-logo {
+    padding-right: 48px;
+  }
+  .topbar {
+    padding: 10px 14px;
+    gap: 10px;
+  }
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topbar-right {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .scroll-area { padding: 14px; }
+  .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+  .modal-box { padding: 20px 16px; max-height: 90vh; }
+}
+@media (max-width: 480px) {
+  .topbar-title { font-size: 1.05rem; }
+  .topbar-streak { display: none; }
+  .topbar-right .btn { padding: 6px 10px; font-size: 0.78rem; }
+  .student-hero { padding: 18px 16px; }
+  .student-hero h1 { font-size: 1.3rem; }
+  .hero-badges { gap: 6px; }
+  .hero-pill { font-size: 0.72rem; padding: 4px 10px; }
+  .modal-box { padding: 18px 14px; border-radius: 14px; max-height: 92vh; }
+}
+@media (max-width: 390px) {
+  .student-hero h1 { font-size: 1.15rem; }
+  .topbar-title { font-size: 0.92rem; }
+  .modal-box { padding: 14px 10px; }
+  .modal-box h3 { font-size: 1.3rem !important; }
+}
+@media (max-width: 360px) {
+  .topbar-right .btn { font-size: 0.72rem; padding: 5px 8px; }
+  .course-card-actions { flex-direction: column; }
+  .course-card-actions .btn { width: 100%; justify-content: center; }
 }
 </style>
 </head>
 <body>
 
-<!-- ─── SIDEBAR ─── -->
+<!-- ─── BACKDROP & SIDEBAR ─── -->
+<div class="sb-backdrop" id="sbBackdrop" onclick="closeSidebar()"></div>
 <aside class="sb">
+  <button class="sb-close-btn" onclick="closeSidebar()" aria-label="Fechar menu">&times;</button>
   <div class="sb-logo">
     <div class="sb-logo-icon">🎓</div>
     <div class="sb-logo-text">
@@ -902,15 +969,8 @@ body {
       <span>Meus Cursos</span>
       <span class="sb-badge highlight" id="sbCourseCount">0</span>
     </button>
-    <button class="sb-item" data-sec="planner">
-      <span class="sb-icon">🎯</span>
-      <span>Metas &amp; Planner</span>
-      <span class="sb-badge" id="sbGoalsCount">3</span>
-    </button>
-    <button class="sb-item" data-sec="caderno">
-      <span class="sb-icon">📝</span>
-      <span>Caderno de Estudos</span>
-    </button>
+
+
     <button class="sb-item" data-sec="treino">
       <span class="sb-icon">🧠</span>
       <span>Treino Rápido (Quiz)</span>
@@ -964,6 +1024,7 @@ body {
 <div class="main">
   <header class="topbar">
     <div class="topbar-left">
+      <button class="sb-toggle-btn" id="sbToggleBtn" onclick="toggleSidebar()" aria-label="Abrir menu">☰</button>
       <h2 class="topbar-title" id="topTitle">📊 Visão Geral do Aluno</h2>
       <div class="topbar-streak" title="Você está estudando com consistência!">
         <span>🔥</span>
@@ -997,8 +1058,7 @@ body {
           <div class="hero-badges">
             <span class="hero-pill" id="heroLevelBadge">⭐ Nível 2 • Intermediário</span>
             <span class="hero-pill" id="heroXpBadge">⚡ 350 / 2000 XP</span>
-            <span class="hero-pill">🎯 Meta Diária: 80% Concluída</span>
-          </div>
+                      </div>
         </div>
       </div>
 
@@ -1047,19 +1107,7 @@ body {
           </div>
         </div>
 
-        <!-- Metas Rápidas de Hoje -->
-        <div class="panel-card">
-          <div class="panel-hdr">
-            <h3><span>🎯</span> Metas de Estudo de Hoje</h3>
-            <button class="btn btn-secondary btn-sm" onclick="goSec('planner')">+ Gerenciar</button>
-          </div>
-          <div id="quickGoalsList">
-            <!-- Preenchido via JS -->
-          </div>
-          <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 10px; justify-content: center;" onclick="quickAddGoalPrompt()">
-            + Adicionar Nova Tarefa Hoje (+50 XP)
-          </button>
-        </div>
+
       </div>
 
       <!-- Parecer Recente do Professor -->
@@ -1092,113 +1140,6 @@ body {
 
       <div class="course-grid-student" id="studentCoursesGrid">
         <!-- Renderizado dinamicamente -->
-      </div>
-    </section>
-
-
-    <!-- ══════════════════════════════════════════════════ -->
-    <!-- SEÇÃO 3: METAS & PLANNER -->
-    <!-- ══════════════════════════════════════════════════ -->
-    <section id="planner" class="sec">
-      <div class="two-col">
-        <!-- Lista de Metas Interativa -->
-        <div class="panel-card">
-          <div class="panel-hdr">
-            <h3><span>📋</span> Checklist de Metas de Estudos</h3>
-            <span class="badge highlight" style="font-size: 0.75rem;">+50 XP por meta concluída!</span>
-          </div>
-          <div id="fullGoalsList">
-            <!-- Preenchido via JS -->
-          </div>
-
-          <!-- Formulário para nova meta -->
-          <form onsubmit="handleAddNewGoal(event)" style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <input type="text" id="newGoalInput" placeholder="Ex: Estudar 2 capítulos de ADS..." required style="flex: 1; min-width: 200px; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--card2); color: var(--text); outline: none; font-size: 0.88rem;">
-            <button type="submit" class="btn btn-primary">
-              + Adicionar Meta
-            </button>
-          </form>
-        </div>
-
-        <!-- Cronograma & Hábitos -->
-        <div class="panel-card">
-          <div class="panel-hdr">
-            <h3><span>📅</span> Cronograma Semanal de Estudos</h3>
-          </div>
-          <p style="font-size: 0.85rem; color: var(--muted); margin-bottom: 16px;">
-            Acompanhe a sua rotina de dedicação diária. Dias consecutivos geram bônus de XP!
-          </p>
-
-          <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; margin-bottom: 20px;">
-            <div style="background: var(--card2); padding: 10px 4px; border-radius: 8px; border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; color: var(--muted);">SEG</div>
-              <div style="font-size: 1.1rem; margin-top: 4px;">✅</div>
-            </div>
-            <div style="background: var(--card2); padding: 10px 4px; border-radius: 8px; border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; color: var(--muted);">TER</div>
-              <div style="font-size: 1.1rem; margin-top: 4px;">✅</div>
-            </div>
-            <div style="background: var(--card2); padding: 10px 4px; border-radius: 8px; border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; color: var(--muted);">QUA</div>
-              <div style="font-size: 1.1rem; margin-top: 4px;">✅</div>
-            </div>
-            <div style="background: var(--card2); padding: 10px 4px; border-radius: 8px; border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; color: var(--muted);">QUI</div>
-              <div style="font-size: 1.1rem; margin-top: 4px;">✅</div>
-            </div>
-            <div style="background: var(--card2); padding: 10px 4px; border-radius: 8px; border: 1px solid var(--border);">
-              <div style="font-size: 0.7rem; color: var(--muted);">SEX</div>
-              <div style="font-size: 1.1rem; margin-top: 4px;">🔥</div>
-            </div>
-            <div style="background: var(--card2); padding: 10px 4px; border-radius: 8px; border: 1px solid var(--border); opacity: 0.6;">
-              <div style="font-size: 0.7rem; color: var(--muted);">SÁB</div>
-              <div style="font-size: 1.1rem; margin-top: 4px;">⏳</div>
-            </div>
-            <div style="background: var(--card2); padding: 10px 4px; border-radius: 8px; border: 1px solid var(--border); opacity: 0.6;">
-              <div style="font-size: 0.7rem; color: var(--muted);">DOM</div>
-              <div style="font-size: 1.1rem; margin-top: 4px;">⏳</div>
-            </div>
-          </div>
-
-          <div style="background: rgba(59, 130, 246, 0.08); border-left: 4px solid var(--primary); padding: 14px; border-radius: 8px; font-size: 0.85rem;">
-            💡 <strong>Dica de Estudo:</strong> Pratique ao menos 20 minutos por dia ou resolva 5 questões no <em>Treino Rápido</em> para fixar o conteúdo das apostilas.
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ══════════════════════════════════════════════════ -->
-    <!-- SEÇÃO 4: CADERNO DE ESTUDOS -->
-    <!-- ══════════════════════════════════════════════════ -->
-    <section id="caderno" class="sec">
-      <div class="panel-card">
-        <div class="panel-hdr">
-          <div>
-            <h3><span>📝</span> Meu Caderno de Anotações &amp; Resumos</h3>
-            <p style="font-size: 0.83rem; color: var(--muted); margin-top: 3px;">
-              Suas notas são salvas automaticamente em seu navegador por matéria selecionada.
-            </p>
-          </div>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn btn-secondary btn-sm" onclick="copyNotesToClipboard()">📋 Copiar</button>
-            <button class="btn btn-primary btn-sm" onclick="saveNotesManual()">💾 Salvar Agora</button>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-          <label style="font-size: 0.85rem; font-weight: 600;">Selecione o Curso:</label>
-          <select id="notesCourseSelect" onchange="loadCourseNotes()" style="padding: 8px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--card2); color: var(--text); outline: none; font-size: 0.88rem; flex: 1; min-width: 250px;">
-            <!-- Opções via JS -->
-          </select>
-        </div>
-
-        <textarea id="courseNotesArea" oninput="handleNotesAutoSave()" placeholder="Digite aqui seus resumos da aula, comandos importantes, dúvidas e conceitos-chave da apostila..." style="width: 100%; height: 320px; padding: 16px; border-radius: 12px; border: 1px solid var(--border); background: var(--card2); color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.92rem; line-height: 1.6; resize: vertical; outline: none; transition: border-color .2s;"></textarea>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 0.78rem; color: var(--muted);">
-          <span id="notesStatusText">✅ Todas as anotações salvas localmente</span>
-          <span id="notesCharCount">0 caracteres</span>
-        </div>
       </div>
     </section>
 
@@ -1375,31 +1316,20 @@ let currentQuizQuestionIndex = 0;
 let quizQuestionsPool = [];
 let quizSessionScore = 0;
 
-// Inicialização
+// Inicialização protegida por perfil
 document.addEventListener("DOMContentLoaded", () => {
-  ensureStudentSession();
+  const student = protectStudentPage();
+  if (!student) return; // Redirecionamento executado se não for aluno com sessão válida
+
+  initStudentProgress(student);
   initTheme();
   loadAllStudentData();
   setupNavigationEvents();
 });
 
-// Garante que haja um usuário aluno logado para testar
-function ensureStudentSession() {
-  let user = Storage.getLoggedUser();
-  if (!user || user.role === "teacher") {
-    // Se não há aluno logado, define automaticamente o aluno demo para permitir navegação imediata
-    const demoStudent = Storage.findUserByEmail("aluno@cursaaqui.com") || {
-      name: "Matheus Narvaes",
-      email: "aluno@cursaaqui.com",
-      role: "student",
-      xp: 350,
-      level: 2
-    };
-    Storage.setLoggedUser(demoStudent);
-    user = demoStudent;
-  }
-
-  // Garante progresso demo para o aluno caso ainda esteja vazio
+// Inicializa progresso de demonstração somente se a sessão for válida e estiver vazia
+function initStudentProgress(user) {
+  if (!user || !user.email) return;
   const progressKey = `user_courses_progress_${user.email}`;
   let progress = JSON.parse(localStorage.getItem(progressKey));
   if (!progress || Object.keys(progress).length === 0) {
@@ -1421,18 +1351,6 @@ function ensureStudentSession() {
       }
     };
     localStorage.setItem(progressKey, JSON.stringify(progress));
-  }
-
-  // Garante metas de estudo padrão caso ainda não existam
-  const goalsKey = `student_goals_${user.email}`;
-  if (!localStorage.getItem(goalsKey)) {
-    const defaultGoals = [
-      { id: 1, text: "Ler a apostila de Análise e Desenvolvimento de Sistemas", completed: true },
-      { id: 2, text: "Assistir às aulas 1 e 2 do módulo de Cloud Computing", completed: true },
-      { id: 3, text: "Fazer o simulado rápido com 5 questões para ganhar XP", completed: false },
-      { id: 4, text: "Revisar as anotações sobre LGPD e Segurança da Informação", completed: false }
-    ];
-    localStorage.setItem(goalsKey, JSON.stringify(defaultGoals));
   }
 }
 
@@ -1468,21 +1386,33 @@ function loadAllStudentData() {
 
   // Renderiza sub-módulos
   renderStudentCoursesGrid();
-  renderGoalsList();
-  renderQuickGoals();
   renderStudentFeedbacks();
   renderStudentCertificates();
   renderBadges();
-  setupNotesModule();
   setupQuizPool();
+}
+
+
+// ─── CONTROLE DO MENU LATERAL (MOBILE) ───
+function toggleSidebar() {
+  const sb = document.querySelector(".sb");
+  const bd = document.getElementById("sbBackdrop");
+  if (!sb) return;
+  const isOpen = sb.classList.toggle("sb-open");
+  if (bd) bd.classList.toggle("show", isOpen);
+}
+
+function closeSidebar() {
+  const sb = document.querySelector(".sb");
+  const bd = document.getElementById("sbBackdrop");
+  if (sb) sb.classList.remove("sb-open");
+  if (bd) bd.classList.remove("show");
 }
 
 // ─── NAVEGAÇÃO ENTRE ABAS ───
 const SECTION_TITLES = {
   overview: "📊 Visão Geral do Aluno",
   cursos: "📚 Meus Cursos & Progresso",
-  planner: "🎯 Metas & Cronograma de Estudos",
-  caderno: "📝 Caderno de Notas & Resumos",
   treino: "🧠 Treino Rápido de Questões",
   pareceres: "👨‍🏫 Pareceres dos Professores",
   certificados: "🏆 Certificados & Medalhas"
@@ -1492,6 +1422,7 @@ function setupNavigationEvents() {
   document.querySelectorAll(".sb-item[data-sec]").forEach(btn => {
     btn.addEventListener("click", () => {
       goSec(btn.dataset.sec);
+      closeSidebar();
     });
   });
 }
@@ -1634,16 +1565,7 @@ function renderStudentCoursesGrid() {
             <div class="prog-bar-fill" style="width: ${course.progress}%;"></div>
           </div>
 
-          <!-- Simulador de Progresso Interativo -->
-          <div class="sim-slider-row">
-            <label>
-              <span>Ajustar Progresso (Simulador)</span>
-              <strong><span id="sliderVal_${course.id}">${course.progress}</span>%</strong>
-            </label>
-            <input type="range" min="0" max="100" value="${course.progress}"
-              oninput="handleProgressSliderChange(${course.id}, this.value)"
-              onchange="commitProgressChange(${course.id}, this.value, ${titleArg})">
-          </div>
+
 
           <div class="course-card-actions">
             <button class="btn btn-primary btn-sm" style="flex: 1; justify-content: center;" onclick="watchCourse(${titleArg})">
@@ -1662,31 +1584,6 @@ function renderStudentCoursesGrid() {
       </div>
     `;
   }).join("");
-}
-
-function handleProgressSliderChange(courseId, val) {
-  const span = document.getElementById(`sliderVal_${courseId}`);
-  if (span) span.textContent = val;
-}
-
-function commitProgressChange(courseId, val, courseTitle) {
-  const numVal = parseInt(val, 10);
-  const records = getStudentProgressRecords();
-  if (!records[courseId]) {
-    records[courseId] = { title: courseTitle, progress: numVal };
-  } else {
-    records[courseId].progress = numVal;
-  }
-  saveStudentProgressRecords(records);
-  
-  if (numVal === 100) {
-    addStudentXp(150);
-    showToast(`🎉 Parabéns! Curso "${courseTitle}" concluído! +150 XP adicionados!`);
-  } else {
-    showToast(`Progresso atualizado para ${numVal}%!`);
-  }
-
-  loadAllStudentData();
 }
 
 function renderContinueCourseCard(userCourses) {
@@ -1725,203 +1622,6 @@ function renderContinueCourseCard(userCourses) {
 
 function watchCourse(title) {
   window.location.href = `course.html?name=${encodeURIComponent(title)}`;
-}
-
-// ─── MÓDULO DE METAS & PLANNER ───
-function getStudentGoals() {
-  const user = getLoggedUser();
-  if (!user) return [];
-  const key = `student_goals_${user.email}`;
-  return JSON.parse(localStorage.getItem(key)) || [];
-}
-
-function saveStudentGoals(goals) {
-  const user = getLoggedUser();
-  if (!user) return;
-  const key = `student_goals_${user.email}`;
-  localStorage.setItem(key, JSON.stringify(goals));
-}
-
-function renderGoalsList() {
-  const goals = getStudentGoals();
-  const container = document.getElementById("fullGoalsList");
-  if (!container) return;
-
-  const pendingCount = goals.filter(g => !g.completed).length;
-  document.getElementById("sbGoalsCount").textContent = pendingCount;
-
-  if (goals.length === 0) {
-    container.innerHTML = `<p style="color: var(--muted); font-style: italic; font-size: 0.85rem;">Nenhuma meta cadastrada no momento.</p>`;
-    return;
-  }
-
-  container.innerHTML = goals.map(g => `
-    <div class="goal-item ${g.completed ? 'completed' : ''}" id="goalItem_${g.id}">
-      <input type="checkbox" ${g.completed ? 'checked' : ''} onchange="toggleGoalStatus(${g.id}, this.checked)">
-      <span class="goal-text">${esc(g.text)}</span>
-      <span class="goal-xp">+50 XP</span>
-      <button class="goal-del-btn" onclick="deleteGoal(${g.id})" title="Remover meta">✕</button>
-    </div>
-  `).join("");
-}
-
-function renderQuickGoals() {
-  const goals = getStudentGoals();
-  const container = document.getElementById("quickGoalsList");
-  if (!container) return;
-
-  const quickGoals = goals.slice(0, 3);
-  if (quickGoals.length === 0) {
-    container.innerHTML = `<p style="color: var(--muted); font-size: 0.85rem;">Nenhuma meta pendente hoje.</p>`;
-    return;
-  }
-
-  container.innerHTML = quickGoals.map(g => `
-    <div class="goal-item ${g.completed ? 'completed' : ''}" style="padding: 8px 12px; margin-bottom: 6px;">
-      <input type="checkbox" ${g.completed ? 'checked' : ''} onchange="toggleGoalStatus(${g.id}, this.checked)">
-      <span class="goal-text" style="font-size: 0.82rem;">${esc(g.text)}</span>
-      <span class="goal-xp">+50 XP</span>
-    </div>
-  `).join("");
-}
-
-function toggleGoalStatus(id, isCompleted) {
-  const goals = getStudentGoals();
-  const target = goals.find(g => g.id === id);
-  if (target) {
-    target.completed = isCompleted;
-    saveStudentGoals(goals);
-    if (isCompleted) {
-      addStudentXp(50);
-      showToast("🎯 Meta concluída! +50 XP adicionados!");
-    } else {
-      showToast("Meta desmarcada.");
-    }
-    loadAllStudentData();
-  }
-}
-
-function handleAddNewGoal(e) {
-  e.preventDefault();
-  const input = document.getElementById("newGoalInput");
-  const text = input.value.trim();
-  if (!text) return;
-
-  const goals = getStudentGoals();
-  goals.push({
-    id: Date.now(),
-    text: text,
-    completed: false
-  });
-  saveStudentGoals(goals);
-  input.value = "";
-  showToast("Nova meta adicionada ao seu cronograma!");
-  loadAllStudentData();
-}
-
-function quickAddGoalPrompt() {
-  const text = prompt("Digite sua nova meta de estudo para hoje:");
-  if (text && text.trim()) {
-    const goals = getStudentGoals();
-    goals.push({
-      id: Date.now(),
-      text: text.trim(),
-      completed: false
-    });
-    saveStudentGoals(goals);
-    showToast("Meta adicionada!");
-    loadAllStudentData();
-  }
-}
-
-function deleteGoal(id) {
-  let goals = getStudentGoals();
-  goals = goals.filter(g => g.id !== id);
-  saveStudentGoals(goals);
-  showToast("Meta removida.");
-  loadAllStudentData();
-}
-
-// ─── CADERNO DE NOTAS ───
-let notesAutoSaveTimer = null;
-
-function setupNotesModule() {
-  const select = document.getElementById("notesCourseSelect");
-  if (!select) return;
-
-  const allCourses = window.courses || [];
-  const records = getStudentProgressRecords();
-  const startedIds = Object.keys(records).map(Number);
-
-  select.innerHTML = "";
-  if (startedIds.length === 0) {
-    select.innerHTML = `<option value="0">Notas Gerais do Estudante</option>`;
-  } else {
-    startedIds.forEach(id => {
-      const c = allCourses.find(item => item.id === id) || { id: id, title: records[id].title };
-      const opt = document.createElement("option");
-      opt.value = c.id;
-      opt.textContent = c.title;
-      select.appendChild(opt);
-    });
-  }
-
-  loadCourseNotes();
-}
-
-function loadCourseNotes() {
-  const user = getLoggedUser();
-  const select = document.getElementById("notesCourseSelect");
-  const textarea = document.getElementById("courseNotesArea");
-  const charSpan = document.getElementById("notesCharCount");
-  if (!user || !select || !textarea) return;
-
-  const courseId = select.value;
-  const key = `student_notes_${user.email}_${courseId}`;
-  const savedText = localStorage.getItem(key) || "";
-
-  textarea.value = savedText;
-  if (charSpan) charSpan.textContent = `${savedText.length} caracteres`;
-  document.getElementById("notesStatusText").textContent = "✅ Notas carregadas";
-}
-
-function handleNotesAutoSave() {
-  const status = document.getElementById("notesStatusText");
-  const charSpan = document.getElementById("notesCharCount");
-  const textarea = document.getElementById("courseNotesArea");
-  if (charSpan && textarea) charSpan.textContent = `${textarea.value.length} caracteres`;
-
-  if (status) status.textContent = "⏳ Digitando...";
-  clearTimeout(notesAutoSaveTimer);
-  notesAutoSaveTimer = setTimeout(() => {
-    saveNotesManual(true);
-  }, 1000);
-}
-
-function saveNotesManual(isAuto = false) {
-  const user = getLoggedUser();
-  const select = document.getElementById("notesCourseSelect");
-  const textarea = document.getElementById("courseNotesArea");
-  if (!user || !select || !textarea) return;
-
-  const courseId = select.value;
-  const key = `student_notes_${user.email}_${courseId}`;
-  localStorage.setItem(key, textarea.value);
-
-  const status = document.getElementById("notesStatusText");
-  if (status) status.textContent = `✅ Salvo às ${new Date().toLocaleTimeString("pt-BR")}`;
-  if (!isAuto) showToast("Anotações salvas com sucesso!");
-}
-
-function copyNotesToClipboard() {
-  const textarea = document.getElementById("courseNotesArea");
-  if (textarea && textarea.value) {
-    navigator.clipboard.writeText(textarea.value).then(() => {
-      showToast("📋 Anotações copiadas para a área de transferência!");
-    });
-  } else {
-    showToast("Caderno vazio.");
-  }
 }
 
 // ─── TREINO RÁPIDO & FLASHCARDS ───
@@ -2145,7 +1845,7 @@ function printCertificate() {
 // ─── MEDALHAS E BADGES GAMIFICADAS ───
 const BADGES_CONFIG = [
   { id: 1, icon: "🌱", title: "Primeiro Passo", desc: "Iniciou o seu primeiro curso no portal.", check: (u, rec) => Object.keys(rec).length > 0 },
-  { id: 2, icon: "⚡", title: "Foco Total", desc: "Completou uma meta diária no Planner.", check: (u, rec) => getStudentGoals().some(g => g.completed) },
+  { id: 2, icon: "⚡", title: "Foco Total", desc: "Atingiu 50% de aproveitamento em um curso.", check: (u, rec) => Object.values(rec || {}).some(c => (c.progress || 0) >= 50) },
   { id: 3, icon: "📖", title: "Leitor Voraz", desc: "Acessou material e apostila em PDF.", check: (u, rec) => true },
   { id: 4, icon: "🎯", title: "Mestre do Quiz", desc: "Acertou questão no Treino Rápido.", check: (u, rec) => quizSessionScore > 0 || (u.xp || 0) >= 300 },
   { id: 5, icon: "🏆", title: "Primeiro Diploma", desc: "Concluiu 100% de um curso oficial.", check: (u, rec) => Object.values(rec).some(r => r.progress === 100) },

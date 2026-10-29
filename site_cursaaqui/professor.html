@@ -193,13 +193,69 @@ tbody tr:hover td{background:rgba(255,255,255,0.025);}
 .welcome-banner h1{font-family:"Montserrat",sans-serif;font-size:1.5rem;font-weight:900;color:#fff;margin-bottom:4px;}
 .welcome-banner p{color:rgba(255,255,255,0.7);font-size:0.875rem;}
 
-@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr);}.sb{width:64px;}.sb-logo-text,.sb-section-label,.sb-item span:not(.sb-icon),.sb-badge,.sb-user-info{display:none;}.main{}.topbar,.scroll-area{padding-left:16px;padding-right:16px;}}
+
+.sb-toggle-btn { display: none; background: var(--card2); border: 1px solid var(--border); color: var(--text); font-size: 1.25rem; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; align-items: center; justify-content: center; }
+.sb-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 998; backdrop-filter: blur(3px); }
+.sb-backdrop.show { display: block; }
+.sb-close-btn { display: none; position: absolute; top: 14px; right: 12px; background: var(--card2); border: 1px solid var(--border); color: var(--muted); width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 1rem; align-items: center; justify-content: center; }
+.card { overflow-x: auto; }
+
+@media(max-width:900px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .sb{width:64px;}
+  .sb-logo-text,.sb-section-label,.sb-item span:not(.sb-icon),.sb-badge,.sb-user-info{display:none;}
+  .topbar,.scroll-area{padding-left:16px;padding-right:16px;}
+}
+
+@media(max-width:768px){
+  .sb-toggle-btn { display: inline-flex; }
+  .sb-close-btn { display: flex; }
+  .sb {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 260px !important;
+    max-width: 85vw;
+    height: 100vh;
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+  }
+  .sb.sb-open { transform: translateX(0); box-shadow: 10px 0 35px rgba(0,0,0,0.5); }
+  .sb-logo-text, .sb-section-label, .sb-item span:not(.sb-icon), .sb-badge, .sb-user-info { display: block !important; }
+  .sb-item { display: flex !important; }
+  .stats { grid-template-columns: 1fr; }
+  .topbar { padding: 10px 14px; }
+  .topbar-left { display: flex; align-items: center; gap: 10px; }
+  .scroll-area { padding: 14px; }
+  .drawer { padding: 20px 16px; border-radius: 14px; max-height: 92vh; }
+  .drawer-actions { flex-direction: column; gap: 8px; }
+  .drawer-actions button { width: 100%; justify-content: center; }
+}
+
+@media(max-width:390px){
+  .topbar-title { font-size: 0.95rem; }
+  .welcome-banner { padding: 20px 16px; }
+  .welcome-banner h1 { font-size: 1.25rem; }
+}
+
+@media(max-width:360px){
+  .welcome-banner h1 { font-size: 1.15rem; }
+  .ftabs { width: 100%; }
+  .ftab { flex: 1; text-align: center; padding: 6px 8px; font-size: 0.78rem; }
+  .search-box { width: 100%; }
+}
+
 </style>
 </head>
 <body>
 
 <!-- ══ SIDEBAR ══ -->
+<div class="sb-backdrop" id="sbTeacherBackdrop" onclick="closeTeacherSidebar()"></div>
 <aside class="sb">
+  <button class="sb-close-btn" onclick="closeTeacherSidebar()" aria-label="Fechar">&times;</button>
   <div class="sb-logo">
     <div class="sb-logo-icon">🎓</div>
     <div class="sb-logo-text">Cursa Aqui<small>Painel do Professor</small></div>
@@ -235,6 +291,7 @@ tbody tr:hover td{background:rgba(255,255,255,0.025);}
 <div class="main">
   <header class="topbar">
     <div class="topbar-left">
+      <button class="sb-toggle-btn" id="sbToggleBtn" onclick="toggleTeacherSidebar()" aria-label="Menu">☰</button>
       <span class="topbar-title" id="topTitle">📊 Visão Geral</span>
     </div>
     <div class="topbar-right">
@@ -349,12 +406,28 @@ tbody tr:hover td{background:rgba(255,255,255,0.025);}
 <script src="storage.js?v=1.0"></script>
 <script src="utils.js?v=1.0"></script>
 <script src="courses.js?v=7.0"></script>
-<script src="auth.js?v=5.0"></script>
+<script src="auth.js?v=7.0"></script>
 <script>
 // Guard
-(function(){const u=Storage.getLoggedUser();if(!u||u.role!=="teacher"){window.location.href="index.html";}})();
+const teacherSession = protectTeacherPage();
+if (!teacherSession) { /* Redirecionamento ativo */ }
 
 let curSubId=null,curFilter="all";
+
+function toggleTeacherSidebar(){
+  const sb = document.querySelector(".sb");
+  const bd = document.getElementById("sbTeacherBackdrop");
+  if(!sb) return;
+  const o = sb.classList.toggle("sb-open");
+  if(bd) bd.classList.toggle("show", o);
+}
+function closeTeacherSidebar(){
+  const sb = document.querySelector(".sb");
+  const bd = document.getElementById("sbTeacherBackdrop");
+  if(sb) sb.classList.remove("sb-open");
+  if(bd) bd.classList.remove("show");
+}
+
 
 // Persona
 function initPersona(){
@@ -373,6 +446,7 @@ document.querySelectorAll(".sb-item[data-sec]").forEach(b=>{
   b.addEventListener("click",()=>goSec(b.dataset.sec));
 });
 function goSec(s){
+  closeTeacherSidebar();
   document.querySelectorAll(".sb-item").forEach(b=>b.classList.remove("active"));
   const target=document.querySelector('.sb-item[data-sec="'+s+'"]');
   if(target)target.classList.add("active");

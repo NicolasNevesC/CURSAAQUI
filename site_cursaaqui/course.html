@@ -340,6 +340,46 @@
       .step-connector {
         display: none;
       }
+      .navbar {
+        padding: 10px 14px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .navbar .logo {
+        font-size: 1.1rem;
+      }
+      .hero {
+        padding: 85px 16px 24px 16px;
+      }
+      .hero h1 {
+        font-size: 1.45rem;
+      }
+    }
+    @media (max-width: 390px) {
+      .navbar {
+        padding: 8px 10px;
+      }
+      .navbar a.btn-secondary, .navbar a.btn-primary {
+        padding: 6px 10px !important;
+        font-size: 0.76rem !important;
+      }
+      .hero h1 {
+        font-size: 1.25rem;
+      }
+      .star-btn {
+        font-size: 1.6rem !important;
+      }
+      .card-content {
+        padding: 14px !important;
+      }
+    }
+    @media (max-width: 360px) {
+      .navbar .logo {
+        font-size: 0.95rem;
+      }
+      .hero h1 {
+        font-size: 1.15rem;
+      }
     }
   </style>
 </head>
@@ -1486,7 +1526,14 @@
         ${feedbackBox}
 
         ${certCard}
+
+        ${renderEvaluationCardHTML(isPassed)}
       `;
+
+      // Inicializa os campos da avaliação se liberada
+      if (isPassed && course.progress === 100) {
+        setTimeout(initCourseEvaluationUI, 50);
+      }
     }
 
     function calculateProgress() {
@@ -1652,26 +1699,183 @@
       modal.style.display = "flex";
     }
 
-    function submitReview() {
-      const stars = document.getElementById("reviewStars").value;
-      const feedbackText = document.getElementById("reviewText").value.trim();
-      
-      const reviewData = {
-        courseId: course.id,
-        user: user ? user.email : "anonimo",
-        rating: stars || "Não avaliado",
-        comment: feedbackText || "Sem comentários"
+    // ─── SISTEMA COMPLETO DE AVALIAÇÃO DE CURSO (1 A 5 ESTRELAS) ───
+    function renderEvaluationCardHTML(isPassed) {
+      // Regra 4.1: O botão "Avaliar" e formulário só aparecem quando o aluno conclui 100% do curso.
+      if (!isPassed || course.progress < 100) {
+        return `
+          <div style="background: var(--card); border: 1px dashed var(--border); border-radius: 14px; padding: 20px; text-align: center; margin-top: 20px; opacity: 0.75;">
+            <span style="font-size: 1.5rem;">🔒</span>
+            <h5 style="margin: 6px 0; font-size: 0.95rem;">Avaliação Bloqueada</h5>
+            <p style="font-size: 0.82rem; margin: 0; color: var(--muted);">
+              A avaliação por estrelas é destrancada exclusivamente após a conclusão de 100% dos requisitos acadêmicos da matéria.
+            </p>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="course-evaluation-card" id="courseEvaluationCard" style="background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-top: 20px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h4 style="font-size: 1.15rem; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                <span>⭐</span> Avaliação do Curso
+              </h4>
+              <p style="font-size: 0.86rem; opacity: 0.85; margin: 0;">Sua avaliação ajuda a aprimorar o curso e orienta outros alunos.</p>
+            </div>
+            <span class="pill" id="evalStatusPill" style="font-size: 0.8rem; background: rgba(16,185,129,0.15); color: #10B981; font-weight: 700;">
+              ✅ 100% Concluído
+            </span>
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label style="font-size: 0.88rem; font-weight: 700; display: block; margin-bottom: 8px;">
+              Sua Nota: <span id="ratingDisplayNumber" style="color: #F59E0B; font-weight: 800;">5</span> / 5 estrelas
+            </label>
+            <div id="starContainer" style="display: inline-flex; gap: 6px; font-size: 2rem; cursor: pointer; color: #F59E0B; user-select: none;">
+              <span class="star-btn" data-star="1" onclick="selectEvaluationStar(1)">★</span>
+              <span class="star-btn" data-star="2" onclick="selectEvaluationStar(2)">★</span>
+              <span class="star-btn" data-star="3" onclick="selectEvaluationStar(3)">★</span>
+              <span class="star-btn" data-star="4" onclick="selectEvaluationStar(4)">★</span>
+              <span class="star-btn" data-star="5" onclick="selectEvaluationStar(5)">★</span>
+            </div>
+            <input type="hidden" id="courseRatingValue" value="5">
+          </div>
+
+          <div style="margin-bottom: 16px;">
+            <label for="courseRatingComment" style="font-size: 0.88rem; font-weight: 600; display: block; margin-bottom: 6px;">
+              Comentário (opcional):
+            </label>
+            <textarea id="courseRatingComment" rows="3" placeholder="Compartilhe o que achou da didática, da apostila e do simulador..." style="width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.9rem; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <span id="evalFeedbackMsg" style="font-size: 0.85rem; font-weight: 600; color: #10B981;"></span>
+            <button class="btn-primary" id="btnSaveCourseRating" onclick="submitCourseRating()" style="padding: 10px 24px; font-weight: 700; box-shadow: 0 4px 12px rgba(59,130,246,0.25);">
+              ⭐ Salvar Avaliação
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectEvaluationStar(rating) {
+      const input = document.getElementById("courseRatingValue");
+      const display = document.getElementById("ratingDisplayNumber");
+      if (input) input.value = rating;
+      if (display) display.textContent = rating;
+
+      const stars = document.querySelectorAll("#starContainer .star-btn");
+      stars.forEach((s, idx) => {
+        if (idx < rating) {
+          s.style.opacity = "1";
+          s.style.color = "#F59E0B";
+        } else {
+          s.style.opacity = "0.3";
+          s.style.color = "var(--muted)";
+        }
+      });
+    }
+
+    function initCourseEvaluationUI() {
+      if (!user || !course) return;
+      const key = `course_evaluation_${course.id}_${user.email}`;
+      const saved = JSON.parse(localStorage.getItem(key));
+
+      if (saved) {
+        selectEvaluationStar(saved.nota || 5);
+        const commentEl = document.getElementById("courseRatingComment");
+        if (commentEl && saved.comentario) commentEl.value = saved.comentario;
+        const btn = document.getElementById("btnSaveCourseRating");
+        if (btn) btn.textContent = "⭐ Atualizar Minha Avaliação";
+        const msg = document.getElementById("evalFeedbackMsg");
+        if (msg) msg.textContent = "Sua avaliação anterior está salva.";
+      } else {
+        selectEvaluationStar(5);
+      }
+    }
+
+    async function submitCourseRating() {
+      if (!course || course.progress < 100 || !course.quizPassed) {
+        showToast("Você precisa concluir 100% do curso antes de avaliar.");
+        return;
+      }
+      if (!user) {
+        showToast("Faça login para registrar sua avaliação.");
+        return;
+      }
+
+      const ratingVal = parseInt(document.getElementById("courseRatingValue").value || "5", 10);
+      const commentVal = document.getElementById("courseRatingComment").value.trim();
+
+      if (ratingVal < 1 || ratingVal > 5) {
+        showToast("A nota deve ser entre 1 e 5 estrelas.");
+        return;
+      }
+
+      const reviewPayload = {
+        nota: ratingVal,
+        comentario: commentVal || null
       };
 
-      const globalReviews = JSON.parse(localStorage.getItem("course_reviews")) || [];
-      globalReviews.push(reviewData);
-      localStorage.setItem("course_reviews", JSON.stringify(globalReviews));
+      // 1. Tenta sincronizar com a Cursa-API caso o serviço esteja rodando
+      try {
+        const token = user.token || (JSON.parse(localStorage.getItem("cursaaqui_auth") || "{}")).token;
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const reviewBox = document.getElementById("reviewBox");
-      if (reviewBox) {
-        reviewBox.innerHTML = `<p style="color: #10B981; font-weight: 600; text-align: center; margin: 5px 0;">❤️ Obrigado pelo seu feedback voluntário!</p>`;
+        const apiResp = await fetch(`http://localhost:5035/api/cursos/${course.id}/avaliacoes`, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(reviewPayload)
+        });
+        if (apiResp.ok) {
+          console.log("Avaliação sincronizada com a Cursa-API!");
+        }
+      } catch (err) {
+        // Conexão offline ou API não iniciada localmente no momento
+        console.log("API offline, persistindo avaliação com segurança no armazenamento do navegador:", err);
       }
-      showToast("Avaliação enviada com sucesso!");
+
+      // 2. Persistência local (Regra 4.1: Permanece salva após sair ou atualizar)
+      const userReviewKey = `course_evaluation_${course.id}_${user.email}`;
+      const isUpdate = !!localStorage.getItem(userReviewKey);
+      const savedObj = {
+        cursoId: course.id,
+        alunoEmail: user.email,
+        alunoNome: user.name,
+        nota: ratingVal,
+        comentario: commentVal,
+        data: isUpdate ? (JSON.parse(localStorage.getItem(userReviewKey)).data || new Date().toISOString()) : new Date().toISOString(),
+        dataAtualizacao: isUpdate ? new Date().toISOString() : null
+      };
+      localStorage.setItem(userReviewKey, JSON.stringify(savedObj));
+
+      // 3. Atualiza sumário agregado de notas do curso no localStorage
+      const allEvalKeys = Object.keys(localStorage).filter(k => k.startsWith(`course_evaluation_${course.id}_`));
+      let sum = 0;
+      allEvalKeys.forEach(k => {
+        try {
+          const ev = JSON.parse(localStorage.getItem(k));
+          if (ev && ev.nota) sum += ev.nota;
+        } catch(e) {}
+      });
+      const totalCount = allEvalKeys.length;
+      const avg = totalCount > 0 ? (sum / totalCount) : ratingVal;
+
+      const summaryKey = `course_reviews_summary_${course.id}`;
+      localStorage.setItem(summaryKey, JSON.stringify({
+        media: Math.round(avg * 10) / 10,
+        quantidade: totalCount
+      }));
+
+      // Feedback na tela
+      const msg = document.getElementById("evalFeedbackMsg");
+      if (msg) msg.textContent = "✅ Avaliação salva com sucesso!";
+      const btn = document.getElementById("btnSaveCourseRating");
+      if (btn) btn.textContent = "⭐ Atualizar Minha Avaliação";
+
+      showToast(isUpdate ? "Avaliação atualizada com sucesso!" : "Avaliação registrada com sucesso!");
     }
 
     function getChatStorageKey() {

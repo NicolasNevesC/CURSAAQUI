@@ -122,36 +122,80 @@ public class MateriaisController(CursaAquiDbContext db, IConfiguration cfg, IWeb
 [Route("api/cursos/{cursoId:int}/avaliacoes")]
 public class AvaliacoesCursoController(CursaAquiDbContext db) : ApiBase
 {
+    /// <summary>Consulta pública de avaliações do curso com dados protegidos.</summary>
     [HttpGet, AllowAnonymous]
     public async Task<IActionResult> Listar(int cursoId) =>
         Ok(await db.AvaliacoesCurso.AsNoTracking().Where(a => a.CursoId == cursoId).OrderByDescending(a => a.Data)
-            .Select(a => new AvaliacaoCursoDto(a.Id, a.AlunoId, a.Aluno.Nome, a.Nota, a.Comentario, a.Data)).ToListAsync());
+            .Select(a => new AvaliacaoPublicaDto(
+                a.Id,
+                Texto.AnonimizarNome(a.Aluno.Nome),
+                a.Nota,
+                a.Comentario,
+                a.Data,
+                a.DataAtualizacao)).ToListAsync());
 
-    /// <summary>Cria ou atualiza a avaliação do aluno (1 por curso) e recalcula a média do curso.</summary>
+    /// <summary>Resumo de avaliações (média e quantidade).</summary>
+    [HttpGet("resumo"), AllowAnonymous]
+    public async Task<IActionResult> Resumo(int cursoId)
+    {
+        var avs = await db.AvaliacoesCurso.AsNoTracking().Where(a => a.CursoId == cursoId).ToListAsync();
+        if (!avs.Any()) return Ok(new AvaliacaoResumoDto(0, 0));
+        var media = Math.Round((decimal)avs.Average(a => a.Nota), 1);
+        return Ok(new AvaliacaoResumoDto(media, avs.Count));
+    }
+
+    /// <summary>Avaliação do aluno autenticado.</summary>
+    [HttpGet("minha"), Authorize(Roles = "Aluno")]
+    public async Task<IActionResult> MinhaAvaliacao(int cursoId)
+    {
+        var av = await db.AvaliacoesCurso.AsNoTracking()
+            .Include(a => a.Aluno)
+            .FirstOrDefaultAsync(a => a.CursoId == cursoId && a.AlunoId == UserId);
+        if (av == null) return NotFound(new { erro = "Nenhuma avaliação encontrada para este aluno e curso." });
+
+        return Ok(new AvaliacaoCursoDto(av.Id, av.AlunoId, av.Aluno.Nome, av.Nota, av.Comentario, av.Data, av.DataAtualizacao));
+    }
+
+    /// <summary>Cria ou atualiza a avaliação do aluno (1 por curso). Exige 100% de conclusão do curso.</summary>
     [HttpPost, Authorize(Roles = "Aluno")]
+    [HttpPut("/api/cursos/{cursoId:int}/avaliacao"), Authorize(Roles = "Aluno")]
     public async Task<IActionResult> Avaliar(int cursoId, AvaliacaoCursoRequest req)
     {
-        if (req.Nota < 1 || req.Nota > 5) return Erro(400, "A nota deve ser de 1 a 5.");
+        if (req.Nota < 1 || req.Nota > 5) return Erro(400, "A nota deve ser de 1 a 5 estrelas.");
         if (req.Comentario != null && req.Comentario.Length > 1000) return Erro(400, "O comentário pode ter até 1000 caracteres.");
+
         var curso = await db.Cursos.FirstOrDefaultAsync(c => c.Id == cursoId);
         if (curso == null) return Erro(404, "Curso não encontrado.");
 
-        var av = await db.AvaliacoesCurso.FirstOrDefaultAsync(a => a.CursoId == cursoId && a.AlunoId == UserId);
-        if (av == null)
+        // Regra 4.1: A API deve confirmar a conclusão de 100% antes de aceitar uma avaliação
+        var matricula = await db.Matriculas.AsNoTracking()
+            .FirstOrDefaultAsync(m => m.AlunoId == UserId && m.CursoId == cursoId);
+        if (matricula == null || matricula.ProgressoPercentual < 100)
         {
-            av = new AvaliacaoCurso { CursoId = cursoId, AlunoId = UserId };
+            return Erro(403, "Você deve concluir 100% do curso antes de poder avaliá-lo.");
+        }
+
+        var av = await db.AvaliacoesCurso.FirstOrDefaultAsync(a => a.CursoId == cursoId && a.AlunoId == UserId);
+        bool isNovo = (av == null);
+        if (isNovo)
+        {
+            av = new AvaliacaoCurso { CursoId = cursoId, AlunoId = UserId, Data = DateTime.UtcNow };
             db.AvaliacoesCurso.Add(av);
         }
+        else
+        {
+            av!.DataAtualizacao = DateTime.UtcNow;
+        }
+
         av.Nota = req.Nota;
         av.Comentario = req.Comentario?.Trim();
-        av.Data = DateTime.UtcNow;
         await db.SaveChangesAsync();
 
         var media = await db.AvaliacoesCurso.Where(a => a.CursoId == cursoId).AverageAsync(a => (double)a.Nota);
-        curso.Avaliacao = Math.Round((decimal)media, 2);
+        curso.Avaliacao = Math.Round((decimal)media, 1);
         await db.SaveChangesAsync();
 
         var aluno = await db.Alunos.AsNoTracking().FirstAsync(a => a.Id == UserId);
-        return Ok(new AvaliacaoCursoDto(av.Id, av.AlunoId, aluno.Nome, av.Nota, av.Comentario, av.Data));
+        return Ok(new AvaliacaoCursoDto(av.Id, av.AlunoId, aluno.Nome, av.Nota, av.Comentario, av.Data, av.DataAtualizacao));
     }
 }

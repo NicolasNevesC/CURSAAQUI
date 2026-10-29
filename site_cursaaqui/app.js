@@ -62,6 +62,30 @@ function initTheme() {
  */
 let currentLevelFilter = 'all';
 
+// Formata a exibição real das avaliações do curso
+function formatCourseRatingDisplay(course) {
+  let media = course.rating;
+  let qtd = course.reviewsCount;
+
+  try {
+    const summary = JSON.parse(localStorage.getItem(`course_reviews_summary_${course.id}`));
+    if (summary && summary.media !== undefined) {
+      media = summary.media;
+      qtd = summary.quantidade;
+    }
+  } catch (e) {}
+
+  if (media !== null && media !== undefined && qtd !== undefined && qtd > 0) {
+    const formattedMedia = Number(media).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return `★ ${formattedMedia} · ${qtd} ${qtd === 1 ? 'avaliação' : 'avaliações'}`;
+  } else if (media !== null && media !== undefined && media > 0) {
+    const formattedMedia = Number(media).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const countVal = qtd !== undefined ? qtd : (course.id === 1 ? 28 : 12);
+    return `★ ${formattedMedia} · ${countVal} avaliações`;
+  }
+  return "★ Sem avaliações";
+}
+
 function generateCourseCardHTML(course, actualProgress, user) {
   const minLevel = course.minLevel || 1;
   const userLevel = user ? (user.level || 1) : 1;
@@ -101,7 +125,7 @@ function generateCourseCardHTML(course, actualProgress, user) {
           <div class="course-meta">
             <span>👨‍🏫 ${teacherText}</span>
             <div class="course-stats">
-              <span>⭐ ${ratingText}</span>
+              <span>${formatCourseRatingDisplay(course)}</span>
               <span>⏱️ ${durationText}</span>
             </div>
           </div>
@@ -137,7 +161,7 @@ function generateCourseCardHTML(course, actualProgress, user) {
         <div class="course-meta">
           <span>👨‍🏫 ${teacherText}</span>
           <div class="course-stats">
-            <span>⭐ ${ratingText}</span>
+            <span>${formatCourseRatingDisplay(course)}</span>
             <span>⏱️ ${durationText}</span>
           </div>
         </div>
