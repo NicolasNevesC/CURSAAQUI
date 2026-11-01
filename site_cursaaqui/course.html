@@ -542,6 +542,13 @@
         font-size: 0.82rem;
       }
     }
+    @media (max-width: 320px) {
+      .navbar .logo { font-size: 0.88rem; }
+      .hero h1 { font-size: 1.05rem; }
+      #step2Section { padding: 0 6px; }
+      .wide-exercise-card { padding: 10px 8px; }
+      .q-opt-btn { padding: 8px 8px; font-size: 0.8rem; }
+    }
   </style>
 </head>
 
@@ -573,7 +580,7 @@
         <a id="materialStudyBtn" href="#" target="_blank" class="btn-primary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
           📖 Acessar Apostila Oficial (PDF)
         </a>
-        <a id="materialDownloadBtn" href="#" download class="btn-secondary" onclick="accessMaterial()" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+        <a id="materialDownloadBtn" href="#" download class="btn-secondary" onclick="triggerPdfDownload(event)" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
           ⬇️ Baixar PDF
         </a>
       </div>
@@ -791,25 +798,77 @@
       const urlCourseId = params.get("id");
       const coursesList = window.courses || (typeof courses !== "undefined" ? courses : []);
 
+      function normalizeCourseTitle(str) {
+        if (!str) return "";
+        try {
+          return str
+            .normalize("NFD")
+            .replace(/[̀-ͯ]/g, "")
+            .toLowerCase()
+            .replace(/[\s\-_–—]+/g, " ")
+            .trim();
+        } catch (e) {
+          return String(str).toLowerCase().trim();
+        }
+      }
+
       if (urlCourseName || urlCourseId) {
         if (urlCourseName) {
-          course = coursesList.find(c => c.title.toLowerCase() === decodeURIComponent(urlCourseName).toLowerCase());
+          const rawName = urlCourseName.trim();
+          let decodedName = rawName;
+          try {
+            decodedName = decodeURIComponent(rawName);
+          } catch (e) {}
+
+          const normDecoded = normalizeCourseTitle(decodedName);
+          const normRaw = normalizeCourseTitle(rawName);
+
+          // 1. Busca exata (case-insensitive)
+          course = coursesList.find(c => 
+            c.title.toLowerCase() === decodedName.toLowerCase() || 
+            c.title.toLowerCase() === rawName.toLowerCase()
+          );
+
+          // 2. Busca normalizada (ignora acentos, hífens, espaços duplos)
+          if (!course) {
+            course = coursesList.find(c => {
+              const normTitle = normalizeCourseTitle(c.title);
+              return normTitle === normDecoded || normTitle === normRaw;
+            });
+          }
+
+          // 3. Busca por substring ou palavras-chave chave (ex: ADS, Engenharia, Manual)
+          if (!course) {
+            course = coursesList.find(c => {
+              const normTitle = normalizeCourseTitle(c.title);
+              return (normDecoded.length >= 4 && normTitle.includes(normDecoded)) ||
+                     (normTitle.length >= 4 && normDecoded.includes(normTitle));
+            });
+          }
         }
+
         if (!course && urlCourseId) {
-          course = coursesList.find(c => c.id === parseInt(urlCourseId));
+          course = coursesList.find(c => c.id === parseInt(urlCourseId, 10));
         }
 
         if (!course) {
-          // O link apontava para um curso inexistente: avisa em vez de abrir
-          // silenciosamente o primeiro curso da lista.
-          alert("Curso não encontrado. Você será redirecionado ao catálogo.");
-          window.location.href = "cursos.html";
-          return;
+          // Tenta recuperar o curso selecionado no Storage
+          const stored = Storage.getSelectedCourse();
+          if (stored) {
+            course = coursesList.find(c => c.id === stored.id || c.title === stored.title) || stored;
+          }
+        }
+
+        // Se ainda não encontrou, usa o curso padrão (ADS - id 1) ou o primeiro do catálogo
+        if (!course && coursesList.length > 0) {
+          course = coursesList.find(c => c.id === 1) || coursesList[0];
         }
       } else {
-        // Sem parâmetro na URL: mantém o comportamento de retomar o último
-        // curso acessado (ex.: clique no card "Continuar Aula").
+        // Sem parâmetro na URL: retoma o último curso acessado
         course = Storage.getSelectedCourse();
+        if (!course && coursesList.length > 0) {
+          course = coursesList.find(c => c.id === 1) || coursesList[0];
+        }
       }
 
       if (!course) {
@@ -1098,6 +1157,39 @@
       }
     }
 
+    
+    // ─── DISPARADOR ROBUSTO DE DOWNLOAD DO PDF ───
+    function triggerPdfDownload(event) {
+      if (event && event.preventDefault) {
+        event.preventDefault();
+      }
+
+      if (!course || !course.pdf) {
+        showToast("📕 Nenhum material didático em PDF disponível para este curso.");
+        return;
+      }
+
+      accessMaterial(true);
+      startStudyCountdown();
+
+      const pdfUrl = (typeof safeUrl === "function") ? safeUrl(course.pdf) : course.pdf;
+      const fileName = pdfUrl.split("/").pop() || `${course.title || "apostila"}.pdf`;
+
+      // Cria link invisível com atributo download e simula clique
+      const tempLink = document.createElement("a");
+      tempLink.href = pdfUrl;
+      tempLink.setAttribute("download", fileName);
+      tempLink.target = "_blank";
+      tempLink.rel = "noopener noreferrer";
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      setTimeout(() => {
+        tempLink.remove();
+      }, 300);
+
+      showToast("⬇️ Download da apostila iniciado com sucesso!");
+    }
+
     function updateMaterialAvailabilityUI(pdfPath) {
       const heroStudyBtn = document.getElementById("materialStudyBtn");
       const heroDownloadBtn = document.getElementById("materialDownloadBtn");
@@ -1119,13 +1211,19 @@
           heroStudyBtn.setAttribute("href", safePdfPath);
           heroStudyBtn.onclick = function() { startStudyCountdown(); };
         }
+        const fileName = safePdfPath.split('/').pop() || `${course.title}.pdf`;
         if (heroDownloadBtn) {
           heroDownloadBtn.setAttribute("href", safePdfPath);
-          const fileName = safePdfPath.split('/').pop() || `${course.title}.pdf`;
           heroDownloadBtn.setAttribute("download", fileName);
-          heroDownloadBtn.onclick = function() { startStudyCountdown(); };
+          heroDownloadBtn.setAttribute("target", "_blank");
+          heroDownloadBtn.onclick = function(e) { triggerPdfDownload(e); };
         }
-        if (sectionMaterialBtn) sectionMaterialBtn.setAttribute("href", safePdfPath);
+        if (sectionMaterialBtn) {
+          sectionMaterialBtn.setAttribute("href", safePdfPath);
+          sectionMaterialBtn.setAttribute("download", fileName);
+          sectionMaterialBtn.setAttribute("target", "_blank");
+          sectionMaterialBtn.onclick = function(e) { triggerPdfDownload(e); };
+        }
         if (toggleViewerBtn) {
           toggleViewerBtn.disabled = false;
           toggleViewerBtn.style.opacity = "";
@@ -2207,13 +2305,7 @@
       }
     }
   
-    @media (max-width: 320px) {
-      .navbar .logo { font-size: 0.88rem; }
-      .hero h1 { font-size: 1.05rem; }
-      #step2Section { padding: 0 6px; }
-      .wide-exercise-card { padding: 10px 8px; }
-      .q-opt-btn { padding: 8px 8px; font-size: 0.8rem; }
-    }
+
     function printCertificate() {
       document.body.classList.add("printing-cert");
       window.print();
