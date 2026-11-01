@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <script>
@@ -1026,10 +1026,10 @@ body {
 
   <div class="sb-footer">
     <div class="sb-user-card">
-      <div class="sb-user-av" id="sbUserAv">MN</div>
+      <div class="sb-user-av" id="sbUserAv">AL</div>
       <div class="sb-user-info">
-        <strong id="sbUserName">Matheus Narvaes</strong>
-        <small id="sbUserLvl">Nível 2 • 350 XP</small>
+        <strong id="sbUserName">Aluno</strong>
+        <small id="sbUserLvl">Nível 1 • 0 XP</small>
         <div class="sb-xp-bar-wrap">
           <div class="sb-xp-bar-fill" id="sbXpFill"></div>
         </div>
@@ -1054,7 +1054,7 @@ body {
       <h2 class="topbar-title" id="topTitle">📊 Visão Geral do Aluno</h2>
       <div class="topbar-streak" title="Você está estudando com consistência!">
         <span>🔥</span>
-        <span id="streakDays">5 Dias Seguidos</span>
+        <span id="streakDays">0 Dias Seguidos</span>
       </div>
     </div>
     <div class="topbar-right">
@@ -1079,11 +1079,11 @@ body {
       <!-- Banner de Boas-Vindas -->
       <div class="student-hero">
         <div class="hero-text">
-          <h1 id="welcomeHero">Olá, Matheus! 🚀</h1>
+          <h1 id="welcomeHero">Olá, Aluno! 🚀</h1>
           <p>Seu espaço exclusivo para gerenciar seu ritmo de estudos, registrar notas, testar conhecimentos e conquistar seus diplomas reconhecidos.</p>
           <div class="hero-badges">
-            <span class="hero-pill" id="heroLevelBadge">⭐ Nível 2 • Intermediário</span>
-            <span class="hero-pill" id="heroXpBadge">⚡ 350 / 2000 XP</span>
+            <span class="hero-pill" id="heroLevelBadge">⭐ Nível 1 • Básico</span>
+            <span class="hero-pill" id="heroXpBadge">⚡ 0 / 1000 XP (0%)</span>
                       </div>
         </div>
       </div>
@@ -1356,10 +1356,25 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNavigationEvents();
 });
 
-// Inicializa progresso de demonstração somente se a sessão for válida e estiver vazia
+// Inicializa progresso de demonstração somente se a conta for o aluno demo oficial
 function initStudentProgress(user) {
   if (!user || !user.email) return;
   const progressKey = `user_courses_progress_${user.email}`;
+
+  // Se o usuário não for a conta demo oficial (aluno@cursaaqui.com):
+  // Limpa quaisquer dados legados que tenham sido auto-injetados pelo demo anterior
+  if (user.email !== "aluno@cursaaqui.com") {
+    let progress = JSON.parse(localStorage.getItem(progressKey));
+    if (progress && (user.xp === 0 || !user.xp)) {
+      const keys = Object.keys(progress);
+      if (keys.length === 3 && progress[1]?.progress === 85 && progress[2]?.progress === 100 && progress[3]?.progress === 40) {
+        localStorage.removeItem(progressKey);
+      }
+    }
+    return; // Novo usuário cadastrado sempre permanece 100% zerado
+  }
+
+  // Apenas conta de demonstração institucional
   let progress = JSON.parse(localStorage.getItem(progressKey));
   if (!progress || Object.keys(progress).length === 0) {
     progress = {
@@ -1382,7 +1397,6 @@ function initStudentProgress(user) {
     localStorage.setItem(progressKey, JSON.stringify(progress));
   }
 }
-
 function getLoggedUser() {
   return Storage.getLoggedUser();
 }
@@ -1412,6 +1426,13 @@ function loadAllStudentData() {
   document.getElementById("heroLevelBadge").textContent = `⭐ Nível ${level} • ${level === 1 ? 'Básico' : (level === 2 ? 'Intermediário' : 'Avançado')}`;
   document.getElementById("heroXpBadge").textContent = `⚡ ${xp} / ${xpNeeded} XP (${xpPercent}%)`;
   document.getElementById("statTotalXp").textContent = `${xp} XP`;
+
+  // Streak de estudos (calculado ou default 0 para novos usuários)
+  const streak = user.streak !== undefined ? user.streak : (user.email === 'aluno@cursaaqui.com' ? 5 : 0);
+  const streakEl = document.getElementById("streakDays");
+  if (streakEl) {
+    streakEl.textContent = `${streak} ${streak === 1 ? 'Dia Seguido' : 'Dias Seguidos'}`;
+  }
 
   // Renderiza sub-módulos
   renderStudentCoursesGrid();
@@ -1892,7 +1913,7 @@ window.addEventListener("afterprint", () => {
 const BADGES_CONFIG = [
   { id: 1, icon: "🌱", title: "Primeiro Passo", desc: "Iniciou o seu primeiro curso no portal.", check: (u, rec) => Object.keys(rec).length > 0 },
   { id: 2, icon: "⚡", title: "Foco Total", desc: "Atingiu 50% de aproveitamento em um curso.", check: (u, rec) => Object.values(rec || {}).some(c => (c.progress || 0) >= 50) },
-  { id: 3, icon: "📖", title: "Leitor Voraz", desc: "Acessou material e apostila em PDF.", check: (u, rec) => true },
+  { id: 3, icon: "📖", title: "Leitor Voraz", desc: "Acessou material e apostila em PDF.", check: (u, rec) => Object.values(rec || {}).some(c => (c.progress || 0) > 0) },
   { id: 4, icon: "🎯", title: "Mestre do Quiz", desc: "Acertou questão no Treino Rápido.", check: (u, rec) => quizSessionScore > 0 || (u.xp || 0) >= 300 },
   { id: 5, icon: "🏆", title: "Primeiro Diploma", desc: "Concluiu 100% de um curso oficial.", check: (u, rec) => Object.values(rec).some(r => r.progress === 100) },
   { id: 6, icon: "🚀", title: "Rumo ao Topo", desc: "Alcançou o Nível 2 ou superior.", check: (u, rec) => (u.level || 1) >= 2 },
@@ -1998,8 +2019,9 @@ function promptNewStudent() {
     email: email,
     password: "123",
     role: "student",
-    xp: 100,
-    level: 1
+    xp: 0,
+    level: 1,
+    streak: 0
   };
   Storage.setLoggedUser(newSt);
   closePersonaSwitcher();

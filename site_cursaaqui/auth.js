@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // auth.js - Gerenciador de Autenticação, Rotas e Sessões
 // Responsável por: login, logout, cadastro, controle de rotas
 // e inicialização de dados de demonstração no localStorage.
@@ -326,7 +326,8 @@ function register(){
     password,
     role: role || "student",
     xp: 0,
-    level: 1
+    level: 1,
+    streak: 0
   });
 
   if (typeof showToast === "function") showToast("Conta criada com sucesso!");
@@ -396,3 +397,4 @@ function logout() {
   
   window.location.href = "index.html?action=logout";
 }
+
