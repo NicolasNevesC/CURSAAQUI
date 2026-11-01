@@ -19,21 +19,28 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "8.0.x"
 
       - name: Publish
         run: dotnet publish ${{ env.PROJECT_PATH }} -c Release -o ./publish
 
+      - name: Aviso - secret não configurado
+        if: env.PUBLISH_PROFILE == ''
+        run: echo "::warning::Secret AZURE_WEBAPP_PUBLISH_PROFILE não configurado; deploy no Azure ignorado (veja Cursa-API/AZURE.md)."
+
       - name: Deploy to Azure Web App
+        if: env.PUBLISH_PROFILE != ''
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ env.PUBLISH_PROFILE }}
           package: ./publish
