@@ -2120,7 +2120,7 @@
         const headers = { "Content-Type": "application/json" };
         if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        const apiResp = await fetch(`http://localhost:5035/api/cursos/${course.id}/avaliacoes`, {
+        const apiResp = await fetch(`${API_BASE_URL}/api/cursos/${course.id}/avaliacoes`, {
           method: "POST",
           headers: headers,
           body: JSON.stringify(reviewPayload)

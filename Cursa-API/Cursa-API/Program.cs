@@ -15,7 +15,14 @@ var builder = WebApplication.CreateBuilder(args);
 // ---------- Banco ----------
 builder.Services.AddDbContext<CursaAquiDbContext>(o =>
     o.UseSqlServer(
-        builder.Configuration.GetConnectionString("Default")
+        builder.Configuration.GetConnectionString("Default"),
+        // O Azure SQL gratuito pausa quando fica ocioso; as primeiras
+        // conexões falham enquanto ele "acorda", então tenta de novo.
+        sql => sql.EnableRetryOnFailure(
+            maxRetryCount: 6,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorNumbersToAdd: null
+        )
     ));
 
 // ---------- MVC / JSON ----------
