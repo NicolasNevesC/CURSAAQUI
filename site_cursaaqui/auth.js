@@ -189,10 +189,8 @@ function redirectIfAlreadyAuthenticated() {
     Storage.clearLoggedUser();
     return;
   }
-  const user = Storage.getLoggedUser();
-  if (user && isSessionValid(user)) {
-    redirectByRole(user);
-  }
+  // Usuários autenticados podem navegar livremente na página inicial (index.html)
+  // sem serem forçados de volta ao dashboard.
 }
 
 // ─────────────────────────────────────────────────────────────
