@@ -42,16 +42,36 @@ function generateCertificate(courseName){
     return;
   }
 
-  document.getElementById("certificateModal").style.display="flex";
+  const modal = document.getElementById("certificateModal");
+  if (modal) modal.style.display="flex";
 
-  document.getElementById("certUser").innerText = user.name;
+  const userEl = document.getElementById("certUser");
+  if (userEl) userEl.innerText = user.name;
 
-  document.getElementById("certCourse").innerText = courseName;
+  const courseEl = document.getElementById("certCourse");
+  if (courseEl) courseEl.innerText = courseName;
 
-  document.getElementById("certDate").innerText =
-    new Date().toLocaleDateString("pt-BR");
+  const dateEl = document.getElementById("certDate");
+  if (dateEl) dateEl.innerText = new Date().toLocaleDateString("pt-BR");
+
+  const hoursEl = document.getElementById("certHours");
+  if (hoursEl) {
+    const cObj = typeof courses !== "undefined" ? courses.find(c => c.title === courseName) : null;
+    const duration = cObj && cObj.duration ? cObj.duration : "40h";
+    hoursEl.innerText = `Carga Horária Oficial: ${duration}`;
+  }
 }
 
 function closeCertificate(){
-  document.getElementById("certificateModal").style.display = "none";
+  const modal = document.getElementById("certificateModal");
+  if (modal) modal.style.display = "none";
 }
+
+function printCertificate() {
+  document.body.classList.add("printing-cert");
+  window.print();
+}
+
+window.addEventListener("afterprint", () => {
+  document.body.classList.remove("printing-cert");
+});

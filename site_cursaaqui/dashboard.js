@@ -527,6 +527,11 @@ function gerarCertificadoDoPainel(courseTitle) {
   if(document.getElementById("certUser"))   document.getElementById("certUser").innerText   = user.name;
   if(document.getElementById("certCourse")) document.getElementById("certCourse").innerText = courseTitle;
   if(document.getElementById("certDate"))   document.getElementById("certDate").innerText   = new Date().toLocaleDateString('pt-BR');
+  if(document.getElementById("certHours")) {
+    const cObj = typeof courses !== "undefined" ? courses.find(c => c.title === courseTitle) : null;
+    const duration = cObj && cObj.duration ? cObj.duration : "40h";
+    document.getElementById("certHours").innerText = `Carga Horária Oficial: ${duration}`;
+  }
   if(document.getElementById("certificateModal")) document.getElementById("certificateModal").style.display = "flex";
 }
 

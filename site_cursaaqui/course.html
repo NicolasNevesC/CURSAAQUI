@@ -159,15 +159,41 @@
       100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
 
-    /* ─── ÁREA AMPLIADA DE EXERCÍCIOS ─── */
+    /* ─── ÁREA AMPLIADA DE EXERCÍCIOS & CONTENÇÃO DE LAYOUT ─── */
+    #step2Section {
+      width: 100%;
+      max-width: 1200px;
+      margin: 40px auto 0 auto;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+    #exercisesContainerWrapper {
+      width: 100%;
+      max-width: 950px;
+      margin: 0 auto;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    #quizContainer {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
     .wide-exercise-card {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       background: var(--card);
       border-radius: 16px;
-      padding: 26px;
+      padding: 24px 26px;
       border: 1px solid rgba(0,0,0,0.08);
       margin-bottom: 24px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-      transition: border-color 0.2s ease;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      overflow: hidden;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
     .dark .wide-exercise-card {
       border-color: rgba(255,255,255,0.08);
@@ -176,21 +202,36 @@
     .wide-exercise-card:hover {
       border-color: rgba(59,130,246,0.3);
     }
+    .exercise-statement {
+      font-size: 1.02rem;
+      line-height: 1.65;
+      margin-bottom: 14px;
+      color: var(--text);
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      white-space: normal;
+    }
     .q-opt-btn {
-      display: flex;
-      align-items: center;
+      display: block;
       width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       text-align: left;
       padding: 14px 18px;
       margin-bottom: 10px;
       border-radius: 10px;
       font-size: 0.94rem;
-      line-height: 1.45;
+      line-height: 1.5;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
       background: rgba(0,0,0,0.03);
       border: 1px solid rgba(0,0,0,0.1);
       color: inherit;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
     .dark .q-opt-btn {
       background: rgba(255,255,255,0.04);
@@ -199,18 +240,26 @@
     .q-opt-btn:hover:not(:disabled) {
       background: rgba(59,130,246,0.1);
       border-color: #3B82F6;
-      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(59,130,246,0.15);
     }
     .open-q-box {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
       background: linear-gradient(135deg, rgba(59,130,246,0.04) 0%, rgba(139,92,246,0.04) 100%);
       border: 2px solid rgba(99,102,241,0.25);
       border-radius: 16px;
-      padding: 26px;
+      padding: 24px 26px;
       margin-top: 30px;
       margin-bottom: 24px;
+      overflow: hidden;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
     .open-q-textarea {
       width: 100%;
+      max-width: 100%;
       min-height: 150px;
       padding: 16px;
       border-radius: 12px;
@@ -223,11 +272,40 @@
       resize: vertical;
       box-sizing: border-box;
       transition: border-color 0.2s, box-shadow 0.2s;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      word-break: break-word;
     }
     .open-q-textarea:focus {
       outline: none;
       border-color: #6366F1;
       box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
+    }
+    .cert-preview-canvas {
+      background: #FFF;
+      color: #1E293B;
+      border: 8px double #D97706;
+      border-radius: 12px;
+      padding: 32px 28px;
+      text-align: center;
+      margin: 12px 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      font-family: 'Inter', serif;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 100%;
+    }
+    .cert-preview-canvas h2 {
+      font-family: 'Montserrat', sans-serif;
+      color: #1E3A8A;
+      font-size: 1.7rem;
+      font-weight: 900;
+      letter-spacing: .05em;
+      margin-bottom: 6px;
+    }
+    .cert-preview-canvas .cert-seal {
+      font-size: 2.8rem;
+      margin-bottom: 8px;
     }
     .locked-card {
       background: var(--card);
@@ -331,6 +409,43 @@
       background: rgba(59, 130, 246, 0.15);
     }
 
+
+    /* ─── DESKTOP HERO 2-COLUMN ─── */
+    @media (min-width: 1024px) {
+      .hero {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 40px;
+        align-items: start;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 100px 32px 48px 32px;
+      }
+      .hero-content {
+        padding: 0;
+      }
+      .hero-card {
+        position: sticky;
+        top: 80px;
+      }
+    }
+    @media (min-width: 1440px) {
+      .hero {
+        max-width: 1440px;
+        grid-template-columns: 1fr 420px;
+      }
+    }
+
+    /* ─── WIDESCREEN EXERCISE AREA ─── */
+    @media (min-width: 1200px) {
+      #step2Section {
+        max-width: 1400px;
+      }
+      #exercisesContainerWrapper {
+        max-width: 1100px;
+      }
+    }
+
     @media (max-width: 768px) {
       .stepper-nav {
         flex-direction: column;
@@ -354,6 +469,25 @@
       .hero h1 {
         font-size: 1.45rem;
       }
+      #step2Section {
+        padding: 0 14px;
+      }
+      .wide-exercise-card {
+        padding: 18px 16px;
+        border-radius: 12px;
+      }
+      .q-opt-btn {
+        padding: 12px 14px;
+        font-size: 0.9rem;
+      }
+      .open-q-box {
+        padding: 18px 16px;
+        border-radius: 12px;
+      }
+      .open-q-textarea {
+        padding: 12px;
+        font-size: 0.9rem;
+      }
     }
     @media (max-width: 390px) {
       .navbar {
@@ -372,6 +506,23 @@
       .card-content {
         padding: 14px !important;
       }
+      #step2Section {
+        padding: 0 10px;
+      }
+      .wide-exercise-card {
+        padding: 14px 12px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+      }
+      .q-opt-btn {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        line-height: 1.4;
+      }
+      .open-q-box {
+        padding: 14px 12px;
+        border-radius: 10px;
+      }
     }
     @media (max-width: 360px) {
       .navbar .logo {
@@ -379,6 +530,16 @@
       }
       .hero h1 {
         font-size: 1.15rem;
+      }
+      #step2Section {
+        padding: 0 8px;
+      }
+      .wide-exercise-card {
+        padding: 12px 10px;
+      }
+      .q-opt-btn {
+        padding: 9px 10px;
+        font-size: 0.82rem;
       }
     }
   </style>
@@ -511,18 +672,18 @@
           <span id="pdfViewerHeaderTitle" style="font-size: 0.9rem; font-weight: 600;">📖 Leitor de PDF Integrado</span>
           <button onclick="togglePdfViewer()" class="btn-secondary" style="padding: 5px 12px; font-size: 0.8rem;">✕ Fechar Leitor</button>
         </div>
-        <iframe id="pdfIframe" src="" style="width: 100%; height: 650px; border: none; background: #ffffff;"></iframe>
+        <iframe id="pdfIframe" src="" style="width: 100%; height: clamp(340px, 62vh, 650px); min-height: 340px; border: none; background: #ffffff;"></iframe>
       </div>
     </div>
   </section>
 
   <!-- ═══ ETAPA 2: CENTRAL AMPLA DE EXERCÍCIOS & PRÁTICA ═══ -->
-  <section class="courses" id="step2Section" style="margin-top: 40px;">
+  <section class="courses" id="step2Section" style="margin-top: 40px; width: 100%; box-sizing: border-box;">
     <h2>2️⃣ Prática & Exercícios do Curso</h2>
-    <div id="exercisesContainerWrapper">
+    <div id="exercisesContainerWrapper" style="width: 100%; max-width: 950px; margin: 0 auto; box-sizing: border-box;">
       <!-- Será renderizado dinamicamente: estado bloqueado ou lista de questões amplas + questão dissertativa -->
-      <div id="quizContainer"></div>
-      <div id="quizActions" style="margin-top: 24px;"></div>
+      <div id="quizContainer" style="width: 100%; box-sizing: border-box;"></div>
+      <div id="quizActions" style="margin-top: 24px; width: 100%; box-sizing: border-box;"></div>
     </div>
   </section>
 
@@ -562,20 +723,49 @@
   </section>
 
   <div class="modal" id="certificateModal" style="display:none;">
-    <div class="modal-content" style="max-width: 500px; text-align: center;">
+    <div class="modal-content" style="max-width: 720px; text-align: center; padding: 24px; box-sizing: border-box;">
       <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer;" onclick="closeCertificate()">&times;</span>
-      <h1>CERTIFICADO</h1>
-      <p style="margin: 15px 0;">Certificamos que</p>
-      <h2 id="certUser">Aluno</h2>
-      <p style="margin: 15px 0;">concluiu com sucesso o curso</p>
-      <h3 id="certCourse">Curso</h3>
-      <p id="certDate" style="margin: 15px 0; font-style: italic;"></p>
-      <div class="seal" style="font-size: 3rem; margin: 15px 0;">🏅</div>
-      <div class="signature" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
-        <p>Assinatura Oficial</p>
+
+      <div class="cert-preview-canvas" id="printableCertCourse">
+        <div class="cert-seal">🏆</div>
+        <h2>CURSA AQUI</h2>
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.78rem; font-weight: 700; color: #64748B; margin-bottom: 14px;">
+          Certificado de Conclusão &amp; Aproveitamento
+        </p>
+        
+        <p style="font-size: 0.95rem; color: #475569; margin-bottom: 6px;">
+          Certificamos para os devidos fins legais e acadêmicos que o(a) aluno(a)
+        </p>
+        <h3 id="certUser" style="font-size: 1.8rem; font-weight: 900; color: #1E293B; margin-bottom: 10px; font-family: 'Montserrat', sans-serif;">
+          Aluno
+        </h3>
+        <p style="font-size: 0.95rem; color: #475569; margin-bottom: 14px;">
+          concluiu com êxito todos os módulos, questionários e cargas horárias correspondentes ao curso:
+        </p>
+        
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px 20px; border-radius: 8px; margin: 0 auto 16px; max-width: 520px;">
+          <strong id="certCourse" style="font-size: 1.15rem; color: #2563EB; display: block;">
+            Curso
+          </strong>
+          <div id="certHours" style="font-size: 0.85rem; color: #64748B; margin-top: 4px; font-weight: 600;">
+            Carga Horária Oficial: 40 horas
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-around; align-items: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px dashed #CBD5E1;">
+          <div>
+            <div style="font-size: 0.8rem; color: #64748B;">Data de Emissão:</div>
+            <strong id="certDate" style="font-size: 0.88rem; color: #1E293B;"></strong>
+          </div>
+          <div>
+            <div style="border-bottom: 1px solid #94A3B8; width: 180px; margin-bottom: 4px;"></div>
+            <div style="font-size: 0.75rem; color: #64748B;">Coordenação Pedagógica</div>
+          </div>
+        </div>
       </div>
+
       <div class="certificate-buttons" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
-        <button class="btn-primary" onclick="window.print()">Imprimir</button>
+        <button class="btn-primary" onclick="printCertificate()">🖨️ Imprimir / Salvar PDF</button>
         <button class="btn-secondary" onclick="closeCertificate()">Fechar</button>
       </div>
     </div>
@@ -999,6 +1189,14 @@
       }
     }
 
+    // ─── FORMATAÇÃO SEGURA DE ENUNCIADOS (SUPORTA QUEBRA DE PARÁGRAFO) ───
+    function formatQuestionText(text) {
+      if (!text) return "";
+      let safe = esc(text);
+      // Preserva quebras de linha/parágrafo do enunciado de forma limpa e contida
+      return safe.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
+    }
+
     // ─── RENDERIZADOR AMPLIADO DE EXERCÍCIOS (OBJETIVAS + QUESTÃO ABERTA) ───
     function renderQuiz() {
       const container = document.getElementById("quizContainer");
@@ -1094,7 +1292,7 @@
               <span>QUESTÃO ${qIdx + 1} DE ${course.quiz.length}</span>
               ${course.quizCompleted ? (course.answers[qIdx] === q.correct ? '<span style="color:#10B981;">✅ Acertou</span>' : '<span style="color:#EF4444;">❌ Errou</span>') : ''}
             </div>
-            <p style="font-size: 1.02rem; line-height: 1.6; margin-bottom: 12px; color: var(--text);">${esc(q.question)}</p>
+            <p class="exercise-statement">${formatQuestionText(q.question)}</p>
             ${getQuestionGlossaryHtml('mc_' + qIdx, q.question, q.options)}
             <div style="margin-top: 14px;">${optionsHtml}</div>
           </div>
@@ -2008,6 +2206,21 @@
         showToast("Resposta do professor registrada!");
       }
     }
-  </script>
+  
+    @media (max-width: 320px) {
+      .navbar .logo { font-size: 0.88rem; }
+      .hero h1 { font-size: 1.05rem; }
+      #step2Section { padding: 0 6px; }
+      .wide-exercise-card { padding: 10px 8px; }
+      .q-opt-btn { padding: 8px 8px; font-size: 0.8rem; }
+    }
+    function printCertificate() {
+      document.body.classList.add("printing-cert");
+      window.print();
+    }
+    window.addEventListener("afterprint", () => {
+      document.body.classList.remove("printing-cert");
+    });
+</script>
 </body>
 </html>

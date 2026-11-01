@@ -217,14 +217,61 @@ function loginAsRole(email, password) {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Limpeza de formulário de cadastro (Criar Conta)
+// Garante que todos os campos, estados internos e validações
+// sejam limpos ao alternar de aba ou ao fechar o modal.
+// ─────────────────────────────────────────────────────────────
+function clearRegisterForm() {
+  const registerForm = document.getElementById("registerForm");
+  if (registerForm) {
+    const inputs = registerForm.querySelectorAll("input, select, textarea");
+    inputs.forEach(input => {
+      if (input.type === "checkbox" || input.type === "radio") {
+        input.checked = false;
+      } else if (input.tagName === "SELECT") {
+        input.selectedIndex = 0;
+      } else {
+        input.value = "";
+      }
+      input.classList.remove("error", "is-invalid", "invalid");
+      input.style.borderColor = "";
+    });
+
+    const errorEls = registerForm.querySelectorAll(".error-message, .validation-error, .invalid-feedback, [data-error]");
+    errorEls.forEach(el => {
+      el.textContent = "";
+      el.style.display = "none";
+    });
+  }
+
+  // Limpeza explícita por ID para garantir compatibilidade com todos os layouts
+  const nameEl     = document.getElementById("registerName");
+  const emailEl    = document.getElementById("registerEmail");
+  const passwordEl = document.getElementById("registerPassword");
+  const roleEl     = document.getElementById("registerRole");
+
+  if (nameEl) { nameEl.value = ""; nameEl.style.borderColor = ""; }
+  if (emailEl) { emailEl.value = ""; emailEl.style.borderColor = ""; }
+  if (passwordEl) { passwordEl.value = ""; passwordEl.style.borderColor = ""; }
+  if (roleEl) { roleEl.selectedIndex = 0; }
+}
+
+// ─────────────────────────────────────────────────────────────
 // openAuthModal() / closeAuthModal()
 // ─────────────────────────────────────────────────────────────
 function openAuthModal(){
+  clearRegisterForm();
+  const l = document.getElementById("loginForm");
+  const r = document.getElementById("registerForm");
+  if (l) l.style.display = "block";
+  if (r) r.style.display = "none";
+
   const modal = document.getElementById("authModal");
   if (modal) modal.style.display = "flex";
 }
 
 function closeAuthModal(){
+  clearRegisterForm();
   const modal = document.getElementById("authModal");
   if (modal) modal.style.display = "none";
 }
@@ -233,6 +280,7 @@ function closeAuthModal(){
 // showLogin() / showRegister()
 // ─────────────────────────────────────────────────────────────
 function showLogin(){
+  clearRegisterForm();
   const l = document.getElementById("loginForm");
   const r = document.getElementById("registerForm");
   if (l) l.style.display = "block";
@@ -240,6 +288,7 @@ function showLogin(){
 }
 
 function showRegister(){
+  clearRegisterForm();
   const l = document.getElementById("loginForm");
   const r = document.getElementById("registerForm");
   if (l) l.style.display = "none";
@@ -283,6 +332,7 @@ function register(){
   });
 
   if (typeof showToast === "function") showToast("Conta criada com sucesso!");
+  clearRegisterForm();
   showLogin();
 }
 

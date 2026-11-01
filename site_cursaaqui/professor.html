@@ -37,10 +37,10 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;}
-body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;transition:background .3s,color .3s;}
+body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;height:100dvh;overflow:hidden;transition:background .3s,color .3s;}
 
 /* ─── SIDEBAR ─── */
-.sb{width:248px;height:100vh;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0;border-right:1px solid var(--border);position:relative;z-index:10;}
+.sb{width:248px;height:100vh;height:100dvh;background:var(--sidebar);display:flex;flex-direction:column;flex-shrink:0;border-right:1px solid var(--border);position:relative;z-index:10;}
 .sb-logo{display:flex;align-items:center;gap:12px;padding:26px 20px 22px;border-bottom:1px solid var(--border);}
 .sb-logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#3B82F6,#8B5CF6);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
 .sb-logo-text{color:#fff;font-family:"Montserrat",sans-serif;font-weight:800;font-size:1rem;line-height:1.15;}
@@ -60,7 +60,7 @@ body{font-family:"Inter",sans-serif;background:var(--bg);color:var(--text);displ
 .sb-user-info small{color:rgba(255,255,255,0.38);font-size:0.7rem;}
 
 /* ─── MAIN AREA ─── */
-.main{flex:1;display:flex;flex-direction:column;min-width:0;height:100vh;overflow:hidden;}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;height:100vh;height:100dvh;overflow:hidden;}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 28px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
 .topbar-left{display:flex;align-items:center;gap:12px;}
 .topbar-title{font-size:1.05rem;font-weight:700;}
@@ -230,7 +230,7 @@ tbody tr:hover td{background:rgba(255,255,255,0.025);}
   .topbar { padding: 10px 14px; }
   .topbar-left { display: flex; align-items: center; gap: 10px; }
   .scroll-area { padding: 14px; }
-  .drawer { padding: 20px 16px; border-radius: 14px; max-height: 92vh; }
+  .drawer { padding: 20px 16px; border-radius: 14px; max-height: 92vh; max-height: 92dvh; }
   .drawer-actions { flex-direction: column; gap: 8px; }
   .drawer-actions button { width: 100%; justify-content: center; }
 }

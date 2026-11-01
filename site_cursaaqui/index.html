@@ -272,21 +272,50 @@
     generateCertificate() em certificate.js ou pelo fallback em dashboard.js.
   -->
   <div class="modal" id="certificateModal" style="display:none;">
-    <div class="modal-content" style="max-width: 500px; text-align: center;">
+    <div class="modal-content" style="max-width: 720px; text-align: center; padding: 24px; box-sizing: border-box;">
       <span class="close-cert" style="position:absolute; top:15px; right:20px; cursor:pointer;"
         onclick="closeCertificate()">&times;</span>
-      <h1>CERTIFICADO</h1>
-      <p style="margin: 15px 0;">Certificamos que</p>
-      <h2 id="certUser">Aluno</h2>
-      <p style="margin: 15px 0;">concluiu com sucesso o curso</p>
-      <h3 id="certCourse">Curso</h3>
-      <p id="certDate" style="margin: 15px 0; font-style: italic;"></p>
-      <div class="seal" style="font-size: 3rem; margin: 15px 0;">🏅</div>
-      <div class="signature" style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px;">
-        <p>Assinatura Oficial</p>
+
+      <div class="cert-preview-canvas" id="printableCertIndex">
+        <div class="cert-seal">🏆</div>
+        <h2>CURSA AQUI</h2>
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.78rem; font-weight: 700; color: #64748B; margin-bottom: 14px;">
+          Certificado de Conclusão &amp; Aproveitamento
+        </p>
+        
+        <p style="font-size: 0.95rem; color: #475569; margin-bottom: 6px;">
+          Certificamos para os devidos fins legais e acadêmicos que o(a) aluno(a)
+        </p>
+        <h3 id="certUser" style="font-size: 1.8rem; font-weight: 900; color: #1E293B; margin-bottom: 10px; font-family: 'Montserrat', sans-serif;">
+          Aluno
+        </h3>
+        <p style="font-size: 0.95rem; color: #475569; margin-bottom: 14px;">
+          concluiu com êxito todos os módulos, questionários e cargas horárias correspondentes ao curso:
+        </p>
+        
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px 20px; border-radius: 8px; margin: 0 auto 16px; max-width: 520px;">
+          <strong id="certCourse" style="font-size: 1.15rem; color: #2563EB; display: block;">
+            Curso
+          </strong>
+          <div id="certHours" style="font-size: 0.85rem; color: #64748B; margin-top: 4px; font-weight: 600;">
+            Carga Horária Oficial: 40 horas
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-around; align-items: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px dashed #CBD5E1;">
+          <div>
+            <div style="font-size: 0.8rem; color: #64748B;">Data de Emissão:</div>
+            <strong id="certDate" style="font-size: 0.88rem; color: #1E293B;"></strong>
+          </div>
+          <div>
+            <div style="border-bottom: 1px solid #94A3B8; width: 180px; margin-bottom: 4px;"></div>
+            <div style="font-size: 0.75rem; color: #64748B;">Coordenação Pedagógica</div>
+          </div>
+        </div>
       </div>
+
       <div class="certificate-buttons" style="margin-top: 20px; display: flex; gap: 10px; justify-content: center;">
-        <button class="btn-primary" onclick="window.print()">Imprimir</button>
+        <button class="btn-primary" onclick="printCertificate()">🖨️ Imprimir / Salvar PDF</button>
         <button class="btn-secondary" onclick="closeCertificate()">Fechar</button>
       </div>
     </div>

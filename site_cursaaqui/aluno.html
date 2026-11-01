@@ -52,6 +52,7 @@ body {
   color: var(--text);
   display: flex;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   transition: background .3s, color .3s;
 }
@@ -60,6 +61,7 @@ body {
 .sb {
   width: 260px;
   height: 100vh;
+  height: 100dvh;
   background: var(--sidebar);
   display: flex;
   flex-direction: column;
@@ -237,12 +239,14 @@ body {
   flex-direction: column;
   min-width: 0;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
 .topbar {
   display: flex;
   align-items: center;
+  padding-top: max(0px, env(safe-area-inset-top));
   justify-content: space-between;
   padding: 14px 28px;
   background: var(--surface);
@@ -643,12 +647,23 @@ body {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .quiz-q-title {
   font-size: 1.05rem;
   font-weight: 700;
   margin-bottom: 16px;
   line-height: 1.45;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
 .quiz-opt {
   display: flex;
@@ -662,6 +677,20 @@ body {
   cursor: pointer;
   font-size: 0.88rem;
   transition: all .2s;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.quiz-opt span:last-child {
+  flex: 1 1 auto;
+  min-width: 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .quiz-opt:hover {
   background: var(--card-hover);
@@ -918,11 +947,12 @@ body {
     flex-wrap: wrap;
   }
   .scroll-area { padding: 14px; }
-  .stats-grid { grid-template-columns: 1fr; gap: 12px; }
-  .modal-box { padding: 20px 16px; max-height: 90vh; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .modal-box { padding: 20px 16px; max-height: 90vh; max-height: 90dvh; }
 }
 @media (max-width: 480px) {
   .topbar-title { font-size: 1.05rem; }
+  .stats-grid { grid-template-columns: 1fr; gap: 12px; }
   .topbar-streak { display: none; }
   .topbar-right .btn { padding: 6px 10px; font-size: 0.78rem; }
   .student-hero { padding: 18px 16px; }
@@ -939,7 +969,7 @@ body {
 }
 @media (max-width: 360px) {
   .topbar-right .btn { font-size: 0.72rem; padding: 5px 8px; }
-  .course-card-actions { flex-direction: column; }
+  .course-card-actions { flex-direction: column; gap: 8px; }
   .course-card-actions .btn { width: 100%; justify-content: center; }
 }
 </style>
@@ -1255,9 +1285,12 @@ body {
       </p>
       
       <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 12px 20px; border-radius: 8px; margin: 0 auto 20px; max-width: 520px;">
-        <strong id="certModalCourseName" style="font-size: 1.15rem; color: #2563EB;">
+        <strong id="certModalCourseName" style="font-size: 1.15rem; color: #2563EB; display: block;">
           Análise e Desenvolvimento de Sistemas
         </strong>
+        <div id="certModalHours" style="font-size: 0.85rem; color: #64748B; margin-top: 4px; font-weight: 600;">
+          Carga Horária Oficial: 40 horas
+        </div>
       </div>
 
       <div style="display: flex; justify-content: space-around; align-items: flex-end; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #CBD5E1;">
@@ -1647,6 +1680,12 @@ function setupQuizPool() {
   loadQuizQuestion(0);
 }
 
+function formatQuestionText(text) {
+  if (!text) return "";
+  let safe = esc(text);
+  return safe.replace(/&lt;br\s*\/?&gt;/gi, "<br>");
+}
+
 function loadQuizQuestion(idx) {
   const box = document.getElementById("quickTrainingBox");
   if (!box) return;
@@ -1663,7 +1702,7 @@ function loadQuizQuestion(idx) {
       <span class="badge highlight" style="font-size: 0.72rem; display: inline-block;">📘 ${esc(q.courseTitle)}</span>
       <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary);">Questão ${currentNum} de ${quizQuestionsPool.length}</span>
     </div>
-    <div class="quiz-q-title">${esc(q.question)}</div>
+    <div class="quiz-q-title">${formatQuestionText(q.question)}</div>
     <div id="quizOptionsList">
       ${q.options.map((opt, oIdx) => `
         <div class="quiz-opt" onclick="handleQuizAnswer(${idx}, ${oIdx})">
@@ -1831,6 +1870,13 @@ function openCertModal(courseTitle) {
   document.getElementById("certModalCourseName").textContent = courseTitle;
   document.getElementById("certModalDate").textContent = new Date().toLocaleDateString("pt-BR");
 
+  const hoursEl = document.getElementById("certModalHours");
+  if (hoursEl) {
+    const cObj = typeof courses !== "undefined" ? courses.find(c => c.title === courseTitle) : null;
+    const duration = cObj && cObj.duration ? cObj.duration : "40h";
+    hoursEl.textContent = `Carga Horária Oficial: ${duration}`;
+  }
+
   document.getElementById("certModal").classList.add("open");
 }
 
@@ -1839,8 +1885,12 @@ function closeCertModal() {
 }
 
 function printCertificate() {
+  document.body.classList.add("printing-cert");
   window.print();
 }
+window.addEventListener("afterprint", () => {
+  document.body.classList.remove("printing-cert");
+});
 
 // ─── MEDALHAS E BADGES GAMIFICADAS ───
 const BADGES_CONFIG = [

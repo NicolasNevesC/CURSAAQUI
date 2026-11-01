@@ -254,7 +254,7 @@ button, .btn-primary, .btn-secondary {
 /* Grid de Cursos - Quadrados Compactos */
 .courses {
   padding: 40px 20px;
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -272,12 +272,12 @@ button, .btn-primary, .btn-secondary {
 
 .course-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
   gap: 24px;
   justify-content: center;
   align-items: stretch;
   width: 100%;
-  max-width: 980px;
+  max-width: 1360px;
   margin: 0 auto;
 }
 
@@ -786,6 +786,32 @@ button, .btn-primary, .btn-secondary {
 .hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
 .hamburger-btn.open span:nth-child(2) { opacity: 0; }
 .hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ══════════════════════════════════════════════════════════════════
+   WIDESCREEN DESKTOP: 1440px+ – better utilise large monitors
+   ══════════════════════════════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  .courses {
+    max-width: 1600px;
+  }
+  .course-grid {
+    max-width: 1560px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr));
+  }
+  .hero-content h1 {
+    font-size: clamp(2.5rem, 3.5vw, 4rem);
+  }
+}
+
+@media (min-width: 2000px) {
+  .courses {
+    max-width: 1920px;
+  }
+  .course-grid {
+    max-width: 1860px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  }
+}
 
 /* ── Menu de navegação mobile ── */
 /* Em telas grandes o <nav> funciona normalmente em flex row */
@@ -1887,5 +1913,242 @@ button, .btn-primary, .btn-secondary {
   }
   .modal-content h2 {
     font-size: 1.2rem !important;
+  }
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   14. FORMATAÇÃO E CONTENÇÃO DE EXERCÍCIOS E QUIZ
+   Garante que questões longas, enunciados e alternativas
+   respeitem as bordas do container em qualquer dispositivo.
+   ───────────────────────────────────────────────────────────── */
+.wide-exercise-card,
+.quiz-box,
+.open-q-box,
+#exercisesContainerWrapper,
+#quizContainer {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.exercise-statement,
+.quiz-q-title,
+.wide-exercise-card p {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.q-opt-btn,
+.quiz-opt {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+
+/* ── Ultra-compact phones ≤ 320px ── */
+@media (max-width: 320px) {
+  .navbar {
+    padding: 7px 8px !important;
+  }
+  .navbar .logo {
+    font-size: 0.95rem;
+  }
+  .hero-content h1 {
+    font-size: 1.25rem !important;
+  }
+  .hero-content p {
+    font-size: 0.8rem !important;
+  }
+  .courses {
+    padding: 14px 6px !important;
+  }
+  .section-title {
+    font-size: 1.2rem !important;
+  }
+  .course-grid {
+    gap: 12px !important;
+  }
+  .course-img-wrapper {
+    height: 120px !important;
+  }
+  .level-tab-btn {
+    padding: 6px 8px !important;
+    font-size: 0.78rem !important;
+  }
+  .modal-content {
+    padding: 14px 10px !important;
+    border-radius: 12px !important;
+  }
+}
+
+
+/* ── Touch targets: ensure ≥44px for interactive elements on mobile ── */
+@media (max-width: 768px) {
+  .btn-primary,
+  .btn-secondary,
+  .nav-mobile-actions button,
+  .level-tab-btn {
+    min-height: 44px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   15. ESTILOS DE IMPRESSÃO (@media print) — CERTIFICADO OFICIAL
+   Garante emissão rigorosa em PÁGINA ÚNICA A4 paisagem
+   sem cortes, vazamentos, quebras de página ou páginas em branco.
+   ───────────────────────────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 6mm;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: hidden !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Oculta tudo na página por padrão */
+  body > * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Exibe unicamente o modal de certificado ativo */
+  body > #certModal,
+  body > #certificateModal,
+  body.printing-cert > #certModal,
+  body.printing-cert > #certificateModal {
+    display: flex !important;
+    visibility: visible !important;
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    z-index: 999999 !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #certModal .modal-box,
+  #certificateModal .modal-content {
+    display: flex !important;
+    visibility: visible !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: hidden !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Oculta botões e controles interativos da impressão */
+  .modal-close,
+  .close-cert,
+  .certificate-buttons,
+  .modal-box > div:last-child,
+  button,
+  .btn,
+  .no-print {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  /* Canvas do Certificado formatado para ocupar estritamente 1 página A4 */
+  #printableCert,
+  #printableCertCourse,
+  .cert-preview-canvas {
+    display: flex !important;
+    visibility: visible !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 96% !important;
+    max-height: 96vh !important;
+    margin: auto !important;
+    padding: 24px 36px !important;
+    border: 8px double #D97706 !important;
+    border-radius: 12px !important;
+    background: #ffffff !important;
+    color: #1E293B !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
+    overflow: hidden !important;
+  }
+
+  #printableCert *,
+  #printableCertCourse *,
+  .cert-preview-canvas * {
+    visibility: visible !important;
+  }
+
+  #printableCert h2,
+  #printableCertCourse h2,
+  .cert-preview-canvas h2 {
+    font-size: 1.8rem !important;
+    color: #1E3A8A !important;
+    margin-bottom: 4px !important;
+  }
+
+  #printableCert h3,
+  #printableCertCourse h3,
+  .cert-preview-canvas h3 {
+    font-size: 1.7rem !important;
+    color: #1E293B !important;
+    margin-bottom: 6px !important;
+  }
+
+  #printableCert .cert-seal,
+  #printableCertCourse .cert-seal,
+  .cert-preview-canvas .cert-seal {
+    font-size: 2.6rem !important;
+    margin-bottom: 4px !important;
   }
 }
