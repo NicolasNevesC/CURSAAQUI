@@ -6,8 +6,9 @@ using Microsoft.EntityFrameworkCore;
 namespace CursaAqui_API.Data;
 
 /// <summary>
-/// Popula o banco vazio com: equipe interna (do desktop), um aluno de demonstração, os professores
-/// e os 15 cursos do site (courses.js -> Seed/seed-catalogo.json). Só roda se Seed:Habilitado = true.
+/// Popula o banco com: equipe interna (do desktop) e um aluno de demonstração (só em banco vazio),
+/// os professores e os 15 cursos do site (courses.js -> Seed/seed-catalogo.json), inserindo apenas
+/// o que ainda não existe. Só roda se Seed:Habilitado = true.
 /// </summary>
 public static class DbSeeder
 {
@@ -33,8 +34,7 @@ public static class DbSeeder
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
             : null;
 
-        // ---------- Usuários ----------
-        var professores = new Dictionary<string, Professor>();
+        // ---------- Usuários internos (só em banco vazio) ----------
         if (!await db.Usuarios.AnyAsync())
         {
             db.Administradores.AddRange(
@@ -44,35 +44,42 @@ public static class DbSeeder
                 new Secretaria { Nome = "Fernanda Lima Barbosa", Email = "secretaria@cursaaqui.com", SenhaHash = hash, SetorAtendimento = "Secretaria Acadêmica" },
                 new Secretaria { Nome = "Lucas Andrade Ferreira", Email = "lucas.sec@cursaaqui.com", SenhaHash = hash, SetorAtendimento = "Atendimento ao Aluno" });
             db.Alunos.Add(new Aluno { Nome = "Matheus Narvaes", Email = "aluno@cursaaqui.com", SenhaHash = hash, Xp = 350, Nivel = 2 });
-
-            foreach (var nomeBruto in (catalogo?.Cursos ?? new()).Select(c => c.Professor).Where(p => p != null).Distinct())
-            {
-                var (nome, titulacao) = SepararTitulo(nomeBruto!);
-                var partes = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                var email = nome == "Ricardo Silva"
-                    ? "ricardo@cursaaqui.com" // professor de demonstração do site
-                    : $"{Texto.Slug(partes[0])}.{Texto.Slug(partes[^1])}@cursaaqui.com";
-                var prof = new Professor { Nome = nome, Titulacao = titulacao, Email = email, SenhaHash = hash };
-                professores[nomeBruto!] = prof;
-                db.Professores.Add(prof);
-            }
             await db.SaveChangesAsync();
         }
-        else
-        {
-            foreach (var p in await db.Professores.ToListAsync())
-                professores[p.Nome] = p;
-        }
 
-        // ---------- Catálogo ----------
-        if (catalogo != null && !await db.Cursos.AnyAsync())
+        // ---------- Professores do catálogo (cria só os que faltam, pelo e-mail) ----------
+        // Chave = nome sem "Prof."/"Dr.", para casar com o campo "professor" do seed.
+        var professores = new Dictionary<string, Professor>();
+        foreach (var nomeBruto in (catalogo?.Cursos ?? new()).Select(c => c.Professor).Where(p => p != null).Distinct())
         {
+            var (nome, titulacao) = SepararTitulo(nomeBruto!);
+            var partes = nome.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var email = nome == "Ricardo Silva"
+                ? "ricardo@cursaaqui.com" // professor de demonstração do site
+                : $"{Texto.Slug(partes[0])}.{Texto.Slug(partes[^1])}@cursaaqui.com";
+            var prof = await db.Professores.FirstOrDefaultAsync(p => p.Email == email);
+            if (prof == null)
+            {
+                prof = new Professor { Nome = nome, Titulacao = titulacao, Email = email, SenhaHash = hash };
+                db.Professores.Add(prof);
+            }
+            professores[nome] = prof;
+        }
+        await db.SaveChangesAsync();
+
+        // ---------- Catálogo (insere só os cursos que ainda não existem, pelo código) ----------
+        if (catalogo != null)
+        {
+            var codigosExistentes = (await db.Cursos.Select(x => x.Codigo).ToListAsync()).ToHashSet();
             foreach (var c in catalogo.Cursos.OrderBy(x => x.Id))
             {
-                Professor? prof = c.Professor != null && professores.TryGetValue(c.Professor, out var p) ? p : null;
+                var codigo = $"CUR-{c.Id:D3}";
+                if (codigosExistentes.Contains(codigo)) continue;
+
+                Professor? prof = c.Professor != null && professores.TryGetValue(SepararTitulo(c.Professor).Nome, out var p) ? p : null;
                 var curso = new Curso
                 {
-                    Codigo = $"CUR-{c.Id:D3}", Titulo = c.Titulo, Categoria = c.Categoria, Area = c.Area,
+                    Codigo = codigo, Titulo = c.Titulo, Categoria = c.Categoria, Area = c.Area,
                     CargaHoraria = c.CargaHoraria, NivelMinimo = c.NivelMinimo, ImagemUrl = c.ImagemUrl,
                     Avaliacao = (decimal)c.Avaliacao, Professor = prof, Ativo = true
                 };

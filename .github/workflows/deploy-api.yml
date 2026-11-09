@@ -10,7 +10,7 @@ on:
 
 env:
   # Nome do App Service criado no Azure (precisa bater com a URL usada no site/app)
-  AZURE_WEBAPP_NAME: cursaaqui-api
+  AZURE_WEBAPP_NAME: cursaaqui-api-guile
   PROJECT_PATH: Cursa-API/Cursa-API/CursaAqui_API.csproj
 
 permissions:

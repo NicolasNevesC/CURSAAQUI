@@ -9,7 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { api, API_URL } from '@/lib/api';
+import { api, API_URL, SITE_URL } from '@/lib/api';
 import type { CursoDetalhe, Material } from '@/lib/types';
 import { useApi } from '@/lib/use-api';
 
@@ -39,8 +39,9 @@ export default function CursoScreen() {
   }
 
   function abrirMaterial(m: Material) {
-    // Uploads da API vêm como caminho relativo (/uploads/...)
-    const url = /^https?:\/\//.test(m.urlConteudo) ? m.urlConteudo : `${API_URL}${m.urlConteudo}`;
+    // Uploads da API vêm como /uploads/...; apostilas do catálogo como materiais/... (site no GitHub Pages)
+    const u = m.urlConteudo;
+    const url = /^https?:\/\//.test(u) ? u : u.startsWith('/') ? `${API_URL}${u}` : `${SITE_URL}/${u}`;
     WebBrowser.openBrowserAsync(url);
   }
 

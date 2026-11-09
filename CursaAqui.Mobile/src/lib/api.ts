@@ -5,7 +5,10 @@
  * Endereço da API: variável EXPO_PUBLIC_API_URL (arquivo .env).
  */
 
-export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'https://cursaaqui-api.azurewebsites.net').replace(/\/+$/, '');
+export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'https://cursaaqui-api-guile-gzbyahekb0a3hacg.canadacentral-01.azurewebsites.net').replace(/\/+$/, '');
+
+// Site no GitHub Pages, onde ficam as apostilas em PDF do catálogo (materiais/...)
+export const SITE_URL = 'https://nicolasnevesc.github.io/CURSAAQUI/site_cursaaqui';
 
 // No plano gratuito a API e o banco "dormem"; a primeira chamada pode levar ~1 min.
 const TIMEOUT_MS = 90_000;

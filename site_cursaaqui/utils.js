@@ -11,7 +11,7 @@
 const API_BASE_URL =
   ["localhost", "127.0.0.1", ""].includes(window.location.hostname)
     ? "http://localhost:5035"
-    : "https://cursaaqui-api.azurewebsites.net";
+    : "https://cursaaqui-api-guile-gzbyahekb0a3hacg.canadacentral-01.azurewebsites.net";
 
 // Escapa caracteres especiais de HTML. Converte o valor para
 // string (null/undefined viram "") antes de escapar.
